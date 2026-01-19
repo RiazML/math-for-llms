@@ -1,0 +1,39 @@
+# Mathematics for AI/ML - Python Dependencies
+# ==========================================
+
+# Core Scientific Computing
+numpy>=1.20.0
+scipy>=1.7.0
+
+# Data Manipulation
+pandas>=1.3.0
+
+# Visualization
+matplotlib>=3.4.0
+seaborn>=0.11.0
+plotly>=5.0.0
+
+# Jupyter Support
+jupyter>=1.0.0
+jupyterlab>=3.0.0
+ipywidgets>=7.6.0
+notebook>=6.4.0
+
+# Symbolic Mathematics
+sympy>=1.9.0
+
+# Machine Learning (for examples)
+scikit-learn>=1.0.0
+
+# Testing
+pytest>=6.0.0
+pytest-cov>=2.12.0
+
+# Code Quality
+black>=21.0.0
+flake8>=3.9.0
+mypy>=0.910
+
+# Optional: Deep Learning (for neural network examples)
+# torch>=1.9.0
+# tensorflow>=2.6.0
