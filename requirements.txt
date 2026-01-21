@@ -35,5 +35,6 @@ flake8>=3.9.0
 mypy>=0.910
 
 # Optional: Deep Learning (for neural network examples)
-# torch>=1.9.0
+torch>=2.0.0
+torchvision>=0.15.0
 # tensorflow>=2.6.0
