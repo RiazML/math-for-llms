@@ -460,6 +460,143 @@ def example_memory_usage():
 
 
 # =============================================================================
+# EXAMPLE 7: Quantization for ML Deployment
+# =============================================================================
+
+def example_quantization():
+    """
+    Demonstrate quantization techniques used in ML model deployment.
+    
+    Quantization reduces model size and speeds up inference by using
+    lower-precision numbers (e.g., int8 instead of float32).
+    """
+    print("\n" + "=" * 60)
+    print("EXAMPLE 7: Quantization for ML Deployment")
+    print("=" * 60)
+    
+    # 1. Basic INT8 Quantization
+    print("\n1. Basic INT8 Quantization:")
+    print("-" * 40)
+    
+    def quantize_symmetric(weights: np.ndarray, bits: int = 8) -> tuple:
+        """Symmetric quantization: maps [-max, +max] to [-127, +127]."""
+        max_val = np.max(np.abs(weights))
+        scale = max_val / (2**(bits-1) - 1)  # 127 for int8
+        quantized = np.round(weights / scale).astype(np.int8)
+        return quantized, scale
+    
+    def dequantize_symmetric(quantized: np.ndarray, scale: float) -> np.ndarray:
+        """Convert quantized values back to float."""
+        return quantized.astype(np.float32) * scale
+    
+    # Simulate neural network weights
+    np.random.seed(42)
+    original_weights = np.random.randn(4, 4).astype(np.float32) * 0.5
+    
+    print("Original weights (float32):")
+    print(original_weights)
+    print(f"Memory: {original_weights.nbytes} bytes")
+    
+    # Quantize to int8
+    quantized, scale = quantize_symmetric(original_weights)
+    print(f"\nQuantized weights (int8):")
+    print(quantized)
+    print(f"Memory: {quantized.nbytes} bytes (4x compression!)")
+    print(f"Scale factor: {scale:.6f}")
+    
+    # Dequantize and check error
+    reconstructed = dequantize_symmetric(quantized, scale)
+    error = np.abs(original_weights - reconstructed)
+    print(f"\nReconstruction error:")
+    print(f"  Mean error: {error.mean():.6f}")
+    print(f"  Max error: {error.max():.6f}")
+    
+    # 2. Asymmetric Quantization (for ReLU outputs)
+    print("\n2. Asymmetric Quantization:")
+    print("-" * 40)
+    
+    def quantize_asymmetric(values: np.ndarray, bits: int = 8) -> tuple:
+        """Asymmetric quantization: maps [min, max] to [0, 255]."""
+        min_val = values.min()
+        max_val = values.max()
+        scale = (max_val - min_val) / (2**bits - 1)
+        zero_point = int(np.round(-min_val / scale))
+        quantized = np.round(values / scale + zero_point).astype(np.uint8)
+        return quantized, scale, zero_point
+    
+    def dequantize_asymmetric(quantized: np.ndarray, scale: float, 
+                               zero_point: int) -> np.ndarray:
+        """Convert asymmetrically quantized values back to float."""
+        return (quantized.astype(np.float32) - zero_point) * scale
+    
+    # Simulate ReLU activations (all non-negative)
+    relu_activations = np.maximum(0, np.random.randn(8) * 2 + 1)
+    print(f"ReLU activations: {relu_activations}")
+    
+    q_asym, scale_a, zp = quantize_asymmetric(relu_activations)
+    print(f"Quantized (uint8): {q_asym}")
+    print(f"Scale: {scale_a:.6f}, Zero point: {zp}")
+    
+    reconstructed_a = dequantize_asymmetric(q_asym, scale_a, zp)
+    error_a = np.abs(relu_activations - reconstructed_a)
+    print(f"Max reconstruction error: {error_a.max():.6f}")
+    
+    # 3. INT4 Quantization (for LLMs)
+    print("\n3. INT4 Quantization (LLM-style):")
+    print("-" * 40)
+    
+    def quantize_int4(weights: np.ndarray) -> tuple:
+        """4-bit quantization (range: -8 to 7 or 0 to 15)."""
+        max_val = np.max(np.abs(weights))
+        scale = max_val / 7  # 4-bit signed: -8 to 7
+        quantized = np.clip(np.round(weights / scale), -8, 7).astype(np.int8)
+        return quantized, scale
+    
+    # Simulate a larger weight matrix
+    large_weights = np.random.randn(16, 16).astype(np.float32) * 0.3
+    
+    q_int8, s8 = quantize_symmetric(large_weights, bits=8)
+    q_int4, s4 = quantize_int4(large_weights)
+    
+    r_int8 = dequantize_symmetric(q_int8, s8)
+    r_int4 = q_int4.astype(np.float32) * s4
+    
+    print(f"Original shape: {large_weights.shape}")
+    print(f"Original memory: {large_weights.nbytes} bytes")
+    print(f"\nINT8 quantization:")
+    print(f"  Memory: {q_int8.nbytes} bytes")
+    print(f"  Mean error: {np.abs(large_weights - r_int8).mean():.6f}")
+    print(f"\nINT4 quantization:")
+    print(f"  Memory: {q_int4.nbytes} bytes (would be {q_int4.nbytes//2} with packing)")
+    print(f"  Mean error: {np.abs(large_weights - r_int4).mean():.6f}")
+    
+    # 4. Quantization-induced accuracy analysis
+    print("\n4. Impact on Matrix Multiplication:")
+    print("-" * 40)
+    
+    # Simulate a linear layer: y = Wx
+    W = np.random.randn(64, 32).astype(np.float32) * 0.1
+    x = np.random.randn(32).astype(np.float32)
+    
+    # Full precision
+    y_fp32 = W @ x
+    
+    # Quantized computation
+    W_q, W_scale = quantize_symmetric(W)
+    W_deq = dequantize_symmetric(W_q, W_scale)
+    y_quantized = W_deq @ x
+    
+    # Compare
+    mse = np.mean((y_fp32 - y_quantized) ** 2)
+    relative_error = np.mean(np.abs(y_fp32 - y_quantized) / (np.abs(y_fp32) + 1e-8))
+    
+    print(f"Output vector size: {len(y_fp32)}")
+    print(f"MSE (FP32 vs INT8): {mse:.8f}")
+    print(f"Mean relative error: {relative_error*100:.4f}%")
+    print(f"\nConclusion: INT8 quantization preserves accuracy remarkably well!")
+
+
+# =============================================================================
 # MAIN
 # =============================================================================
 
@@ -474,6 +611,7 @@ if __name__ == "__main__":
     example_complex_numbers()
     example_visualize_number_systems()
     example_memory_usage()
+    example_quantization()
     
     print("\n" + "=" * 60)
     print("All examples completed!")

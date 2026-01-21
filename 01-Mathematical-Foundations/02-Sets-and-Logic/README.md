@@ -4,6 +4,14 @@
 
 Set theory and mathematical logic form the foundational language of mathematics and computer science. Understanding sets is essential for probability theory, while logical reasoning underpins algorithm design and formal proofs in ML theory.
 
+In AI/ML practice, these ideas show up constantly:
+
+- **Dataset slices and splits**: train/val/test as subsets; filtering examples is set intersection/difference.
+- **Feature engineering**: selected features are a subset of all features; dropped features are a set difference.
+- **Model evaluation**: confusion-matrix terms (TP/FP/FN/TN) are intersections of predicted/actual index sets.
+- **Neural network masking**: attention/padding masks are boolean logic (AND/OR/NOT) over index sets.
+- **Information retrieval & recommenders**: similarity and overlap (e.g., Jaccard) are set operations.
+
 ## Prerequisites
 
 - Basic algebra
@@ -15,6 +23,22 @@ Set theory and mathematical logic form the foundational language of mathematics 
 2. Understand logical connectives and quantifiers
 3. Apply set theory to probability and data structures
 4. Use logical reasoning in proofs and algorithms
+
+---
+
+## Table of Contents
+
+1. [Set Basics](#1-set-basics)
+2. [Set Relationships](#2-set-relationships)
+3. [Set Operations](#3-set-operations)
+4. [Propositional Logic](#4-propositional-logic)
+5. [Logical Equivalences](#5-logical-equivalences)
+6. [Quantifiers](#6-quantifiers)
+7. [Applications in ML/AI](#7-applications-in-mlai)
+8. [Common Pitfalls](#8-common-pitfalls)
+9. [Interview Questions](#9-interview-questions)
+10. [Summary](#10-summary)
+11. [Further Reading](#11-further-reading)
 
 ---
 
@@ -309,6 +333,8 @@ $$\forall x \, \exists y \, P(x, y) \neq \exists y \, \forall x \, P(x, y)$$
 
 ## 7. Applications in ML/AI
 
+These are common places where set operations and logic directly translate into ML code.
+
 ### 1. Probability Theory
 
 Sets form the foundation of probability:
@@ -336,11 +362,14 @@ SELECT * FROM users WHERE age > 18 AND country = 'US'  -- ∧
 SELECT * FROM users WHERE age < 18 OR age > 65         -- ∨
 ```
 
-### 3. Boolean Indexing
+### 3. Boolean Indexing (Pandas/NumPy)
 
 ```python
 # NumPy/Pandas use logical operations
 import numpy as np
+import pandas as pd
+
+# NumPy boolean indexing
 arr = np.array([1, 2, 3, 4, 5])
 
 # Logical AND
@@ -351,34 +380,117 @@ mask = (arr < 2) | (arr > 4)  # [True, False, False, False, True]
 
 # Logical NOT
 mask = ~(arr == 3)  # [True, True, False, True, True]
+
+# De Morgan's Law in Pandas
+df = pd.DataFrame({'age': [25, 17, 35, 15], 'income': [50000, 0, 75000, 0]})
+
+# Select adults OR high earners
+mask1 = (df['age'] >= 18) | (df['income'] > 60000)
+
+# Equivalent using De Morgan: NOT (NOT adult AND NOT high earner)
+mask2 = ~((df['age'] < 18) & (df['income'] <= 60000))
+
+# mask1 and mask2 are identical! (De Morgan's Law)
+assert (mask1 == mask2).all()
 ```
 
-### 4. Feature Selection
+### 4. Feature Selection (sklearn)
 
+```python
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.datasets import load_iris
+import numpy as np
+
+# Load dataset
+X, y = load_iris(return_X_y=True)
+feature_names = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
+
+# Feature sets
+all_features = set(feature_names)           # Universe U
+selected = SelectKBest(f_classif, k=2).fit(X, y)
+selected_mask = selected.get_support()
+selected_features = set(np.array(feature_names)[selected_mask])  # Subset S
+
+dropped_features = all_features - selected_features  # Set difference U - S
+
+print(f"All features:      {all_features}")
+print(f"Selected features: {selected_features}")  # {'petal_length', 'petal_width'}
+print(f"Dropped features:  {dropped_features}")   # {'sepal_length', 'sepal_width'}
+
+# Feature unions and intersections across datasets
+features_dataset1 = {'age', 'income', 'location', 'education'}
+features_dataset2 = {'age', 'income', 'credit_score', 'employment'}
+
+common_features = features_dataset1 & features_dataset2  # {'age', 'income'}
+all_features = features_dataset1 | features_dataset2     # Combined for join
 ```
-Features as sets:
-All features: U = {f1, f2, f3, ..., fn}
-Selected features: S ⊆ U
-Dropped features: U - S
 
-Feature intersection:
-Common features across datasets:
-Features_A ∩ Features_B
+### 5. Transformer Attention Masking (PyTorch)
+
+Logic operations are essential in transformer attention:
+
+```python
+import torch
+import torch.nn.functional as F
+
+# Causal (autoregressive) attention mask
+# Lower triangular = can only attend to previous positions
+seq_len = 4
+causal_mask = torch.tril(torch.ones(seq_len, seq_len))
+# [[1, 0, 0, 0],
+#  [1, 1, 0, 0],
+#  [1, 1, 1, 0],
+#  [1, 1, 1, 1]]
+
+# Padding mask (ignore PAD tokens)
+# Sequence: ["Hello", "World", PAD, PAD]
+padding_mask = torch.tensor([True, True, False, False])  # True = valid
+
+# Combined mask using logical AND
+# Can attend if: (not future) AND (not padding)
+combined_mask = causal_mask.bool() & padding_mask.unsqueeze(0)
+
+# In attention: masked positions get -inf before softmax
+attention_scores = torch.randn(seq_len, seq_len)
+attention_scores = attention_scores.masked_fill(~combined_mask, float('-inf'))
+attention_weights = F.softmax(attention_scores, dim=-1)
+
+# De Morgan in masking:
+# ~(future | padding) = ~future & ~padding
 ```
 
-### 5. Classification Metrics
+### 6. Classification Metrics
 
+```python
+import numpy as np
+from sklearn.metrics import confusion_matrix
+
+# Predictions and ground truth as SETS of indices
+y_true = np.array([1, 1, 0, 1, 0, 0, 1, 0])
+y_pred = np.array([1, 0, 0, 1, 0, 1, 1, 0])
+
+# Convert to sets of positive indices
+actual_positive = set(np.where(y_true == 1)[0])    # {0, 1, 3, 6}
+predicted_positive = set(np.where(y_pred == 1)[0]) # {0, 3, 5, 6}
+actual_negative = set(np.where(y_true == 0)[0])    # {2, 4, 5, 7}
+predicted_negative = set(np.where(y_pred == 0)[0]) # {1, 2, 4, 7}
+
+# Confusion matrix as SET OPERATIONS
+TP = predicted_positive & actual_positive   # {0, 3, 6}
+FP = predicted_positive & actual_negative   # {5}
+FN = predicted_negative & actual_positive   # {1}
+TN = predicted_negative & actual_negative   # {2, 4, 7}
+
+# Metrics
+precision = len(TP) / len(predicted_positive)  # 3/4 = 0.75
+recall = len(TP) / len(actual_positive)        # 3/4 = 0.75
+f1 = 2 * precision * recall / (precision + recall)
+
+print(f"TP: {TP}, FP: {FP}, FN: {FN}, TN: {TN}")
+print(f"Precision: {precision:.2f}, Recall: {recall:.2f}, F1: {f1:.2f}")
 ```
-True Positives:  TP = Predicted_Positive ∩ Actual_Positive
-False Positives: FP = Predicted_Positive ∩ Actual_Negative
-False Negatives: FN = Predicted_Negative ∩ Actual_Positive
-True Negatives:  TN = Predicted_Negative ∩ Actual_Negative
 
-Precision = |TP| / |Predicted_Positive|
-Recall = |TP| / |Actual_Positive|
-```
-
-### 6. Logical Rules in Expert Systems
+### 7. Logical Rules in Expert Systems
 
 ```
 Rule-based systems use logical implications:
@@ -389,9 +501,299 @@ Chaining rules:
 (p → q) ∧ (q → r) ⊢ (p → r)
 ```
 
+### 8. NLP and Text Processing
+
+Sets are fundamental in Natural Language Processing:
+
+```python
+# Bag-of-Words treats documents as sets of words
+from sklearn.feature_extraction.text import CountVectorizer
+
+doc1 = "machine learning is amazing"
+doc2 = "deep learning is powerful"
+
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform([doc1, doc2])
+
+# Vocabulary is a SET of unique words
+vocab = set(vectorizer.get_feature_names_out())
+# {'amazing', 'deep', 'is', 'learning', 'machine', 'powerful'}
+
+# Common words (intersection) - useful for similarity
+words1 = set(doc1.split())
+words2 = set(doc2.split())
+common = words1 & words2  # {'learning', 'is'}
+
+# Unique words (symmetric difference) - useful for diversity
+unique = words1 ^ words2  # {'machine', 'amazing', 'deep', 'powerful'}
+```
+
+**ML Applications:**
+
+- **TF-IDF**: Computes over vocabulary sets
+- **Stop word removal**: Set difference (words - stopwords)
+- **Tokenization**: Creates word sets from text
+
+### 9. Recommender Systems
+
+Set operations power collaborative filtering:
+
+```python
+import numpy as np
+
+# Users as sets of items they liked
+user_A = {'movie1', 'movie2', 'movie3', 'movie4'}
+user_B = {'movie2', 'movie3', 'movie5', 'movie6'}
+
+# Jaccard Similarity using set operations
+def jaccard_similarity(set1, set2):
+    intersection = len(set1 & set2)  # A ∩ B
+    union = len(set1 | set2)          # A ∪ B
+    return intersection / union
+
+similarity = jaccard_similarity(user_A, user_B)
+# = |{movie2, movie3}| / |{movie1-6}| = 2/6 = 0.33
+
+# Items to recommend to user_A (items B liked but A hasn't seen)
+recommendations = user_B - user_A  # {'movie5', 'movie6'}
+```
+
+**ML Applications:**
+
+- **Collaborative filtering**: User-item set overlaps
+- **Content-based filtering**: Feature set similarity
+- **Association rules**: Itemset mining (Apriori algorithm)
+
+### 10. Neural Networks and Logic Gates
+
+Neural networks evolved from logical foundations:
+
+```
+PERCEPTRON AS LOGIC GATE
+═══════════════════════════════════════════════════════════════════════
+
+AND Gate (w1=1, w2=1, threshold=1.5):
+┌─────┬─────┬───────────────┬────────┐
+│ x1  │ x2  │ x1+x2 > 1.5?  │ Output │
+├─────┼─────┼───────────────┼────────┤
+│  0  │  0  │   0 > 1.5? N  │   0    │
+│  0  │  1  │   1 > 1.5? N  │   0    │
+│  1  │  0  │   1 > 1.5? N  │   0    │
+│  1  │  1  │   2 > 1.5? Y  │   1    │
+└─────┴─────┴───────────────┴────────┘
+
+OR Gate (w1=1, w2=1, threshold=0.5):
+┌─────┬─────┬───────────────┬────────┐
+│ x1  │ x2  │ x1+x2 > 0.5?  │ Output │
+├─────┼─────┼───────────────┼────────┤
+│  0  │  0  │   0 > 0.5? N  │   0    │
+│  0  │  1  │   1 > 0.5? Y  │   1    │
+│  1  │  0  │   1 > 0.5? Y  │   1    │
+│  1  │  1  │   2 > 0.5? Y  │   1    │
+└─────┴─────┴───────────────┴────────┘
+
+XOR Problem (NOT linearly separable - led to multi-layer networks!):
+┌─────┬─────┬────────┐
+│ x1  │ x2  │ XOR    │   The XOR problem motivated
+├─────┼─────┼────────┤   hidden layers and modern
+│  0  │  0  │   0    │   deep learning!
+│  0  │  1  │   1    │
+│  1  │  0  │   1    │   XOR = (x1 ∧ ¬x2) ∨ (¬x1 ∧ x2)
+│  1  │  1  │   0    │
+└─────┴─────┴────────┘
+```
+
+### 11. Knowledge Graphs & Semantic Web
+
+Predicate logic powers knowledge representation:
+
+```
+KNOWLEDGE GRAPHS USE FIRST-ORDER LOGIC
+═══════════════════════════════════════════════════════════════════════
+
+RDF Triples as Logical Predicates:
+┌────────────────────────────────────────────────────────────────────┐
+│                                                                    │
+│  Triple: (Albert_Einstein, born_in, Germany)                       │
+│  Logic:  born_in(Albert_Einstein, Germany)                         │
+│                                                                    │
+│  Triple: (Germany, located_in, Europe)                             │
+│  Logic:  located_in(Germany, Europe)                               │
+│                                                                    │
+│  Inference Rule:                                                   │
+│  ∀x,y,z: (born_in(x,y) ∧ located_in(y,z)) → born_in_region(x,z)   │
+│                                                                    │
+│  Result: born_in_region(Albert_Einstein, Europe) ✓                 │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+**ML Applications:**
+
+- **Graph Neural Networks**: Node set neighborhoods
+- **Knowledge Graph Embeddings**: TransE, RotatE
+- **Question Answering**: SPARQL queries use set operations
+- **Neo4j / GraphQL**: Cypher uses logical predicates
+
+### 12. AI/ML Domain Quick Reference
+
+| Set/Logic Concept  | AI/ML Domain        | Specific Application |
+| ------------------ | ------------------- | -------------------- |
+| Set membership (∈) | NLP                 | Vocabulary lookup    |
+| Intersection (∩)   | Recommenders        | Common items/users   |
+| Union (∪)          | Feature Engineering | Combine feature sets |
+| Difference (−)     | Recommenders        | Items to recommend   |
+| Jaccard Similarity | Clustering          | Document similarity  |
+| Boolean AND (∧)    | Neural Networks     | Perceptron AND gate  |
+| Boolean OR (∨)     | Neural Networks     | Perceptron OR gate   |
+| Implication (→)    | Expert Systems      | IF-THEN rules        |
+| Predicate Logic    | Knowledge Graphs    | RDF triples, SPARQL  |
+| Quantifiers (∀,∃)  | Formal Verification | Neural net proofs    |
+
 ---
 
-## 8. Summary
+## 8. Common Pitfalls
+
+### Pitfall 1: Confusing ⊂ and ⊆
+
+```
+COMMON MISTAKE:
+┌─────────────────────────────────────────────────────────────────────┐
+│  ⊆ means "is a subset of" (may be equal)                            │
+│  ⊂ means "is a proper subset of" (must be strictly smaller)         │
+│                                                                     │
+│  {1,2} ⊆ {1,2}  ✓ TRUE  (equal sets are subsets)                    │
+│  {1,2} ⊂ {1,2}  ✗ FALSE (equal sets are NOT proper subsets)         │
+│                                                                     │
+│  {1,2} ⊆ {1,2,3}  ✓ TRUE                                            │
+│  {1,2} ⊂ {1,2,3}  ✓ TRUE                                            │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Pitfall 2: Implication (→) Truth Table
+
+```
+COMMON MISTAKE: Misunderstanding when p → q is TRUE
+
+p → q is FALSE *only* when p is TRUE and q is FALSE!
+
+┌───┬───┬───────┬────────────────────────────────────────────────────┐
+│ p │ q │ p → q │ Explanation                                        │
+├───┼───┼───────┼────────────────────────────────────────────────────┤
+│ T │ T │   T   │ Promise kept                                       │
+│ T │ F │   F   │ Promise broken (only false case!)                  │
+│ F │ T │   T   │ No promise made, so not broken (vacuously true)    │
+│ F │ F │   T   │ No promise made, so not broken (vacuously true)    │
+└───┴───┴───────┴────────────────────────────────────────────────────┘
+
+Example: "If it rains, I will bring an umbrella"
+- Rains + umbrella = promise kept (T)
+- Rains + no umbrella = promise broken (F)
+- No rain + umbrella = I chose to, no promise broken (T)
+- No rain + no umbrella = no promise made about this case (T)
+```
+
+### Pitfall 3: Order of Quantifiers Matters
+
+```
+COMMON MISTAKE: Thinking ∀x∃y and ∃y∀x are the same
+
+∀x ∃y (x + y = 0)  ≠  ∃y ∀x (x + y = 0)
+    ↓                      ↓
+"For each x,            "There is ONE y
+ there's a y             that works for
+ (depends on x)"         ALL x"
+
+∀x ∃y (x + y = 0): TRUE  (y = -x works for each x)
+∃y ∀x (x + y = 0): FALSE (no single y works for all x)
+```
+
+### Pitfall 4: Empty Set Subtleties
+
+```
+∅ ⊆ A    TRUE (for any set A, including ∅ itself)
+∅ ∈ A    Usually FALSE (unless A explicitly contains ∅)
+
+Example:
+A = {1, 2, 3}
+∅ ⊆ A  ✓ TRUE (empty set is subset of everything)
+∅ ∈ A  ✗ FALSE (empty set is not an element of A)
+
+B = {1, 2, ∅}
+∅ ⊆ B  ✓ TRUE
+∅ ∈ B  ✓ TRUE (B explicitly contains ∅ as an element)
+```
+
+### Pitfall 5: Set vs Element
+
+```python
+# In Python, be careful with set membership
+
+A = {1, 2, 3}
+B = {{1, 2}, 3}  # B contains a SET as an element!
+
+1 in A        # True (1 is element of A)
+{1, 2} in A   # False ({1,2} is not an element of A)
+{1, 2} in B   # True ({1,2} IS an element of B)
+
+# Common bug in ML:
+features = {'age', 'income'}
+if 'age' in features:     # Correct
+    pass
+if {'age'} in features:   # Wrong! {'age'} is a set, not a string
+    pass
+```
+
+---
+
+## 9. Interview Questions
+
+### Basic Questions
+
+1. **Q: What is the difference between ∪ and ∩?**
+
+   A: Union (∪) includes elements in _either_ set (OR), while intersection (∩) includes only elements in _both_ sets (AND).
+   Example: {1,2} ∪ {2,3} = {1,2,3}, but {1,2} ∩ {2,3} = {2}.
+
+2. **Q: Explain De Morgan's Laws for sets.**
+
+   A: (A ∪ B)ᶜ = Aᶜ ∩ Bᶜ and (A ∩ B)ᶜ = Aᶜ ∪ Bᶜ. The complement of a union is the intersection of complements, and vice versa. This is used in query optimization and boolean algebra.
+
+3. **Q: What is the power set? What is its cardinality?**
+
+   A: The power set 𝒫(A) is the set of all subsets of A, including ∅ and A itself. If |A| = n, then |𝒫(A)| = 2ⁿ. For A = {1,2}, 𝒫(A) = {∅, {1}, {2}, {1,2}}.
+
+4. **Q: When is p → q false?**
+
+   A: Only when p is TRUE and q is FALSE. This is the only case where a promise/implication is broken. If p is false, the implication is vacuously true.
+
+### Advanced Questions
+
+5. **Q: How are sets used in database operations?**
+
+   A: SQL operations correspond to set operations: UNION (∪), INTERSECT (∩), EXCEPT (set difference). WHERE clauses use logical operations. Understanding set theory helps optimize queries.
+
+6. **Q: Explain the connection between sets and probability.**
+
+   A: In probability, the sample space Ω is a set of all outcomes. Events are subsets of Ω. P(A ∪ B) = P(A) + P(B) - P(A ∩ B) comes directly from the inclusion-exclusion principle for set cardinality.
+
+7. **Q: What are confusion matrix metrics in set notation?**
+
+   A:
+   - TP = Predicted_Positive ∩ Actual_Positive
+   - FP = Predicted_Positive ∩ Actual_Negative
+   - Precision = |TP| / |Predicted_Positive|
+   - Recall = |TP| / |Actual_Positive|
+
+8. **Q: How would you negate "All ML models overfit"?**
+
+   A: Original: ∀x (Model(x) → Overfits(x))
+   Negation: ∃x (Model(x) ∧ ¬Overfits(x))
+   In words: "There exists an ML model that does not overfit."
+
+---
+
+## 10. Summary
 
 ### Set Operations Table
 
@@ -420,6 +822,16 @@ $$|A \cup B| = |A| + |B| - |A \cap B|$$
 $$|A \times B| = |A| \cdot |B|$$
 $$|\mathcal{P}(A)| = 2^{|A|}$$
 
+### Set Theory to Logic Mapping
+
+| Set Operation | Logical Operation |
+| ------------- | ----------------- |
+| A ∪ B         | p ∨ q             |
+| A ∩ B         | p ∧ q             |
+| Aᶜ            | ¬p                |
+| A ⊆ B         | p → q             |
+| A = B         | p ↔ q             |
+
 ---
 
 ## Exercises
@@ -429,11 +841,38 @@ $$|\mathcal{P}(A)| = 2^{|A|}$$
 3. Construct truth table for (p → q) ∧ (q → r) → (p → r)
 4. Negate: "For all ε > 0, there exists δ > 0 such that |f(x) - L| < ε"
 5. Express classification metrics using set notation
+6. **NEW**: Prove that ∅ ⊆ A for any set A
+7. **NEW**: Show that p → q ≡ ¬p ∨ q using a truth table
 
 ---
 
-## References
+## 11. Further Reading
 
-1. Rosen, K. - "Discrete Mathematics and Its Applications"
-2. Halmos, P. - "Naive Set Theory"
-3. MIT 6.042J - Mathematics for Computer Science
+### Courses
+
+- **Stanford CS103** (sets, logic, proofs): https://web.stanford.edu/class/cs103/
+- **MIT 6.042J** (math for CS): https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-fall-2010/
+- **Math for Machine Learning (book + course site)**: https://mml-book.github.io/
+
+### Books
+
+- **How to Prove It** (Velleman)
+- **Mathematics for Machine Learning** (Deisenroth et al., free): https://mml-book.github.io/
+- **Deep Learning** (Goodfellow et al., free): https://www.deeplearningbook.org/
+
+### Tools
+
+- Truth tables: https://web.stanford.edu/class/cs103/tools/truth-table-tool/
+- Venn diagrams: https://www.geogebra.org/m/vQ4cWXE6
+- Proof checker: https://proofs.openlogicproject.org/
+
+---
+
+## What's Next?
+
+After mastering sets and logic, proceed to:
+→ [Functions and Mappings](../03-Functions-and-Mappings/README.md) - Mathematical functions essential for ML
+
+---
+
+_Last updated: January 2025_

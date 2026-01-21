@@ -16,7 +16,22 @@ Summation (Σ) and product (Π) notation are compact ways to express repeated ad
 2. Read and write product notation
 3. Apply standard manipulation rules
 4. Recognize common sums and products
-5. Use double and nested summations
+
+## Table of Contents
+
+1. [Summation Notation](#1-summation-notation-sigma-notation)
+2. [Summation Properties](#2-summation-properties)
+3. [Common Summation Formulas](#3-common-summation-formulas)
+4. [Product Notation](#4-product-notation-pi-notation)
+5. [Product Properties](#5-product-properties)
+6. [Double Summations](#6-double-summations)
+7. [AI/ML Domain Connections](#7-aiml-domain-connections)
+8. [Real-World Code Examples](#8-real-world-code-examples)
+9. [Manipulation Techniques](#9-manipulation-techniques)
+10. [Educational Extras](#10-educational-extras)
+11. [Common Patterns](#11-common-patterns)
+12. [References & Further Reading](#12-references--further-reading)
+13. [Summary](#13-summary)
 
 ---
 
@@ -229,55 +244,127 @@ This sums over the upper triangular portion.
 
 ---
 
-## 7. Applications in ML/AI
+## 7. AI/ML Domain Connections
 
-### 1. Mean (Average)
+### 1. Einstein Summation Convention
 
-$$\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i$$
+Modern Deep Learning frameworks (PyTorch, TensorFlow, NumPy) use `einsum` to represent complex tensor operations compactly. The rule is: **Repeated indices are summed over.**
 
-### 2. Variance
+- **Matrix Multiplication**: $C_{ij} = \sum_k A_{ik} B_{kj}$
+  - `einsum('ik,kj->ij', A, B)`
+- **Dot Product**: $s = \sum_i a_i b_i$
+  - `einsum('i,i->', a, b)`
+- **Batch Matrix Multiplication**: $C_{bij} = \sum_k A_{bik} B_{bkj}$
+  - `einsum('bik,bkj->bij', A, B)`
 
-$$\sigma^2 = \frac{1}{n} \sum_{i=1}^{n} (x_i - \bar{x})^2$$
+### 2. Gradient Accumulation
 
-### 3. Mean Squared Error
+When batch sizes are too large for GPU memory, we split them into mini-batches and sum the gradients.
 
-$$\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$$
+$$\nabla_\theta \mathcal{L}_{total} = \sum_{b=1}^{B} \nabla_\theta \mathcal{L}_{batch}(b)$$
 
-### 4. Cross-Entropy Loss
+This exploits the **Linearity Property**: The derivative of a sum is the sum of derivatives.
 
-$$\mathcal{L} = -\sum_{i=1}^{C} y_i \log(\hat{y}_i)$$
+### 3. Attention Mechanisms
 
-### 5. Softmax Function
+The core of Transformer models involves a weighted sum of values, where weights are computed via softmax of dot products.
 
-$$\text{softmax}(z_i) = \frac{\exp(z_i)}{\sum_{j=1}^{K} \exp(z_j)}$$
+$$Attention(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
 
-### 6. Dot Product
+In summation notation for a single query $q$ and key-value pairs $(k_i, v_i)$:
 
-$$\mathbf{a} \cdot \mathbf{b} = \sum_{i=1}^{n} a_i b_i$$
+$$Attention(q, K, V) = \sum_{i=1}^{n} \frac{\exp(q \cdot k_i)}{\sum_{j=1}^{n} \exp(q \cdot k_j)} v_i$$
 
-### 7. Matrix Multiplication
+### 4. Expectation & Monte Carlo
 
-$$(AB)_{ij} = \sum_{k=1}^{p} a_{ik} b_{kj}$$
+In Reinforcement Learning and Variational Inference, we approximate expectations (integrals/sums) using sample averages (Monte Carlo).
 
-### 8. Likelihood Function
+$$\mathbb{E}_{x \sim p(x)}[f(x)] = \sum_{x} p(x)f(x) \approx \frac{1}{N} \sum_{i=1}^{N} f(x_i)$$
 
-$$L(\theta) = \prod_{i=1}^{n} P(x_i | \theta)$$
+where $x_i$ are samples drawn from $p(x)$. This is the **Law of Large Numbers**.
 
-### 9. Log-Likelihood
+### 5. Convolutions as Moving Sums
 
-$$\log L(\theta) = \sum_{i=1}^{n} \log P(x_i | \theta)$$
+A 1D convolution is a sum of element-wise products between a kernel $w$ and input $x$ at different offsets.
 
-### 10. Neural Network Forward Pass
+$$(x * w)[t] = \sum_{k=-K}^{K} x[t-k] w[k]$$
 
-$$a_j^{(l)} = \sigma\left(\sum_{i} w_{ji}^{(l)} a_i^{(l-1)} + b_j^{(l)}\right)$$
-
-### 11. Gradient Descent Update
-
-$$\theta_{t+1} = \theta_t - \alpha \cdot \frac{1}{n} \sum_{i=1}^{n} \nabla_\theta \mathcal{L}(x_i, y_i; \theta)$$
+In CNNs, this extends to 2D summations over height, width, and channels.
 
 ---
 
-## 8. Manipulation Techniques
+## 8. Real-World Code Examples
+
+### 1. NumPy `einsum`
+
+The most powerful tool for summation in Python.
+
+```python
+import numpy as np
+
+A = np.array([[1, 2], [3, 4]])
+B = np.array([[5, 6], [7, 8]])
+
+# Matrix Multiplication: C_ij = Σ_k A_ik * B_kj
+C = np.einsum('ik,kj->ij', A, B)
+
+# Dot Product: s = Σ_i a_i * b_i
+s = np.einsum('i,i->', A[0], B[0])
+```
+
+### 2. Vectorization vs Loops
+
+Avoid explicit Python loops for summation!
+
+```python
+# SLOW (Python loop)
+total = 0
+for x in large_array:
+    total += x
+
+# FAST (Vectorized C backend)
+total = np.sum(large_array)
+```
+
+### 3. Log-Sum-Exp Stability
+
+Computing $\log(\sum e^{x_i})$ is prone to overflow if $x_i$ is large.
+
+```python
+def log_sum_exp(x):
+    # Mathematical identity: log(Σ e^x) = a + log(Σ e^(x-a))
+    # Best 'a' is max(x)
+    a = np.max(x)
+    return a + np.log(np.sum(np.exp(x - a)))
+```
+
+### 4. Scatter Add
+
+In Graph Neural Networks (GNNs), we sum messages from neighbors. PyTorch `scatter_add` handles this.
+
+```python
+import torch
+# src: values to sum, index: destination indices
+src = torch.tensor([1, 2, 3, 4, 5, 6])
+index = torch.tensor([0, 0, 0, 1, 1, 1])
+out = torch.zeros(2, dtype=src.dtype)
+out.scatter_add_(0, index, src)
+# out[0] = 1+2+3 = 6, out[1] = 4+5+6 = 15
+```
+
+### 5. Cumulative Sum
+
+Used for masking in Transformers (causal mask) and computing integral images.
+
+```python
+x = np.array([1, 2, 3, 4])
+cumsum = np.cumsum(x)  # [1, 3, 6, 10]
+# cumsum[i] = Σ_{j=0}^{i} x[j]
+```
+
+---
+
+## 9. Manipulation Techniques
 
 ### Technique 1: Factor Out Constants
 
@@ -302,7 +389,35 @@ $$\prod_{i=1}^{n} a_i = \exp\left(\sum_{i=1}^{n} \ln(a_i)\right)$$
 
 ---
 
-## 9. Common Patterns
+## 10. Educational Extras
+
+### 1. Common Pitfalls
+
+- **Broadcasting Errors**: Adding `(3,)` vector to `(3,3)` matrix works, but `(3,)` to `(4,3)` fails. Always check shapes!
+- **Off-by-One**: $\sum_{i=1}^n$ has $n$ terms. $\sum_{i=0}^n$ has $n+1$ terms.
+- **Overflow**: $\prod p_i \to 0$ for probabilities. Use $\sum \log p_i$.
+
+### 2. Interview Questions
+
+1.  **Q: Gradient of a Sum?**
+    - A: $\nabla \sum f(x) = \sum \nabla f(x)$ by linearity.
+2.  **Q: Explain Log-Sum-Exp?**
+    - A: It's a smooth maximum function ($\approx \max(x)$) used for numerical stability in softmax.
+3.  **Q: Write Matrix Mult purely in sums?**
+    - A: $C_{ij} = \sum_{k} A_{ik} B_{kj}$.
+
+### 3. Cheat Sheet: LaTeX for Sums
+
+| Notation                              | LaTeX Code                            |
+| :------------------------------------ | :------------------------------------ |
+| $\sum_{i=1}^{n}$                      | `\sum_{i=1}^{n}`                      |
+| $\prod_{i=1}^{n}$                     | `\prod_{i=1}^{n}`                     |
+| $\underbrace{a + \cdots + a}_{n}$     | `\underbrace{a + \cdots + a}_{n}`     |
+| $\sum_{\substack{0<i<n \\ i \neq j}}$ | `\sum_{\substack{0<i<n \\ i \neq j}}` |
+
+---
+
+## 11. Common Patterns
 
 ### Pattern 1: Arithmetic Progression
 
@@ -326,7 +441,28 @@ $$E[X] = \sum_{i} x_i P(X = x_i)$$
 
 ---
 
-## 10. Summary
+## 12. References & Further Reading
+
+### Courses
+
+- **fast.ai**: https://course.fast.ai/
+- **Stanford CS229**: https://cs229.stanford.edu/
+- **MIT 18.06**: https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/
+
+### Books
+
+- **Concrete Mathematics** (Graham, Knuth, Patashnik)
+- **Deep Learning** (Goodfellow et al., free): https://www.deeplearningbook.org/
+- **Pattern Recognition and Machine Learning** (Bishop)
+
+### Key Papers / Notes
+
+- **Attention Is All You Need** (Vaswani et al.)
+- **The Matrix Calculus You Need For Deep Learning** (Parr, Howard)
+
+---
+
+## 13. Summary
 
 ### Quick Notation Reference
 
@@ -349,15 +485,20 @@ Product: Π
  | |   f(i)  means f(m) × f(m+1) × ... × f(n)
  | |
  i=m
+
+Einstein:
+─────────
+ik,kj->ij  (Matrix Multiplication)
+i,i->      (Dot Product)
 ```
 
 ### Key Properties
 
-| Summation         | Product           |
-| ----------------- | ----------------- |
-| Σ(a+b) = Σa + Σb  | Π(a·b) = Πa · Πb  |
-| Σ(ca) = c·Σa      | Π(aᶜ) = (Πa)ᶜ     |
-| log(Πa) = Σlog(a) | Πa = exp(Σlog(a)) |
+| Summation         | Product           | Einstein |
+| ----------------- | ----------------- | -------- |
+| Σ(a+b) = Σa + Σb  | Π(a·b) = Πa · Πb  | Linear   |
+| Σ(ca) = c·Σa      | Π(aᶜ) = (Πa)ᶜ     | Compact  |
+| log(Πa) = Σlog(a) | Πa = exp(Σlog(a)) | Implicit |
 
 ### ML Applications Summary
 
@@ -367,6 +508,7 @@ Product: Π
 | MSE            | $\frac{1}{n}\sum(y-\hat{y})^2$  |
 | Cross-Entropy  | $-\sum y_i \log \hat{y}_i$      |
 | Softmax        | $\frac{e^{z_i}}{\sum e^{z_j}}$  |
+| Attention      | $\sum \text{soft}(q \cdot k) v$ |
 | Likelihood     | $\prod P(x_i                    | \theta)$ |
 | Log-Likelihood | $\sum \log P(x_i                | \theta)$ |
 

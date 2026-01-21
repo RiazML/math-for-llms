@@ -13,7 +13,7 @@
 - [Repository Structure](#-repository-structure)
 - [How to Use This Repository](#-how-to-use-this-repository)
 - [Prerequisites](#-prerequisites)
-- [Phase Guide](#-phase-guide)
+- [Learning Guide](#-learning-guide)
 - [Quick Reference](#-quick-reference)
 - [Resources](#-resources)
 - [Contributing](#-contributing)
@@ -58,11 +58,9 @@ This repository provides a **complete mathematical foundation** for understandin
                     ┌───────────────────────────────────┼───────────────────────────────────┐
                     │                                   │                                   │
                     ▼                                   ▼                                   ▼
-        ┌───────────────────┐               ┌───────────────────┐               ┌───────────────────┐
-        │  PHASE 1 (Wk 1-3) │               │  PHASE 2 (Wk 4-7) │               │  PHASE 3 (Wk 8-11)│
-        │   FOUNDATIONS     │──────────────▶│  CORE LINEAR ALG  │──────────────▶│    CALCULUS       │
-        │   ⭐ Easy         │               │   ⭐⭐ Medium      │               │   ⭐⭐⭐ Medium    │
-        └───────────────────┘               └───────────────────┘               └───────────────────┘
+         ┌───────────────────┐               ┌───────────────────┐               ┌───────────────────┐
+         │     FOUNDATIONS   │──────────────▶│  CORE LINEAR ALG  │──────────────▶│     CALCULUS      │
+         └───────────────────┘               └───────────────────┘               └───────────────────┘
                     │                                   │                                   │
                     │  • Number Systems                 │  • Eigenvalues                    │  • Single Variable
                     │  • Sets & Logic                   │  • SVD                            │  • Multivariable
@@ -74,11 +72,9 @@ This repository provides a **complete mathematical foundation** for understandin
                     ┌───────────────────────────────────┼───────────────────────────────────┐
                     │                                   │                                   │
                     ▼                                   ▼                                   ▼
-        ┌───────────────────┐               ┌───────────────────┐               ┌───────────────────┐
-        │ PHASE 4 (Wk 12-16)│               │ PHASE 5 (Wk 17-19)│               │ PHASE 6 (Wk 20-21)│
-        │   PROBABILITY     │──────────────▶│   OPTIMIZATION    │──────────────▶│ INFORMATION THEORY│
-        │   ⭐⭐⭐ Medium    │               │   ⭐⭐⭐⭐ Hard    │               │   ⭐⭐⭐ Medium    │
-        └───────────────────┘               └───────────────────┘               └───────────────────┘
+         ┌───────────────────┐               ┌───────────────────┐               ┌───────────────────┐
+         │     PROBABILITY   │               │   OPTIMIZATION    │               │ INFORMATION THEORY│
+         └───────────────────┘               └───────────────────┘               └───────────────────┘
                     │                                   │                                   │
                     │  • Probability Theory             │  • Gradient Descent               │  • Entropy
                     │  • Bayes Theorem                  │  • SGD, Adam                      │  • Cross-Entropy
@@ -90,32 +86,15 @@ This repository provides a **complete mathematical foundation** for understandin
                     ┌───────────────────────────────────┼───────────────────────────────────┐
                     │                                   │                                   │
                     ▼                                   ▼                                   ▼
-        ┌───────────────────┐               ┌───────────────────┐               ┌───────────────────┐
-        │ PHASE 7 (Wk 22-24)│               │ PHASE 8 (Wk 25-26)│               │      COMPLETE     │
-        │ ADVANCED TOPICS   │──────────────▶│  ML APPLICATIONS  │──────────────▶│   🎓 MASTERY!     │
-        │   ⭐⭐⭐⭐ Hard    │               │   ⭐⭐⭐⭐⭐ Expert │               │                   │
-        └───────────────────┘               └───────────────────┘               └───────────────────┘
+         ┌───────────────────┐               ┌───────────────────┐               ┌───────────────────┐
+         │  ADVANCED TOPICS  │               │  ML APPLICATIONS  │               │      COMPLETE     │
+         └───────────────────┘               └───────────────────┘               └───────────────────┘
                     │                                   │
                     │  • Numerical Methods              │  • Backpropagation Math
                     │  • Graphical Models               │  • Attention/Transformers
                     │  • MCMC                           │  • Model-Specific Math
                     │  • Gaussian Processes             │
 ```
-
-### Time Estimates by Phase
-
-| Phase | Topics                   | Duration | Difficulty | Hours/Week |
-| ----- | ------------------------ | -------- | ---------- | ---------- |
-| 1     | Foundations              | 3 weeks  | ⭐         | 10-12      |
-| 2     | Core Linear Algebra      | 4 weeks  | ⭐⭐       | 12-15      |
-| 3     | Calculus                 | 4 weeks  | ⭐⭐⭐     | 12-15      |
-| 4     | Probability & Statistics | 5 weeks  | ⭐⭐⭐     | 12-15      |
-| 5     | Optimization             | 3 weeks  | ⭐⭐⭐⭐   | 15-18      |
-| 6     | Information Theory       | 2 weeks  | ⭐⭐⭐     | 10-12      |
-| 7     | Advanced Topics          | 3 weeks  | ⭐⭐⭐⭐   | 15-18      |
-| 8     | ML Applications          | 2 weeks  | ⭐⭐⭐⭐⭐ | 15-20      |
-
-**Total: ~26 weeks (6 months) at 12-15 hours/week**
 
 ---
 
@@ -141,7 +120,7 @@ math_for_ai/
 │   ├── 03_probability_simulations.ipynb
 │   └── ...
 │
-├── 01-Mathematical-Foundations/       # Phase 1
+ ├── 01-Mathematical-Foundations/
 │   ├── 01-Number-Systems/
 │   │   ├── README.md
 │   │   ├── examples.py
@@ -151,7 +130,7 @@ math_for_ai/
 │   ├── 04-Summation-and-Product-Notation/
 │   └── 05-Proof-Techniques/
 │
-├── 02-Linear-Algebra-Basics/          # Phase 1
+ ├── 02-Linear-Algebra-Basics/
 │   ├── 01-Vectors-and-Spaces/
 │   ├── 02-Matrix-Operations/
 │   ├── 03-Linear-Transformations/
@@ -159,7 +138,7 @@ math_for_ai/
 │   ├── 05-Gaussian-Elimination/
 │   └── 06-Vector-Spaces-Subspaces/
 │
-├── 03-Advanced-Linear-Algebra/        # Phase 2
+ ├── 03-Advanced-Linear-Algebra/
 │   ├── 01-Eigenvalues-Eigenvectors/
 │   ├── 02-Diagonalization/
 │   ├── 03-Singular-Value-Decomposition/
@@ -169,7 +148,7 @@ math_for_ai/
 │   ├── 07-Orthogonality-Projections/
 │   └── 08-Least-Squares/
 │
-├── 04-Single-Variable-Calculus/       # Phase 3
+ ├── 04-Single-Variable-Calculus/
 │   ├── 01-Limits-and-Continuity/
 │   ├── 02-Derivatives/
 │   ├── 03-Chain-Rule/
@@ -177,7 +156,7 @@ math_for_ai/
 │   ├── 05-Integration/
 │   └── 06-Taylor-Series/
 │
-├── 05-Multivariable-Calculus/         # Phase 3
+ ├── 05-Multivariable-Calculus/
 │   ├── 01-Partial-Derivatives/
 │   ├── 02-Gradients/
 │   ├── 03-Jacobian-Matrix/
@@ -187,7 +166,7 @@ math_for_ai/
 │   ├── 07-Vector-Calculus/
 │   └── 08-Lagrange-Multipliers/
 │
-├── 06-Probability-Theory/             # Phase 4
+ ├── 06-Probability-Theory/
 │   ├── 01-Probability-Basics/
 │   ├── 02-Conditional-Probability/
 │   ├── 03-Bayes-Theorem/
@@ -198,7 +177,7 @@ math_for_ai/
 │   ├── 08-Covariance-Correlation/
 │   └── 09-Law-of-Large-Numbers/
 │
-├── 07-Statistical-Inference/          # Phase 4
+ ├── 07-Statistical-Inference/
 │   ├── 01-Parameter-Estimation/
 │   ├── 02-Maximum-Likelihood-Estimation/
 │   ├── 03-Maximum-A-Posteriori/
@@ -207,7 +186,7 @@ math_for_ai/
 │   ├── 06-Bayesian-Inference/
 │   └── 07-Sampling-Methods/
 │
-├── 08-Optimization/                   # Phase 5
+ ├── 08-Optimization/
 │   ├── 01-Convex-Sets-Functions/
 │   ├── 02-Gradient-Descent/
 │   ├── 03-Stochastic-Gradient-Descent/
@@ -218,34 +197,34 @@ math_for_ai/
 │   ├── 08-Convex-Optimization/
 │   └── 09-Second-Order-Methods/
 │
-├── 09-Information-Theory/             # Phase 6
+ ├── 09-Information-Theory/
 │   ├── 01-Entropy/
 │   ├── 02-Cross-Entropy/
 │   ├── 03-KL-Divergence/
 │   ├── 04-Mutual-Information/
 │   └── 05-Information-Gain/
 │
-├── 10-Numerical-Methods/              # Phase 7
+ ├── 10-Numerical-Methods/
 │   ├── 01-Numerical-Stability/
 │   ├── 02-Floating-Point-Arithmetic/
 │   ├── 03-Numerical-Differentiation/
 │   ├── 04-Numerical-Integration/
 │   └── 05-Iterative-Methods/
 │
-├── 11-Probabilistic-Graphical-Models/ # Phase 7
+ ├── 11-Probabilistic-Graphical-Models/
 │   ├── 01-Bayesian-Networks/
 │   ├── 02-Markov-Random-Fields/
 │   ├── 03-Hidden-Markov-Models/
 │   └── 04-Inference-Algorithms/
 │
-├── 12-Advanced-Probability/           # Phase 7
+ ├── 12-Advanced-Probability/
 │   ├── 01-Markov-Chains/
 │   ├── 02-Monte-Carlo-Methods/
 │   ├── 03-MCMC/
 │   ├── 04-Variational-Inference/
 │   └── 05-Gaussian-Processes/
 │
-├── 13-Math-for-Neural-Networks/       # Phase 8
+ ├── 13-Math-for-Neural-Networks/
 │   ├── 01-Backpropagation-Math/
 │   ├── 02-Activation-Functions/
 │   ├── 03-Loss-Functions/
@@ -254,7 +233,7 @@ math_for_ai/
 │   ├── 06-Attention-Mechanism-Math/
 │   └── 07-Transformer-Math/
 │
-└── 14-Math-for-Specific-Models/       # Phase 8
+ └── 14-Math-for-Specific-Models/
     ├── 01-Linear-Regression-Theory/
     ├── 02-Logistic-Regression-Theory/
     ├── 03-SVM-Math/
@@ -326,9 +305,9 @@ If you need to brush up:
 
 ---
 
-## 📖 Phase Guide
+## 📖 Learning Guide
 
-### Phase 1: Foundations (Weeks 1-3)
+### Foundations
 
 **Goal**: Build mathematical language and basic linear algebra intuition
 
@@ -342,7 +321,7 @@ Start here to establish notation, proof techniques, and vector/matrix fundamenta
 | Vectors        | Feature vectors, embeddings          |
 | Matrices       | Weight matrices, transformations     |
 
-### Phase 2: Core Linear Algebra (Weeks 4-7)
+### Core Linear Algebra
 
 **Goal**: Master the linear algebra that powers ML
 
@@ -352,7 +331,7 @@ Start here to establish notation, proof techniques, and vector/matrix fundamenta
 | SVD         | Recommender systems, compression |
 | Projections | Least squares, linear regression |
 
-### Phase 3: Calculus (Weeks 8-11)
+### Calculus
 
 **Goal**: Understand how neural networks learn
 
@@ -363,7 +342,7 @@ Start here to establish notation, proof techniques, and vector/matrix fundamenta
 | Gradients   | Optimization direction    |
 | Hessian     | Second-order optimization |
 
-### Phase 4: Probability & Statistics (Weeks 12-16)
+### Probability & Statistics
 
 **Goal**: Reason about uncertainty in ML
 
@@ -373,7 +352,7 @@ Start here to establish notation, proof techniques, and vector/matrix fundamenta
 | Distributions | Generative models, VAEs  |
 | MLE/MAP       | Parameter estimation     |
 
-### Phase 5: Optimization (Weeks 17-19)
+### Optimization
 
 **Goal**: Master how models are trained
 
@@ -383,7 +362,7 @@ Start here to establish notation, proof techniques, and vector/matrix fundamenta
 | Adam             | State-of-the-art optimizer |
 | Constrained Opt  | SVMs, regularization       |
 
-### Phase 6: Information Theory (Weeks 20-21)
+### Information Theory
 
 **Goal**: Understand loss functions and model comparison
 
@@ -392,7 +371,7 @@ Start here to establish notation, proof techniques, and vector/matrix fundamenta
 | Cross-Entropy | Classification loss          |
 | KL Divergence | VAEs, knowledge distillation |
 
-### Phase 7: Advanced Topics (Weeks 22-24)
+### Advanced Topics
 
 **Goal**: Prepare for research-level ML
 
@@ -402,7 +381,7 @@ Start here to establish notation, proof techniques, and vector/matrix fundamenta
 | Gaussian Processes | Uncertainty quantification |
 | HMMs               | Sequence modeling          |
 
-### Phase 8: ML Applications (Weeks 25-26)
+### ML Applications
 
 **Goal**: Connect all math to real models
 

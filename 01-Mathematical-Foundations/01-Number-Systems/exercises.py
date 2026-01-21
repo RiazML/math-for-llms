@@ -319,6 +319,70 @@ def check_overflow_risk(values: np.ndarray, dtype: type = np.float32) -> dict:
 
 
 # =============================================================================
+# EXERCISE 9: INT8 Quantization (Medium)
+# =============================================================================
+
+def quantize_weights(weights: np.ndarray) -> Tuple[np.ndarray, float]:
+    """
+    Implement symmetric INT8 quantization for neural network weights.
+    
+    Symmetric quantization maps the range [-max_abs, +max_abs] to [-127, +127].
+    
+    Formula:
+        scale = max(|w|) / 127
+        quantized = round(w / scale)
+    
+    Parameters
+    ----------
+    weights : np.ndarray
+        Float32 weight tensor of any shape
+    
+    Returns
+    -------
+    Tuple[np.ndarray, float]
+        (quantized_weights as int8, scale factor)
+    
+    Example
+    -------
+    >>> w = np.array([0.5, -0.3, 0.127])
+    >>> q, s = quantize_weights(w)
+    >>> q
+    array([127, -76, 32], dtype=int8)  # approximately
+    """
+    # YOUR CODE HERE
+    pass
+
+
+def dequantize_weights(quantized: np.ndarray, scale: float) -> np.ndarray:
+    """
+    Convert quantized INT8 weights back to float32.
+    
+    Formula:
+        weights = quantized * scale
+    
+    Parameters
+    ----------
+    quantized : np.ndarray
+        INT8 quantized weights
+    scale : float
+        Scale factor from quantization
+    
+    Returns
+    -------
+    np.ndarray
+        Dequantized float32 weights
+    
+    Example
+    -------
+    >>> q = np.array([127, -76, 32], dtype=np.int8)
+    >>> dequantize_weights(q, 0.00394)
+    array([0.5, -0.3, 0.126], dtype=float32)  # approximately
+    """
+    # YOUR CODE HERE
+    pass
+
+
+# =============================================================================
 # TESTS
 # =============================================================================
 
@@ -418,6 +482,24 @@ def run_tests():
         
         result = check_overflow_risk(np.array([1e40]))
         assert result['overflow_risk'] == True
+        print("  ✓ Passed")
+    except (AssertionError, TypeError):
+        print("  ✗ Failed")
+    
+    # Test 9: quantize_weights and dequantize_weights
+    print("Test 9: quantize_weights / dequantize_weights")
+    try:
+        weights = np.array([0.5, -0.3, 0.127, -0.5], dtype=np.float32)
+        q, scale = quantize_weights(weights)
+        
+        assert q.dtype == np.int8
+        assert scale > 0
+        assert q[0] == 127  # Max value maps to 127
+        assert q[3] == -127  # Min value maps to -127
+        
+        reconstructed = dequantize_weights(q, scale)
+        assert reconstructed.dtype == np.float32
+        assert np.allclose(weights, reconstructed, rtol=0.01)
         print("  ✓ Passed")
     except (AssertionError, TypeError):
         print("  ✗ Failed")
@@ -535,6 +617,19 @@ def check_overflow_risk_solution(values: np.ndarray, dtype: type = np.float32) -
     }
 
 
+def quantize_weights_solution(weights: np.ndarray) -> Tuple[np.ndarray, float]:
+    """Solution for Exercise 9."""
+    max_abs = np.max(np.abs(weights))
+    scale = max_abs / 127
+    quantized = np.round(weights / scale).astype(np.int8)
+    return quantized, scale
+
+
+def dequantize_weights_solution(quantized: np.ndarray, scale: float) -> np.ndarray:
+    """Solution for Exercise 9."""
+    return quantized.astype(np.float32) * scale
+
+
 # Uncomment to use solutions:
 # safe_divide = safe_divide_solution
 # stable_softmax = stable_softmax_solution
@@ -545,6 +640,8 @@ def check_overflow_risk_solution(values: np.ndarray, dtype: type = np.float32) -
 # numerical_gradient = numerical_gradient_solution
 # mixed_precision_update = mixed_precision_update_solution
 # check_overflow_risk = check_overflow_risk_solution
+# quantize_weights = quantize_weights_solution
+# dequantize_weights = dequantize_weights_solution
 
 
 if __name__ == "__main__":
