@@ -4,7 +4,10 @@ Sets and Logic - Exercises
 Practice problems for set theory and logic.
 """
 
-import numpy as np
+try:
+    import numpy as np
+except ModuleNotFoundError:
+    np = None
 from itertools import product
 
 
@@ -28,11 +31,11 @@ class SetsLogicExercises:
         B = {4, 5, 6, 7, 8}
         
         # Your solutions
-        union = None
-        intersection = None
-        diff_AB = None
-        diff_BA = None
-        sym_diff = None
+        union = A | B
+        intersection = A & B
+        diff_AB = A - B
+        diff_BA = B - A
+        sym_diff = A ^ B
         
         return union, intersection, diff_AB, diff_BA, sym_diff
     
@@ -67,7 +70,19 @@ class SetsLogicExercises:
         e) ∅ ⊆ A
         f) A ⊆ A
         """
-        pass
+        A = {1, 2}
+        B = {1, 2, 3}
+        C = {1, 2, 3}
+        D = {2, 3, 4}
+
+        a = A <= B
+        b = B <= C
+        c = B < C
+        d = A <= D
+        e = set() <= A
+        f = A <= A
+
+        return a, b, c, d, e, f
     
     def solution_2(self):
         """Solution to Exercise 2."""
@@ -95,7 +110,12 @@ class SetsLogicExercises:
         c) Find |𝒫({1, 2, 3, 4})|
         d) Find |{1, 2} × {a, b, c}|
         """
-        pass
+        union_a = 5 + 7 - 3
+        intersection_b = 10 + 8 - 15
+        power_set_size_c = 2 ** 4
+        cartesian_size_d = 2 * 3
+
+        return union_a, intersection_b, power_set_size_c, cartesian_size_d
     
     def solution_3(self):
         """Solution to Exercise 3."""
@@ -132,7 +152,19 @@ class SetsLogicExercises:
         a) (A ∪ B)ᶜ = Aᶜ ∩ Bᶜ
         b) (A ∩ B)ᶜ = Aᶜ ∪ Bᶜ
         """
-        pass
+        U = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+        A = {1, 2, 3, 4, 5}
+        B = {4, 5, 6, 7}
+
+        A_c = U - A
+        B_c = U - B
+
+        lhs_a = U - (A | B)
+        rhs_a = A_c & B_c
+        lhs_b = U - (A & B)
+        rhs_b = A_c | B_c
+
+        return (lhs_a, rhs_a, lhs_a == rhs_a), (lhs_b, rhs_b, lhs_b == rhs_b)
     
     def solution_4(self):
         """Solution to Exercise 4."""
@@ -173,7 +205,29 @@ class SetsLogicExercises:
         
         (This is the hypothetical syllogism)
         """
-        pass
+        impl = lambda a, b: (not a) or b
+
+        rows = []
+        for p, q, r in product([True, False], repeat=3):
+            p_impl_q = impl(p, q)
+            q_impl_r = impl(q, r)
+            premise = p_impl_q and q_impl_r
+            p_impl_r = impl(p, r)
+            result = impl(premise, p_impl_r)
+            rows.append(
+                {
+                    "p": p,
+                    "q": q,
+                    "r": r,
+                    "p_implies_q": p_impl_q,
+                    "q_implies_r": q_impl_r,
+                    "premise": premise,
+                    "p_implies_r": p_impl_r,
+                    "result": result,
+                }
+            )
+
+        return rows
     
     def solution_5(self):
         """Solution to Exercise 5."""
@@ -209,7 +263,30 @@ class SetsLogicExercises:
         b) ¬(p → q) ≡ p ∧ ¬q
         c) p ↔ q ≡ (p → q) ∧ (q → p)
         """
-        pass
+        impl = lambda a, b: (not a) or b
+
+        table_a = []
+        table_b = []
+        table_c = []
+
+        for p, q in product([True, False], repeat=2):
+            lhs_a = impl(p, q)
+            rhs_a = (not p) or q
+            table_a.append({"p": p, "q": q, "lhs": lhs_a, "rhs": rhs_a, "equal": lhs_a == rhs_a})
+
+            lhs_b = not impl(p, q)
+            rhs_b = p and (not q)
+            table_b.append({"p": p, "q": q, "lhs": lhs_b, "rhs": rhs_b, "equal": lhs_b == rhs_b})
+
+            lhs_c = (p == q)
+            rhs_c = impl(p, q) and impl(q, p)
+            table_c.append({"p": p, "q": q, "lhs": lhs_c, "rhs": rhs_c, "equal": lhs_c == rhs_c})
+
+        return {
+            "a": {"table": table_a, "equivalent": all(row["equal"] for row in table_a)},
+            "b": {"table": table_b, "equivalent": all(row["equal"] for row in table_b)},
+            "c": {"table": table_c, "equivalent": all(row["equal"] for row in table_c)},
+        }
     
     def solution_6(self):
         """Solution to Exercise 6."""
@@ -260,7 +337,12 @@ class SetsLogicExercises:
         c) For every ε > 0, there exists δ > 0 such that |f(x) - L| < ε.
         d) If it rains, then the ground is wet.
         """
-        pass
+        return {
+            "a": "There exists a student who did not pass the exam.",
+            "b": "All prime numbers are at most 100.",
+            "c": "There exists ε > 0 such that for all δ > 0, there exists x with |x-a| < δ and |f(x)-L| ≥ ε.",
+            "d": "It rains and the ground is not wet.",
+        }
     
     def solution_7(self):
         """Solution to Exercise 7."""
@@ -297,7 +379,13 @@ class SetsLogicExercises:
         d) ∃x ∃y (x + y = 5)
         e) ∀x ∃y (xy = 1)
         """
-        pass
+        return {
+            "a": True,
+            "b": False,
+            "c": True,
+            "d": True,
+            "e": False,
+        }
     
     def solution_8(self):
         """Solution to Exercise 8."""
@@ -336,7 +424,30 @@ class SetsLogicExercises:
         c) Recall
         d) Accuracy
         """
-        pass
+        actual_pos = {1, 3, 5, 7, 9, 11, 13}
+        actual_neg = {2, 4, 6, 8, 10, 12, 14}
+        pred_pos = {1, 2, 3, 4, 5, 6, 7}
+        pred_neg = (actual_pos | actual_neg) - pred_pos
+
+        TP = pred_pos & actual_pos
+        FP = pred_pos & actual_neg
+        FN = pred_neg & actual_pos
+        TN = pred_neg & actual_neg
+
+        precision = len(TP) / len(pred_pos) if pred_pos else 0.0
+        recall = len(TP) / len(actual_pos) if actual_pos else 0.0
+        total = len(actual_pos) + len(actual_neg)
+        accuracy = (len(TP) + len(TN)) / total if total else 0.0
+
+        return {
+            "TP": TP,
+            "FP": FP,
+            "FN": FN,
+            "TN": TN,
+            "precision": precision,
+            "recall": recall,
+            "accuracy": accuracy,
+        }
     
     def solution_9(self):
         """Solution to Exercise 9."""
@@ -388,7 +499,27 @@ class SetsLogicExercises:
         b) Users who have NOT placed orders
         c) Users aged 25 OR who have orders > 200
         """
-        pass
+        users = {
+            1: ("Alice", 25),
+            2: ("Bob", 30),
+            3: ("Carol", 25),
+            4: ("Dave", 35),
+        }
+        orders = [(1, 100), (1, 200), (2, 150), (3, 300)]
+
+        all_user_ids = set(users.keys())
+        users_with_orders = {uid for uid, _amt in orders}
+        users_without_orders = all_user_ids - users_with_orders
+
+        users_age_25 = {uid for uid, (_name, age) in users.items() if age == 25}
+        users_orders_over_200 = {uid for uid, amt in orders if amt > 200}
+        users_age_25_or_orders_over_200 = users_age_25 | users_orders_over_200
+
+        return {
+            "users_with_orders": users_with_orders,
+            "users_without_orders": users_without_orders,
+            "users_age_25_or_orders_over_200": users_age_25_or_orders_over_200,
+        }
     
     def solution_10(self):
         """Solution to Exercise 10."""
