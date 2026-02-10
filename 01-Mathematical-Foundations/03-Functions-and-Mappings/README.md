@@ -543,6 +543,15 @@ Key Requirement: Jacobian determinant must be easy to compute.
 
 ---
 
+## Companion Notebooks
+
+| Notebook | Description |
+|----------|-------------|
+| [examples.ipynb](examples.ipynb) | Interactive examples: function properties, composition, activation functions, loss functions |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+
+---
+
 ## 10. Summary
 
 ### Function Properties Checklist

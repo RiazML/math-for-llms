@@ -1,5 +1,13 @@
 # Constrained Optimization
 
+> **Navigation**: [← 03-Second-Order-Methods](../03-Second-Order-Methods/) | [Optimization](../) | [05-Stochastic-Optimization →](../05-Stochastic-Optimization/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Introduction
 
 Many real-world optimization problems have constraints. In machine learning, constraints arise in SVMs, constrained regression, fairness requirements, and resource allocation. Understanding constrained optimization is essential for formulating and solving these problems.
@@ -411,6 +419,20 @@ $$\text{s.t. } |P(\hat{Y}=1|A=0) - P(\hat{Y}=1|A=1)| \leq \epsilon$$
 - KKT = necessary conditions for optimality
 - Convexity ensures KKT are sufficient
 - Choose method based on constraint structure
+
+---
+
+## Exercises
+
+1. **Lagrange Multipliers**: Minimize $f(x,y) = x^2 + y^2$ subject to $x + y = 4$ using Lagrange multipliers.
+
+2. **KKT Conditions**: For $\min x^2 + y^2$ subject to $x + y \geq 2$ and $x \geq 0$, write all KKT conditions and find the solution.
+
+3. **SVM Dual**: Starting from the primal SVM formulation, derive the dual problem. Why is the dual useful for kernel methods?
+
+4. **Penalty Method**: Implement the quadratic penalty method for $\min x^2$ subject to $x \geq 1$. Show how the solution approaches $x^* = 1$ as $\rho \to \infty$.
+
+5. **Projected Gradient Descent**: Implement projected gradient descent for $\min_x \|Ax - b\|^2$ subject to $x \geq 0$ (non-negative least squares).
 
 ---
 

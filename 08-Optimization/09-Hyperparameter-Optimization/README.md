@@ -1,5 +1,40 @@
 # Hyperparameter Optimization
 
+> **Navigation**: [← 08-Regularization-Methods](../08-Regularization-Methods/) | [Optimization](../) | [09-Information-Theory →](../../09-Information-Theory/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
+## Introduction
+
+Hyperparameter optimization (HPO) is the process of finding the best configuration for machine learning algorithms. Unlike model parameters learned during training, hyperparameters must be set before training begins. Good hyperparameters can mean the difference between a mediocre model and state-of-the-art performance.
+
+```
+The Hyperparameter Optimization Challenge:
+═══════════════════════════════════════════════════════════
+
+  ┌─────────────┐    ┌──────────────────┐    ┌─────────────┐
+  │ Hyperparams │ ─▶ │     Training     │ ─▶ │ Validation  │
+  │  (λ)        │    │   Algorithm A    │    │    Loss     │
+  └─────────────┘    └──────────────────┘    └─────────────┘
+        ▲                                          │
+        │                                          │
+        └──────────────────────────────────────────┘
+                    Optimize this loop!
+                    
+  Challenge: Each evaluation is EXPENSIVE (full training)
+```
+
+## Prerequisites
+
+- Probability distributions
+- Optimization basics
+- Cross-validation
+- Basic machine learning concepts
+
 ## Learning Objectives
 
 - Master hyperparameter search strategies
@@ -673,6 +708,20 @@ Decision Tree for HPO Method:
 5. **Use log scales** for learning rates and regularization
 6. **Multi-fidelity** methods are essential for expensive models
 7. **Reproducibility** requires careful seed management
+
+---
+
+## Exercises
+
+1. **Grid vs Random**: For a 2D hyperparameter space where only one hyperparameter matters, calculate how many unique values each method explores with 16 evaluations.
+
+2. **Bayesian Optimization**: Implement Expected Improvement (EI) for a 1D Gaussian Process. Given observations at $x = [0, 1]$ with $y = [1, 0.5]$, compute EI at $x = 0.5$.
+
+3. **Successive Halving**: With budget for 64 total epochs and 8 initial configurations, design a successive halving schedule. How many epochs does the final configuration receive?
+
+4. **GP Surrogate**: Explain why Gaussian Processes are preferred over neural networks as surrogates in Bayesian optimization when we have < 100 evaluations.
+
+5. **Hyperband**: Compare the computational cost of Hyperband vs random search for finding a good learning rate among 81 candidates, where full training takes 81 epochs.
 
 ---
 

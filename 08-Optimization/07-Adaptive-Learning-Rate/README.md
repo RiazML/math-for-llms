@@ -1,5 +1,13 @@
 # Adaptive Learning Rate Methods
 
+> **Navigation**: [← 06-Optimization-Landscape](../06-Optimization-Landscape/) | [Optimization](../) | [08-Regularization-Methods →](../08-Regularization-Methods/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Introduction
 
 Adaptive learning rate methods automatically adjust the step size for each parameter based on historical gradient information. These methods are crucial for training deep neural networks efficiently, eliminating much of the manual tuning required for vanilla SGD.
@@ -371,6 +379,20 @@ For very large models:
 | LR schedule | Start high, decay over training                     |
 
 **Key insight:** Adaptive methods provide good defaults, but SGD with proper tuning often achieves best final performance.
+
+---
+
+## Exercises
+
+1. **Momentum Derivation**: Show that for constant gradient $g$, momentum accumulates to effective gradient $g/(1-\beta)$ as $t \to \infty$.
+
+2. **AdaGrad Decay**: For a 1D problem with constant gradient, derive how the effective learning rate in AdaGrad decreases over time.
+
+3. **Adam Bias Correction**: Explain why bias correction is needed in Adam. What would happen without it in the first few iterations?
+
+4. **Adam vs AdamW**: Implement both Adam with L2 regularization and AdamW. Compare their behavior on a simple neural network. When does the difference matter?
+
+5. **Optimizer Comparison**: Train the same model with SGD, Momentum, Adam, and AdamW on MNIST. Plot training curves and final test accuracy. Which wins?
 
 ---
 

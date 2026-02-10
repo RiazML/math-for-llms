@@ -1,5 +1,13 @@
 # Regularization Methods
 
+> **Navigation**: [← 07-Adaptive-Learning-Rate](../07-Adaptive-Learning-Rate/) | [Optimization](../) | [09-Hyperparameter-Optimization →](../09-Hyperparameter-Optimization/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Introduction
 
 Regularization is a fundamental technique that bridges optimization and generalization. It prevents overfitting by adding constraints or penalties to the learning process, ensuring models generalize well to unseen data. Understanding regularization is essential for training robust machine learning models.
@@ -494,6 +502,20 @@ Coefficient │
 | Early Stopping | Iteration limit      | Implicit L2     | Any model           |
 
 **Key Insight:** Regularization trades training performance for generalization, helping models perform well on unseen data.
+
+---
+
+## Exercises
+
+1. **L1 vs L2 Geometry**: Draw the constraint regions for L1 and L2 in 2D. Explain geometrically why L1 produces sparse solutions.
+
+2. **Ridge Regression**: Derive the closed-form solution for ridge regression. Show that $\lambda > 0$ guarantees invertibility.
+
+3. **Lasso Path**: Implement coordinate descent for Lasso. Plot the regularization path (coefficients vs $\lambda$) for a simple dataset.
+
+4. **Dropout Equivalence**: Show that dropout with rate $p$ on a linear layer is approximately equivalent to L2 regularization. What is the effective $\lambda$?
+
+5. **Early Stopping**: For gradient descent on linear regression, prove that early stopping at iteration $t$ is equivalent to L2 regularization with $\lambda \approx 1/(\eta t)$.
 
 ---
 

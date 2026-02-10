@@ -1,14 +1,37 @@
 # Jacobians and Hessians
 
-## Introduction
+> **Navigation**: [01-Partial-Derivatives-and-Gradients](../01-Partial-Derivatives-and-Gradients/) | [03-Chain-Rule-and-Backpropagation](../03-Chain-Rule-and-Backpropagation/) | [04-Optimization-Theory](../04-Optimization-Theory/)
 
-The Jacobian and Hessian matrices generalize derivatives to vector-valued functions and second-order derivatives, respectively. These are fundamental to understanding neural network backpropagation, optimization, and the geometry of loss landscapes.
+## Overview
+
+The **Jacobian** generalizes gradients to vector-valued functions. The **Hessian** captures second-order derivative information. Together, they're fundamental to understanding neural network backpropagation, optimization curvature, and the geometry of loss landscapes.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                  JACOBIAN & HESSIAN IN ML                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  JACOBIAN (m×n matrix)              HESSIAN (n×n matrix)                │
+│  ─────────────────────              ────────────────────                │
+│                                                                          │
+│  f: ℝⁿ → ℝᵐ                         f: ℝⁿ → ℝ                           │
+│                                                                          │
+│  ┌ ∂f₁/∂x₁  ...  ∂f₁/∂xₙ ┐         ┌ ∂²f/∂x₁²    ...  ∂²f/∂x₁∂xₙ ┐     │
+│  │   ⋮       ⋱      ⋮     │         │    ⋮         ⋱        ⋮      │     │
+│  └ ∂fₘ/∂x₁  ...  ∂fₘ/∂xₙ ┘         └ ∂²f/∂xₙ∂x₁  ... ∂²f/∂xₙ²   ┘     │
+│                                                                          │
+│  • Backpropagation                  • Loss curvature                    │
+│  • Chain rule as matrices           • Newton's method                   │
+│  • Normalizing flows                • Saddle point detection            │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ## Prerequisites
 
-- Partial derivatives and gradients
+- [01-Partial-Derivatives-and-Gradients](../01-Partial-Derivatives-and-Gradients/)
 - Matrix operations
-- Chain rule
+- Chain rule basics
 
 ## Learning Objectives
 
@@ -38,11 +61,21 @@ $$
 \end{pmatrix}
 $$
 
-### Notation
+> **💡 Key Insight**: Each **row** of J is the gradient of one output component: $\text{Row}_i = (\nabla f_i)^T$
 
-$$J_{ij} = \frac{\partial f_i}{\partial x_j}$$
+```
+Jacobian Structure:
 
-Row $i$ is the gradient of $f_i$: $(\nabla f_i)^T$
+                    Inputs: x₁  x₂  x₃  ...  xₙ
+                           ↓   ↓   ↓       ↓
+              ┌─────────────────────────────────┐
+Output f₁ →   │  ∂f₁/∂x₁  ∂f₁/∂x₂  ...  ∂f₁/∂xₙ │  ← ∇f₁ᵀ
+Output f₂ →   │  ∂f₂/∂x₁  ∂f₂/∂x₂  ...  ∂f₂/∂xₙ │  ← ∇f₂ᵀ
+    ⋮         │     ⋮         ⋮     ⋱      ⋮     │
+Output fₘ →   │  ∂fₘ/∂x₁  ∂fₘ/∂x₂  ...  ∂fₘ/∂xₙ │  ← ∇fₘᵀ
+              └─────────────────────────────────┘
+                       Jacobian J (m × n)
+```
 
 ### Example
 
@@ -55,6 +88,9 @@ y & x
 \end{pmatrix}
 $$
 
+At point $(1, 2)$:
+$$\mathbf{J}(1, 2) = \begin{pmatrix} 2 & 1 \\ 2 & 1 \end{pmatrix}$$
+
 ---
 
 ## 2. Jacobian Properties
@@ -65,29 +101,56 @@ $$\mathbf{f}(\mathbf{x} + \Delta\mathbf{x}) \approx \mathbf{f}(\mathbf{x}) + \ma
 
 This is the multivariate analog of $f(x + h) \approx f(x) + f'(x)h$.
 
-### Chain Rule
+> **💡 Interpretation**: The Jacobian tells you how small input changes affect outputs!
+
+### Chain Rule = Matrix Multiplication!
 
 For $\mathbf{g}: \mathbb{R}^n \to \mathbb{R}^m$ and $\mathbf{f}: \mathbb{R}^m \to \mathbb{R}^p$:
 
 $$\mathbf{J}_{\mathbf{f} \circ \mathbf{g}} = \mathbf{J}_{\mathbf{f}} \cdot \mathbf{J}_{\mathbf{g}}$$
 
-The chain rule becomes **matrix multiplication**!
-
 ```
 Chain Rule for Jacobians:
 
-Input      Layer 1     Layer 2     Output
-  x    →     g(x)   →   f(g(x))   →   y
-  ↑           ↑           ↑
-  n           m           p
+Input          Layer 1        Layer 2        Output
+  x      →      g(x)     →    f(g(x))    →     y
+  │              │               │              │
+ ℝⁿ            ℝᵐ              ℝᵖ             ℝᵖ
+  │              │               │
+  └──── J_g ────┴──── J_f ──────┘
+        (m×n)        (p×m)
 
-J_total = J_f (p×m) × J_g (m×n) = (p×n)
+Total Jacobian:  J_total = J_f × J_g  =  (p×n) matrix
+
+CHAIN RULE IS JUST MATRIX MULTIPLICATION!
 ```
 
-### Determinant
+> **🔑 This is the mathematical foundation of backpropagation!**
+
+### Jacobian Determinant
 
 The **Jacobian determinant** measures volume change:
+
 $$\det(\mathbf{J}) = \text{ratio of output volume to input volume}$$
+
+```
+Jacobian Determinant:
+
+Input Space              Output Space
+┌───────────┐            ┌─────────────────┐
+│  ░░░░░░   │            │                 │
+│  ░░░░░░   │   f(x)     │  ░░░░░░░░░░░░   │
+│  ░░░░░░   │  ────→     │  ░░░░░░░░░░░░   │
+│           │            │  ░░░░░░░░░░░░   │
+└───────────┘            └─────────────────┘
+   Area = A              Area = |det(J)| × A
+
+|det(J)| < 1: Compression
+|det(J)| > 1: Expansion
+|det(J)| = 1: Volume preserving
+```
+
+**ML Application**: Normalizing flows use the Jacobian determinant to track probability density under transformations!
 
 ---
 
@@ -106,10 +169,23 @@ $$
 \end{pmatrix}
 $$
 
-### Properties
+### Key Properties
 
 1. **Symmetric**: $H_{ij} = H_{ji}$ (by Clairaut's theorem)
 2. **Jacobian of gradient**: $\mathbf{H} = \mathbf{J}(\nabla f)$
+3. **Curvature information**: Eigenvalues = curvatures along principal directions
+
+```
+Hessian Structure:
+
+              ┌─────────────────────────────────────┐
+              │  ∂²f/∂x₁²    ∂²f/∂x₁∂x₂  ...  ...   │
+              │  ∂²f/∂x₂∂x₁  ∂²f/∂x₂²    ...  ...   │
+     H =      │     ⋮           ⋮         ⋱    ⋮    │
+              │  ∂²f/∂xₙ∂x₁  ...        ... ∂²f/∂xₙ² │
+              └─────────────────────────────────────┘
+                      Symmetric! H = Hᵀ
+```
 
 ### Example
 
@@ -132,34 +208,50 @@ $$
 
 $$f(\mathbf{x} + \Delta\mathbf{x}) \approx f(\mathbf{x}) + \nabla f^T \Delta\mathbf{x} + \frac{1}{2}\Delta\mathbf{x}^T \mathbf{H} \Delta\mathbf{x}$$
 
+```
+Taylor Expansion:
+
+f(x + Δx) ≈  f(x)     +    ∇fᵀΔx      +   ½ΔxᵀHΔx
+             ───            ─────          ──────────
+            value      linear term     quadratic term
+            at x      (slope info)     (curvature info)
+```
+
 ### Critical Point Classification
 
 At a critical point where $\nabla f = 0$:
 
-| Hessian Property                         | Point Type    |
-| ---------------------------------------- | ------------- |
-| $\mathbf{H} \succ 0$ (positive definite) | Local minimum |
-| $\mathbf{H} \prec 0$ (negative definite) | Local maximum |
-| $\mathbf{H}$ indefinite                  | Saddle point  |
-| $\mathbf{H}$ singular                    | Inconclusive  |
-
-### Positive Definiteness Tests
-
-For 2×2 Hessian $\mathbf{H} = \begin{pmatrix} a & b \\ b & c \end{pmatrix}$:
-
-- **Positive definite**: $a > 0$ and $ac - b^2 > 0$
-- **Negative definite**: $a < 0$ and $ac - b^2 > 0$
-- **Indefinite**: $ac - b^2 < 0$ (saddle point)
+| Hessian Property | Eigenvalues | Point Type |
+|-----------------|-------------|------------|
+| $\mathbf{H} \succ 0$ (positive definite) | All $> 0$ | **Local minimum** |
+| $\mathbf{H} \prec 0$ (negative definite) | All $< 0$ | **Local maximum** |
+| $\mathbf{H}$ indefinite | Mixed signs | **Saddle point** |
+| $\mathbf{H}$ singular | Some zero | Inconclusive |
 
 ```
-Saddle Point Visualization:
+Critical Point Classification:
 
-    ↗ f increases    f(x,y) = x² - y²
-   ╱
-──╳── ← saddle
-   ╲
-    ↘ f decreases
+         Minimum            Maximum          Saddle Point
+           ╲ ╱                ╱ ╲              ↗     ↘
+            ●                ●                   ●
+           ╱ ╲              ╲ ╱              ↙     ↖
+        (bowl up)         (bowl down)       (horse saddle)
+
+     H positive def.     H negative def.    H indefinite
+     All λᵢ > 0          All λᵢ < 0         Mixed signs
 ```
+
+### 2×2 Hessian Test
+
+For $\mathbf{H} = \begin{pmatrix} a & b \\ b & c \end{pmatrix}$:
+
+| Condition | Classification |
+|-----------|---------------|
+| $a > 0$ and $ac - b^2 > 0$ | Positive definite (minimum) |
+| $a < 0$ and $ac - b^2 > 0$ | Negative definite (maximum) |
+| $ac - b^2 < 0$ | Indefinite (saddle point) |
+
+> **💡 Remember**: $ac - b^2 = \det(\mathbf{H})$
 
 ---
 
@@ -178,12 +270,35 @@ Setting $\nabla_{\Delta\mathbf{x}} q = 0$:
 $$\nabla f + \mathbf{H}\Delta\mathbf{x} = 0$$
 $$\Delta\mathbf{x} = -\mathbf{H}^{-1}\nabla f$$
 
-### Comparison with Gradient Descent
+```
+Newton vs Gradient Descent:
 
-| Method           | Update                      | Convergence |
-| ---------------- | --------------------------- | ----------- |
-| Gradient Descent | $-\eta \nabla f$            | Linear      |
-| Newton's Method  | $-\mathbf{H}^{-1} \nabla f$ | Quadratic   |
+Gradient Descent              Newton's Method
+─────────────────             ───────────────
+
+Step = -η∇f                   Step = -H⁻¹∇f
+
+Uses only gradient            Uses gradient AND curvature
+(first-order info)            (second-order info)
+
+     │                             │
+     │  ●→→→→→→●                   │  ●─────→●
+     │       ↓                     │
+     │       ●→→→●                 Jumps directly to
+     │           ↓                 the minimum!
+     │           ●→●
+     │
+Takes many small steps        Takes fewer, smarter steps
+```
+
+### Comparison
+
+| Method | Update | Convergence Rate |
+|--------|--------|------------------|
+| Gradient Descent | $-\eta \nabla f$ | Linear (slow) |
+| Newton's Method | $-\mathbf{H}^{-1} \nabla f$ | Quadratic (fast!) |
+
+> **⚠️ Trade-off**: Newton is faster but requires computing $\mathbf{H}^{-1}$ which is $O(n^3)$ — expensive for large $n$!
 
 ---
 
@@ -195,7 +310,19 @@ For a neural network layer $\mathbf{y} = \mathbf{f}(\mathbf{x})$:
 
 $$\frac{\partial L}{\partial \mathbf{x}} = \mathbf{J}^T \frac{\partial L}{\partial \mathbf{y}}$$
 
-Backpropagation is repeated Jacobian-vector products!
+> **🔑 Backpropagation is repeated Jacobian-transpose-vector products!**
+
+```
+Backprop as JᵀV Products:
+
+Forward:  x → Layer 1 → a₁ → Layer 2 → a₂ → Loss L
+                ↑              ↑              ↑
+             (J₁)ᵀ          (J₂)ᵀ          ∂L/∂a₂
+
+Backward: ∂L/∂x ← J₁ᵀ(∂L/∂a₁) ← J₂ᵀ(∂L/∂a₂) ← from loss
+
+Each layer: multiply incoming gradient by Jᵀ
+```
 
 ### 2. Softmax Jacobian
 
@@ -205,20 +332,50 @@ $$J_{ij} = \frac{\partial p_i}{\partial z_j} = p_i(\delta_{ij} - p_j)$$
 
 $$\mathbf{J} = \text{diag}(\mathbf{p}) - \mathbf{p}\mathbf{p}^T$$
 
+```
+Softmax Jacobian:
+
+J = diag(p) - ppᵀ
+
+    ┌ p₁(1-p₁)   -p₁p₂    -p₁p₃   ┐
+  = │  -p₂p₁   p₂(1-p₂)  -p₂p₃   │
+    └  -p₃p₁    -p₃p₂   p₃(1-p₃) ┘
+
+• Diagonal: pᵢ(1-pᵢ)  (variance-like)
+• Off-diagonal: -pᵢpⱼ  (negative, sums constrained!)
+```
+
 ### 3. Loss Landscape Curvature
 
 The Hessian describes the **curvature** of the loss surface:
 
-- Large eigenvalues → steep directions (fast learning)
-- Small eigenvalues → flat directions (slow learning)
-- Negative eigenvalues → saddle points
+- **Large eigenvalues** → steep directions (fast learning)
+- **Small eigenvalues** → flat directions (slow learning)
+- **Negative eigenvalues** → saddle points (need to escape!)
+
+```
+Loss Landscape and Hessian:
+
+   Steep (large λ)
+         │
+         │  ╲     ╱
+         │   ╲   ╱
+         │    ● ←── saddle
+         │   ╱   ╲
+         │  ╱     ╲
+         └──────────── Flat (small λ)
+
+Hessian eigenvalue λ = curvature in that direction
+```
 
 ### 4. Natural Gradient
 
-Uses Fisher Information Matrix (expected Hessian of log-likelihood):
+Uses **Fisher Information Matrix** (expected Hessian of log-likelihood):
 $$\mathbf{F} = \mathbb{E}[\nabla \log p \cdot (\nabla \log p)^T]$$
 
 Natural gradient: $\mathbf{F}^{-1} \nabla L$
+
+Accounts for the geometry of probability distributions!
 
 ---
 
@@ -226,23 +383,33 @@ Natural gradient: $\mathbf{F}^{-1} \nabla L$
 
 ### JVP (Forward Mode)
 
-Compute $\mathbf{J}\mathbf{v}$ without forming $\mathbf{J}$:
+Compute $\mathbf{J}\mathbf{v}$ without forming full $\mathbf{J}$:
 $$\mathbf{J}\mathbf{v} = \lim_{\epsilon \to 0} \frac{\mathbf{f}(\mathbf{x} + \epsilon\mathbf{v}) - \mathbf{f}(\mathbf{x})}{\epsilon}$$
 
 ### VJP (Reverse Mode / Backprop)
 
-Compute $\mathbf{J}^T\mathbf{v}$ without forming $\mathbf{J}$:
+Compute $\mathbf{J}^T\mathbf{v}$ without forming full $\mathbf{J}$:
 
 This is what backpropagation computes!
 
 ```
 Forward vs Reverse Mode:
 
-Forward (JVP):           Reverse (VJP):
-Input → ... → Output     Input ← ... ← Output
-  ↓ v                          v^T J^T ↓
-J·v propagates forward   v^T·J propagates backward
+Forward (JVP):                 Reverse (VJP):
+──────────────                 ──────────────
+
+Input ───→ Layer ───→ Output   Input ←─── Layer ←─── Output
+  │                              ↑                      ↑
+  v                              │                      │
+  ↓                            Jᵀv                      v
+  Jv propagates forward        propagates backward
+
+Efficient when:                Efficient when:
+  outputs >> inputs              outputs << inputs
+  (computing full Jacobian)      (neural nets: 1 scalar loss!)
 ```
+
+> **💡 Why Reverse Mode Wins for Neural Nets**: We have millions of parameters but only 1 scalar loss. Reverse mode (backprop) needs just ONE backward pass!
 
 ---
 
@@ -269,7 +436,6 @@ def numerical_jacobian(f, x, h=1e-7):
 def numerical_hessian(f, x, h=1e-5):
     n = len(x)
     H = np.zeros((n, n))
-    f_x = f(x)
     for i in range(n):
         for j in range(n):
             x_pp = x.copy(); x_pp[i] += h; x_pp[j] += h
@@ -286,35 +452,42 @@ def numerical_hessian(f, x, h=1e-5):
 
 ### Key Matrices
 
-| Matrix   | Dimension    | Definition                                                |
-| -------- | ------------ | --------------------------------------------------------- |
-| Jacobian | $m \times n$ | $J_{ij} = \frac{\partial f_i}{\partial x_j}$              |
-| Hessian  | $n \times n$ | $H_{ij} = \frac{\partial^2 f}{\partial x_i \partial x_j}$ |
+| Matrix | Dimension | Definition |
+|--------|-----------|------------|
+| Jacobian | $m \times n$ | $J_{ij} = \frac{\partial f_i}{\partial x_j}$ |
+| Hessian | $n \times n$ | $H_{ij} = \frac{\partial^2 f}{\partial x_i \partial x_j}$ |
 
-### Key Results
+### Key Results Cheat Sheet
 
-| Concept          | Formula                                                                                        |
-| ---------------- | ---------------------------------------------------------------------------------------------- |
-| Chain rule       | $\mathbf{J}_{\mathbf{f} \circ \mathbf{g}} = \mathbf{J}_{\mathbf{f}} \mathbf{J}_{\mathbf{g}}$   |
-| Taylor expansion | $f(\mathbf{x}+\Delta) \approx f + \nabla f^T\Delta + \frac{1}{2}\Delta^T\mathbf{H}\Delta$      |
-| Newton's method  | $\mathbf{x}_{k+1} = \mathbf{x}_k - \mathbf{H}^{-1}\nabla f$                                    |
-| Backprop         | $\frac{\partial L}{\partial \mathbf{x}} = \mathbf{J}^T \frac{\partial L}{\partial \mathbf{y}}$ |
+```
+┌───────────────────────────────────────────────────────────────┐
+│                    KEY FORMULAS                               │
+├───────────────────────────────────────────────────────────────┤
+│  Chain rule:  J_{f∘g} = J_f × J_g  (matrix multiplication!)  │
+│                                                               │
+│  Taylor:  f(x+Δ) ≈ f(x) + ∇fᵀΔ + ½ΔᵀHΔ                       │
+│                                                               │
+│  Newton:  x_{k+1} = x_k - H⁻¹∇f                              │
+│                                                               │
+│  Backprop: ∂L/∂x = Jᵀ × (∂L/∂y)                              │
+└───────────────────────────────────────────────────────────────┘
+```
 
-### ML Applications
+### ML Applications Summary
 
 ```
 Jacobian and Hessian in ML:
 │
 ├── Jacobian
-│   ├── Backpropagation: J^T × (∂L/∂y)
+│   ├── Backpropagation: Jᵀ × (∂L/∂y)
 │   ├── Softmax gradient
 │   └── Change of variables (normalizing flows)
 │
 ├── Hessian
 │   ├── Curvature of loss landscape
-│   ├── Newton's method
+│   ├── Newton's method / quasi-Newton
 │   ├── Second-order optimization
-│   └── Saddle point detection
+│   └── Saddle point detection (negative eigenvalues)
 │
 └── Efficient Computation
     ├── JVP: Forward mode autodiff
@@ -329,7 +502,7 @@ Jacobian and Hessian in ML:
 2. Find the Hessian of $f(x, y) = x^4 + y^4 - 2x^2y^2$ and classify critical points
 3. Derive the Jacobian of the softmax function
 4. Show that the Hessian of $f(\mathbf{x}) = \mathbf{x}^T\mathbf{A}\mathbf{x}$ is $\mathbf{A} + \mathbf{A}^T$
-5. Implement Newton's method to minimize $f(x, y) = (x-1)^2 + 10(y-x^2)^2$
+5. Implement Newton's method to minimize $f(x, y) = (x-1)^2 + 10(y-x^2)^2$ (Rosenbrock)
 
 ---
 
@@ -338,3 +511,7 @@ Jacobian and Hessian in ML:
 1. Magnus & Neudecker - "Matrix Differential Calculus"
 2. Goodfellow et al. - "Deep Learning"
 3. Boyd & Vandenberghe - "Convex Optimization"
+
+---
+
+> **Next**: [03-Chain-Rule-and-Backpropagation](../03-Chain-Rule-and-Backpropagation/) — Derivatives through compositions

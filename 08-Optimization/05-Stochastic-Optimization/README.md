@@ -1,5 +1,13 @@
 # Stochastic Optimization
 
+> **Navigation**: [← 04-Constrained-Optimization](../04-Constrained-Optimization/) | [Optimization](../) | [06-Optimization-Landscape →](../06-Optimization-Landscape/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Introduction
 
 Stochastic optimization deals with optimization problems involving randomness, either in the objective function or constraints. In machine learning, stochastic methods are essential because we work with finite samples from unknown distributions and need to scale to massive datasets.
@@ -387,6 +395,20 @@ Adaptive methods adjust learning rates per-parameter:
 | Noise               | May help generalization                   |
 
 **Key insight:** The variance-bias trade-off in SGD is fundamental to understanding deep learning optimization and generalization.
+
+---
+
+## Exercises
+
+1. **SGD Variance**: For a dataset with $n$ samples, show that the variance of the mini-batch gradient estimate is $\sigma^2/b$ where $b$ is batch size.
+
+2. **Convergence Rate**: Prove that SGD with constant learning rate $\eta$ cannot converge to the exact optimum, but only to a neighborhood of size $O(\eta\sigma^2)$.
+
+3. **SVRG Implementation**: Implement SVRG for ridge regression and compare convergence to vanilla SGD. Plot the optimization gap vs iterations.
+
+4. **Learning Rate Schedules**: Compare $O(1/t)$ and $O(1/\sqrt{t})$ learning rate schedules on a strongly convex problem. Which converges faster?
+
+5. **Importance Sampling**: For a dataset where 10% of samples have 10x larger gradients, derive the optimal sampling probabilities and expected variance reduction.
 
 ---
 

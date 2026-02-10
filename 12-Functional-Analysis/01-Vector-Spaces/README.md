@@ -1,8 +1,33 @@
 # Vector Spaces for Machine Learning
 
+[← Previous: Graph Theory](../../11-Graph-Theory) | [Next: Normed Spaces →](../02-Normed-Spaces)
+
 ## Overview
 
 Vector spaces form the mathematical foundation for virtually all ML algorithms, from linear regression to deep neural networks. Understanding their properties is essential for analyzing model behavior and designing algorithms.
+
+## Why This Matters for Machine Learning
+
+Vector spaces are not just abstract mathematical constructs—they are the language in which modern machine learning "thinks." Every word embedding in a transformer model lives in a high-dimensional vector space where semantic relationships become geometric ones: "king - man + woman ≈ queen" is a vector space operation. The latent spaces of variational autoencoders and GANs are vector spaces where smooth interpolation between data points becomes possible.
+
+The concept of basis and dimension directly translates to model capacity and representational power. When we talk about the "embedding dimension" of a transformer or the "hidden size" of an LSTM, we're specifying the dimension of vector spaces. Understanding linear independence helps explain why certain features are redundant, while span tells us what predictions are reachable by a model.
+
+Projections—perhaps the most powerful concept in this chapter—underpin everything from PCA to attention mechanisms. The query-key-value attention in transformers can be viewed through the lens of projections and dual spaces. Mastering these concepts provides the geometric intuition needed to design, debug, and improve neural architectures.
+
+## Chapter Roadmap
+
+- **Section 1-2**: Foundations—axioms, common vector spaces in ML (Euclidean, function, matrix, sequence spaces)
+- **Section 3-5**: Structure—subspaces, linear independence, basis, and dimension with rank-nullity theorem
+- **Section 6-7**: Transformations—linear maps, their matrix representations, and eigenspaces
+- **Section 8-10**: Geometry—inner products, orthogonality, and projections (key for least squares)
+- **Section 11-12**: Advanced—direct sums, quotient spaces, and dual spaces (connecting to attention)
+
+## Files in This Section
+
+| File | Description |
+|------|-------------|
+| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## 1. Definition and Axioms
 
@@ -130,6 +155,8 @@ A **basis** is a linearly independent spanning set.
 
 **Polynomial**: $\{1, x, x^2, \ldots, x^n\}$ for polynomials of degree $\leq n$
 
+> 💡 **Insight:** Word embeddings like Word2Vec or GloVe learn a basis for semantic space. The "meaning" of a word is its coordinates in this learned basis. When embeddings capture analogies (king - man + woman = queen), they reveal that semantic relationships are encoded as directions in the vector space—a profound connection between geometry and meaning.
+
 ## 5. Dimension
 
 ### Definition
@@ -255,6 +282,8 @@ Convert basis $\{\mathbf{v}_1, \ldots, \mathbf{v}_n\}$ to orthonormal:
 $$\mathbf{u}_k = \mathbf{v}_k - \sum_{j=1}^{k-1} \text{proj}_{\mathbf{u}_j}(\mathbf{v}_k)$$
 $$\mathbf{e}_k = \frac{\mathbf{u}_k}{\|\mathbf{u}_k\|}$$
 
+> 💡 **Insight:** Layer normalization in transformers is essentially Gram-Schmidt in disguise! It orthogonalizes the representation by removing the mean (centering) and scaling (normalizing). This prevents the "internal covariate shift" problem by ensuring activations don't drift into extreme regions of the space.
+
 ## 10. Projections
 
 ### Orthogonal Projection
@@ -316,6 +345,8 @@ Elements called **linear functionals** or **covectors**.
 For basis $\{\mathbf{e}_1, \ldots, \mathbf{e}_n\}$, dual basis $\{\mathbf{e}^1, \ldots, \mathbf{e}^n\}$:
 $$\mathbf{e}^i(\mathbf{e}_j) = \delta_{ij}$$
 
+> 💡 **Insight:** The key-query mechanism in attention is a dual space pairing! Queries live in the dual space of keys—they're designed to "measure" keys. The dot product $\mathbf{q}^T \mathbf{k}$ is the dual pairing, and softmax normalizes these measurements into a probability distribution. This explains why increasing embedding dimension improves attention quality: higher-dimensional dual spaces can represent more discriminative functionals.
+
 ### ML Application: Attention
 
 Attention can be viewed as dual space operation:
@@ -335,9 +366,37 @@ Query $\mathbf{q}$ acts as functional on keys.
 | Dual space    | Attention mechanisms     |
 | Eigenspace    | Spectral methods         |
 
+## Key Takeaways
+
+- **Vector spaces provide the unified language for ML**: Features, parameters, embeddings, and activations all live in vector spaces with the same algebraic rules.
+
+- **Dimension equals capacity**: The dimension of your hypothesis space determines what functions you can represent. Underfitting often means your space is too low-dimensional.
+
+- **Subspaces capture structure**: PCA finds the principal subspace; autoencoders learn nonlinear subspaces (manifolds); attention selects relevant subspaces dynamically.
+
+- **Projections are everywhere**: Least squares, PCA, layer normalization, and residual connections all involve projections onto subspaces.
+
+- **Linear independence prevents redundancy**: Dropout works partly by forcing the network to learn more independent (less redundant) features.
+
+- **The rank-nullity theorem constrains learning**: A weight matrix with low rank has a large null space—many different inputs produce the same output, limiting discriminative power.
+
+- **Dual spaces explain attention**: Queries as linear functionals on keys provides deep geometric insight into why attention works and how to improve it.
+
 ## Key Theorems
 
 1. **Rank-Nullity**: $\text{rank}(A) + \text{nullity}(A) = n$
 2. **Dimension formula**: $\dim(U + W) = \dim(U) + \dim(W) - \dim(U \cap W)$
 3. **Orthogonal decomposition**: $V = W \oplus W^\perp$
 4. **Isomorphism**: Finite-dimensional spaces of same dimension are isomorphic
+
+## Exercises
+
+1. **Subspace Verification**: Prove that the set of all $n \times n$ symmetric matrices forms a subspace of $\mathbb{R}^{n \times n}$. What is its dimension?
+
+2. **Linear Independence**: Given vectors $\mathbf{v}_1 = (1, 2, 3)$, $\mathbf{v}_2 = (4, 5, 6)$, $\mathbf{v}_3 = (7, 8, 9)$, determine if they are linearly independent. Find a basis for their span.
+
+3. **Rank-Nullity Application**: For a neural network layer with weight matrix $W \in \mathbb{R}^{100 \times 784}$, if $\text{rank}(W) = 50$, what is the dimension of the null space? What does this mean for the network's representational capacity?
+
+4. **Projection Computation**: Compute the orthogonal projection of $\mathbf{b} = (1, 2, 3, 4)$ onto the column space of $A = \begin{pmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 0 \\ 0 & 1 \end{pmatrix}$. Verify that the residual is orthogonal to the column space.
+
+5. **Dual Space in Attention**: Show that the attention mechanism $\text{Attention}(\mathbf{q}, K, V) = \sum_i \text{softmax}(\mathbf{q}^T \mathbf{k}_i) \mathbf{v}_i$ can be interpreted as a weighted linear functional. What role does the query vector play in the dual space interpretation?

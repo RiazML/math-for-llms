@@ -1,8 +1,17 @@
 # Graph Representations
 
+[← Previous: Graph Basics](../01-Graph-Basics) | [Next: Graph Algorithms →](../03-Graph-Algorithms)
+
 ## Overview
 
 Choosing the right graph representation is crucial for algorithm efficiency. Different representations offer trade-offs between memory usage, query time, and update time. Understanding these is essential for implementing graph neural networks and large-scale graph processing.
+
+## Files in This Section
+
+| File | Description |
+|------|-------------|
+| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## Learning Objectives
 
@@ -394,3 +403,11 @@ adj_csr = adj.to_sparse_csr()
 2. Implement sparse matrix-vector multiplication using CSR
 3. Compare memory usage of matrix vs CSR for a 10K node graph with 50K edges
 4. Convert between PyTorch Geometric edge_index and scipy CSR
+
+## Exercises
+
+1. **Format Conversion**: Implement functions to convert between adjacency matrix, adjacency list, and edge list representations
+2. **CSR Implementation**: Build a custom CSR class with methods for neighbor lookup and matrix-vector multiplication
+3. **Memory Benchmarking**: Compare actual memory usage of different representations for graphs of varying sparsity
+4. **PyTorch Geometric Integration**: Create a utility to load a graph from file and convert it to PyG Data object
+5. **Sparse Operations**: Implement efficient graph operations (degree computation, neighbor sampling) using scipy sparse matrices

@@ -1,5 +1,13 @@
 # Interpolation and Approximation
 
+> **Navigation**: [← 03-Numerical-Optimization](../03-Numerical-Optimization/) | [Numerical Methods](../) | [05-Numerical-Integration →](../05-Numerical-Integration/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Overview
 
 Interpolation and approximation methods construct functions that pass through or closely approximate given data points. These techniques are foundational for function approximation in neural networks, signal processing, and numerical analysis.
@@ -392,6 +400,25 @@ Similar to RBF interpolation with learned basis.
 3. **RBF naturally extends to high dimensions**
 4. **Neural networks are universal approximators**
 5. **Fourier features capture periodic structure**
+
+---
+
+## Exercises
+
+### Exercise 1: Polynomial Interpolation
+Implement Lagrange and Newton interpolation. Compare numerical stability for high-degree polynomials.
+
+### Exercise 2: Runge's Phenomenon
+Demonstrate Runge's phenomenon with equispaced nodes. Show how Chebyshev nodes mitigate the problem.
+
+### Exercise 3: Spline Interpolation
+Implement cubic spline interpolation with natural boundary conditions. Apply to 2D curve fitting.
+
+### Exercise 4: Least Squares Approximation
+Fit polynomials of varying degrees to noisy data. Analyze the bias-variance tradeoff.
+
+### Exercise 5: RBF Interpolation
+Implement radial basis function interpolation with Gaussian kernels. Investigate the effect of shape parameter.
 
 ---
 

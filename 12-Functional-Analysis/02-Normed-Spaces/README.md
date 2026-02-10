@@ -1,8 +1,34 @@
 # Normed Spaces for Machine Learning
 
+[← Previous: Vector Spaces](../01-Vector-Spaces) | [Next: Hilbert Spaces →](../03-Hilbert-Spaces)
+
 ## Overview
 
 Normed spaces extend vector spaces with a notion of "size" or "length". They provide the foundation for analyzing convergence, continuity, and approximation in machine learning.
+
+## Why This Matters for Machine Learning
+
+Norms are the mathematical tools that let us measure and control in machine learning. Every time you add a regularization term to a loss function, you're using a norm. The choice between L1 and L2 regularization—perhaps the most fundamental hyperparameter decision in classical ML—is a choice between norms with profoundly different geometric and optimization properties.
+
+The Lipschitz constant, derived from the operator norm, has become central to modern deep learning. It governs the stability of neural networks: a network with bounded Lipschitz constant can't change its output too drastically for small input perturbations. This insight underlies spectral normalization, gradient clipping, and the entire field of adversarial robustness. The $\ell^\infty$ norm measures worst-case perturbations, explaining why adversarial examples are often constructed in this norm.
+
+The Banach fixed-point theorem—a cornerstone result about complete normed spaces—explains why iterative algorithms converge. From the Bellman equation in reinforcement learning to iterative refinement in diffusion models, contractions in normed spaces guarantee we reach a unique solution. Understanding norms transforms regularization from a "trick that works" into a principled choice with geometric meaning.
+
+## Chapter Roadmap
+
+- **Section 1-2**: Foundations—norm axioms and the complete catalog of norms used in ML ($\ell^p$, matrix norms)
+- **Section 3-4**: Geometry and limits—norm equivalence, unit balls, and convergence in normed spaces
+- **Section 5-6**: Continuity—Lipschitz functions, bounded operators, and the bounded-continuous equivalence
+- **Section 7-8**: Duality—dual norms, Hölder's inequality, and the regularization interpretation
+- **Section 9-11**: Completeness—Banach spaces, compactness, and function spaces (Lᵖ, Sobolev)
+- **Section 12-13**: Fixed points and spectra—Banach fixed-point theorem and spectral radius
+
+## Files in This Section
+
+| File | Description |
+|------|-------------|
+| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## 1. Definition and Axioms
 
@@ -120,6 +146,8 @@ $$\|f(\mathbf{x}) - f(\mathbf{y})\| \leq L \|\mathbf{x} - \mathbf{y}\|$$
 - Spectral normalization: $\|W\|_2 \leq 1$
 - WGAN: Lipschitz discriminator
 
+> 💡 **Insight:** Gradient clipping is Lipschitz enforcement in disguise! When you clip gradients to have norm at most $C$, you're ensuring the "update function" is $C$-Lipschitz. This prevents catastrophic updates from exploding gradients and is mathematically equivalent to constraining the operator norm of the Jacobian.
+
 ### Operator Norms
 
 For linear $T: V \to W$:
@@ -188,6 +216,8 @@ At $\theta_i = 0$, the $\ell^1$ gradient is the subgradient $[-1, 1]$.
 This allows solutions exactly at zero.
 
 For $\ell^2$: gradient at $\theta_i = 0$ is $0$, so no "pull" toward zero.
+
+> 💡 **Insight:** The geometry of norm balls is key to understanding regularization. The $\ell^1$ ball has sharp corners (at the axes), while the $\ell^2$ ball is smooth. When minimizing a linear objective (like a gradient step), the optimal solution tends to land on corners of the constraint set. This is why $\ell^1$ regularization produces sparse solutions—the corners of the $\ell^1$ ball are exactly the sparse points!
 
 ### Nuclear Norm Regularization
 
@@ -271,6 +301,8 @@ Then $T$ has unique fixed point $x^* = Tx^*$.
 - **Bellman operator**: Reinforcement learning
 - **Self-consistent equations**: Mean-field models
 
+> 💡 **Insight:** The Bellman operator in reinforcement learning is a contraction in the supremum norm with factor $\gamma$ (the discount factor). This is why value iteration converges—and why $\gamma < 1$ is essential! The convergence rate $\gamma^n$ also explains why high discount factors make learning slower: the contraction is weaker, so more iterations are needed.
+
 ### Convergence Rate
 
 $$d(x_n, x^*) \leq \frac{\alpha^n}{1 - \alpha} d(x_1, x_0)$$
@@ -326,6 +358,22 @@ $$|\langle \mathbf{x}, \mathbf{y} \rangle| \leq \|\mathbf{x}\|_2 \|\mathbf{y}\|_
 | Lipschitz          | Stability, generalization        |
 | Completeness       | Convergence guarantees           |
 
+## Key Takeaways
+
+- **Norms quantify "size" in ways that matter**: The choice of norm (L1 vs L2 vs L∞) fundamentally changes optimization behavior and solution properties.
+
+- **L1 sparsity is geometric**: The corners of the L1 ball lie on coordinate axes—this geometry, not magic, explains why Lasso produces sparse solutions.
+
+- **Lipschitz constants bound sensitivity**: The operator norm of a layer's weight matrix is its Lipschitz constant. Spectral normalization constrains this to 1.
+
+- **Adversarial robustness lives in $\ell^\infty$**: The worst-case perturbation norm matches how we measure adversarial attacks—small in $\ell^\infty$ means imperceptible to humans.
+
+- **Completeness enables convergence guarantees**: We need Banach spaces (complete normed spaces) to ensure our iterative algorithms actually converge to something in our space.
+
+- **The Banach fixed-point theorem is everywhere**: Value iteration, policy iteration, equilibrium computation—any time you iterate a contraction, this theorem guarantees convergence.
+
+- **Dual norms arise naturally in optimization**: The dual of $\ell^1$ is $\ell^\infty$, explaining why sparse priors (L1 regularization) lead to bounded gradients.
+
 ## Important Theorems
 
 1. **Norm equivalence**: All norms on $\mathbb{R}^n$ are equivalent
@@ -333,3 +381,15 @@ $$|\langle \mathbf{x}, \mathbf{y} \rangle| \leq \|\mathbf{x}\|_2 \|\mathbf{y}\|_
 3. **Bounded = continuous** for linear operators
 4. **Dual of $\ell^p$ is $\ell^q$** where $1/p + 1/q = 1$
 5. **Weierstrass**: Continuous function on compact set has min/max
+
+## Exercises
+
+1. **Norm Computation**: For $\mathbf{x} = (3, -4, 0, 2)$, compute $\|\mathbf{x}\|_1$, $\|\mathbf{x}\|_2$, and $\|\mathbf{x}\|_\infty$. Verify the norm inequalities $\|\mathbf{x}\|_\infty \leq \|\mathbf{x}\|_2 \leq \|\mathbf{x}\|_1$.
+
+2. **Lipschitz Constant**: Prove that a linear transformation $T: \mathbb{R}^n \to \mathbb{R}^m$ with matrix $A$ is Lipschitz continuous with constant $L = \|A\|_2$ (spectral norm). What does this imply for the stability of a neural network layer?
+
+3. **Sparsity and $\ell^1$**: Consider minimizing $\|\mathbf{x}\|_1$ subject to $A\mathbf{x} = \mathbf{b}$. Geometrically explain why the solution tends to be sparse (lies on a vertex of the $\ell^1$ ball).
+
+4. **Banach Fixed Point**: Apply the Banach fixed point theorem to prove that the iteration $\mathbf{x}_{k+1} = \frac{1}{2}A\mathbf{x}_k + \mathbf{b}$ converges for any starting point when $\|A\|_2 < 2$. Find the fixed point in terms of $A$ and $\mathbf{b}$.
+
+5. **Matrix Norms**: For the matrix $A = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}$, compute $\|A\|_F$ (Frobenius norm) and $\|A\|_*$ (nuclear norm). Explain why nuclear norm regularization encourages low-rank solutions.

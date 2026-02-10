@@ -868,6 +868,15 @@ $$|\mathcal{P}(A)| = 2^{|A|}$$
 
 ---
 
+## Companion Notebooks
+
+| Notebook | Description |
+|----------|-------------|
+| [examples.ipynb](examples.ipynb) | Interactive examples: set operations, De Morgan's laws, confusion matrices, Jaccard similarity |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+
+---
+
 ## What's Next?
 
 After mastering sets and logic, proceed to:
@@ -875,4 +884,4 @@ After mastering sets and logic, proceed to:
 
 ---
 
-_Last updated: January 2025_
+_Last updated: February 2026_

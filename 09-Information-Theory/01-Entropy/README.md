@@ -1,5 +1,13 @@
 # Entropy
 
+> **Navigation**: [← 09-Hyperparameter-Optimization](../../08-Optimization/09-Hyperparameter-Optimization/) | [Information Theory](../) | [02-KL-Divergence →](../02-KL-Divergence/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Introduction
 
 Entropy is the fundamental concept in information theory, quantifying the uncertainty or "information content" of a random variable. In machine learning, entropy appears in loss functions, decision trees, generative models, and information-theoretic analysis of learning algorithms.
@@ -334,6 +342,20 @@ for $\alpha > 0, \alpha \neq 1$.
 | Max entropy     | Uniform (discrete), Gaussian (continuous) | Least assumptions                 |
 
 **Key insight:** Entropy measures uncertainty. In ML, we often minimize entropy of predictions (make them confident) while maximizing entropy of distributions (avoid assumptions).
+
+---
+
+## Exercises
+
+1. **Binary Entropy**: Calculate $H_b(p)$ for $p \in \{0, 0.1, 0.5, 0.9, 1\}$. Plot the function and verify the maximum is at $p=0.5$.
+
+2. **Distribution Comparison**: Compute the entropy of: (a) fair coin, (b) biased coin with $p=0.9$, (c) fair 6-sided die. Which has highest uncertainty?
+
+3. **Chain Rule**: For joint distribution $P(X,Y)$ with $X,Y \in \{0,1\}$ and $P(0,0)=0.4, P(0,1)=0.1, P(1,0)=0.2, P(1,1)=0.3$, verify that $H(X,Y) = H(X) + H(Y|X)$.
+
+4. **Maximum Entropy**: Show that among all distributions on $\{1,...,n\}$, the uniform distribution maximizes entropy. What is this maximum value?
+
+5. **Differential Entropy**: Compute the differential entropy of a Gaussian $\mathcal{N}(\mu, \sigma^2)$. How does it change with $\sigma$?
 
 ---
 

@@ -1,5 +1,13 @@
 # Cross-Entropy
 
+> **Navigation**: [← 03-Mutual-Information](../03-Mutual-Information/) | [Information Theory](../) | [10-Numerical-Methods →](../../10-Numerical-Methods/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Introduction
 
 Cross-entropy is one of the most important loss functions in machine learning, particularly for classification tasks. It measures the difference between two probability distributions and connects information theory to optimization. Understanding cross-entropy is essential for training neural networks and interpreting model outputs.
@@ -409,6 +417,20 @@ Loss │
 - Connected to MLE and KL divergence
 - Strong gradients encourage learning from mistakes
 - Use numerical stability tricks in implementation
+
+---
+
+## Exercises
+
+1. **Binary CE**: Compute binary cross-entropy for $y=1$ with predictions $\hat{y} \in \{0.1, 0.5, 0.9, 0.99\}$. Plot the relationship.
+
+2. **CE vs MSE**: For a binary classification problem, derive and compare gradients of CE vs MSE loss. Which has stronger gradients when prediction is wrong?
+
+3. **Label Smoothing**: Implement label smoothing with $\epsilon=0.1$ for 10-class classification. How does this change the cross-entropy computation?
+
+4. **MLE Equivalence**: Prove that minimizing cross-entropy is equivalent to maximum likelihood estimation for categorical distributions.
+
+5. **Focal Loss**: Derive the gradient of focal loss $-(1-\hat{y})^\gamma \log \hat{y}$. How does increasing $\gamma$ affect easy vs hard examples?
 
 ---
 

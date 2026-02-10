@@ -1,8 +1,17 @@
 # Graph Neural Networks: Mathematical Foundations
 
+[← Previous: Spectral Graph Theory](../04-Spectral-Graph-Theory) | [Next: Functional Analysis →](../../12-Functional-Analysis)
+
 ## Overview
 
 Graph Neural Networks (GNNs) learn representations of graph-structured data by combining graph topology with node/edge features through neural network architectures.
+
+## Files in This Section
+
+| File | Description |
+|------|-------------|
+| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## 1. The GNN Framework
 
@@ -294,6 +303,14 @@ Achieved through permutation-invariant readout.
 | GIN       | WL-equivalent        | Graph classification                |
 | R-GCN     | Relation-specific    | Knowledge graphs                    |
 | TGN       | Temporal memory      | Dynamic graphs                      |
+
+## Exercises
+
+1. **GCN Implementation**: Implement a 2-layer GCN from scratch using only NumPy and verify against PyTorch Geometric
+2. **Aggregation Comparison**: Compare sum, mean, and max aggregation on node classification tasks and analyze when each works best
+3. **Attention Visualization**: Implement GAT and visualize the learned attention weights on a citation network
+4. **Expressiveness Analysis**: Construct pairs of non-isomorphic graphs that 1-WL (and hence standard GNNs) cannot distinguish
+5. **Message Passing Framework**: Design a custom message passing layer that incorporates both node and edge features
 
 ## References
 

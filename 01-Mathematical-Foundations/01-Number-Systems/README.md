@@ -10,6 +10,13 @@ Understanding number systems is the bedrock of all mathematical concepts in mach
 - Understanding of fractions and decimals
 - Familiarity with Python/NumPy basics
 
+## Companion Notebooks
+
+| Notebook | Description |
+|----------|-------------|
+| [examples.ipynb](examples.ipynb) | Interactive code examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+
 ## Learning Objectives
 
 After completing this section, you will:
@@ -1716,4 +1723,4 @@ After mastering number systems, proceed to:
 
 ---
 
-_Last updated: January 2025_
+_Last updated: February 2026_

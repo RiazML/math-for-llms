@@ -1,5 +1,13 @@
 # Numerical Integration
 
+> **Navigation**: [← 04-Interpolation-and-Approximation](../04-Interpolation-and-Approximation/) | [Numerical Methods](../) | [11-Graph-Theory →](../../11-Graph-Theory/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Overview
 
 Numerical integration computes definite integrals $\int_a^b f(x) dx$ when analytical solutions are unavailable or impractical. These methods are fundamental for computing expectations, normalizing constants, and areas in ML.

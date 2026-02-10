@@ -1,8 +1,34 @@
 # Hilbert Spaces
 
+[← Previous: Normed Spaces](../02-Normed-Spaces) | [Next: Kernel Methods →](../04-Kernel-Methods)
+
 ## Overview
 
 Hilbert spaces are complete inner product spaces that form the mathematical foundation for quantum mechanics, signal processing, and machine learning. They generalize Euclidean spaces to infinite dimensions while preserving the geometric intuition of angles and projections.
+
+## Why This Matters for Machine Learning
+
+Hilbert spaces are where the "magic" of kernel methods happens. When you use an RBF kernel, you're implicitly working in an infinite-dimensional Hilbert space where your data becomes linearly separable. This isn't just a mathematical curiosity—it's why SVMs can learn complex nonlinear decision boundaries using only linear algebra.
+
+The inner product structure of Hilbert spaces gives us something precious: a notion of angle and orthogonality. This is why attention mechanisms work. The dot product between queries and keys measures "alignment" or "relevance"—a concept that only makes sense because we're working in an inner product space. Cosine similarity, the workhorse of semantic search and recommendation systems, is fundamentally a Hilbert space concept.
+
+The Reproducing Kernel Hilbert Space (RKHS) framework unifies much of modern ML theory. It explains why Gaussian processes work, provides the mathematical foundation for the neural tangent kernel (showing that infinite-width networks are linear in function space), and gives us the representer theorem—guaranteeing that the solution to any regularized learning problem is a finite linear combination of kernel evaluations. Understanding Hilbert spaces reveals the hidden structure connecting these seemingly disparate ideas.
+
+## Chapter Roadmap
+
+- **Section 1-2**: Foundations—inner products, induced norms, and the definition of Hilbert spaces with examples
+- **Section 3-5**: Geometry—orthogonality, orthonormal bases, Parseval's identity, and the projection theorem
+- **Section 6-7**: Duality—Riesz representation theorem and Fourier analysis as an application
+- **Section 8-9**: RKHS—reproducing kernels, the Moore-Aronszajn theorem, and kernel methods
+- **Section 10-11**: Operators—gradient flows, compact operators, and Mercer's theorem
+- **Section 12**: Applications—Gaussian processes, attention, and infinite-width networks
+
+## Files in This Section
+
+| File | Description |
+|------|-------------|
+| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## Prerequisites
 
@@ -84,6 +110,8 @@ $$\ell^2 = \{(a_n) : \sum_{n=1}^\infty |a_n|^2 < \infty\}$$
 - Feature spaces in kernel methods
 - Function spaces for infinite-width neural networks
 - Gaussian processes live in RKHS
+
+> 💡 **Insight:** The key difference between a Hilbert space and a mere normed space is the inner product—and therefore angles. This is why attention works! Without an inner product, we couldn't compute "similarity" between query and key vectors. The softmax attention score is fundamentally $\cos(\theta) \cdot \|q\| \cdot \|k\|$ (scaled dot product), measuring both alignment and magnitude.
 
 ---
 
@@ -189,6 +217,8 @@ for a unique $y_f \in H$ with $\|f\| = \|y_f\|$.
 - Identifies functionals with vectors
 - Enables kernel trick in ML
 
+> 💡 **Insight:** The Riesz representation theorem is secretly why neural networks can learn. It says every linear functional can be represented as an inner product with some vector. When a neural network learns to predict a scalar output from a vector input (like sentiment from an embedding), it's finding the Riesz representative—the vector that, when dotted with inputs, gives the right predictions.
+
 ---
 
 ## 7. Fourier Analysis
@@ -293,6 +323,8 @@ $$\frac{df}{dt} = -\nabla J(f)$$
 Infinite-width neural networks: training dynamics are linear in function space with kernel:
 $$K_{NTK}(x, x') = \nabla_\theta f(x; \theta)^T \nabla_\theta f(x'; \theta)$$
 
+> 💡 **Insight:** The neural tangent kernel (NTK) reveals that sufficiently wide neural networks behave like kernel machines! During training, the network function evolves in an RKHS defined by the NTK. This explains why wide networks generalize despite having more parameters than training examples—they're implicitly regularized by the RKHS norm, which favors smooth functions.
+
 ---
 
 ## 11. Compact Operators
@@ -358,6 +390,22 @@ Neural networks at infinite width converge to GPs with specific kernels determin
 | Spectral theorem      | Eigendecomposition              | Kernel PCA            |
 | NTK                   | $K_{NTK}$                       | Neural network theory |
 
+## Key Takeaways
+
+- **Inner products give us angles and similarity**: Unlike general norms, Hilbert space norms come from inner products, enabling cosine similarity and attention mechanisms.
+
+- **The projection theorem is the foundation of least squares**: Every least squares problem is finding the orthogonal projection onto the column space—the closest point in a subspace.
+
+- **RKHS = functions that can be evaluated pointwise**: The defining property of RKHS is that evaluation $f \mapsto f(x)$ is continuous, which is surprisingly restrictive and powerful.
+
+- **Kernels are infinite-dimensional inner products**: The kernel trick computes inner products in (potentially infinite-dimensional) feature space without ever constructing the features.
+
+- **The representer theorem makes kernel methods tractable**: No matter how complex the RKHS, the optimal solution is always a finite linear combination of kernel evaluations at training points.
+
+- **Wide neural networks are secretly kernel machines**: The NTK shows that training infinitely wide networks is equivalent to kernel regression, bridging deep learning and classical ML.
+
+- **Fourier analysis is Hilbert space theory**: The Fourier basis is just an orthonormal basis for $L^2$, and Parseval's identity is just Pythagoras in infinite dimensions.
+
 ## Key Theorems
 
 1. **Projection**: Unique closest point in closed convex set
@@ -365,6 +413,18 @@ Neural networks at infinite width converge to GPs with specific kernels determin
 3. **Representer**: Solutions are kernel expansions
 4. **Mercer**: Kernel eigendecomposition
 5. **Parseval**: $\|f\|^2 = \sum |\langle f, e_n \rangle|^2$
+
+## Exercises
+
+1. **Cauchy-Schwarz Application**: Prove that for any vectors $\mathbf{x}, \mathbf{y} \in \mathbb{R}^n$, the cosine similarity $\cos(\theta) = \frac{\langle \mathbf{x}, \mathbf{y} \rangle}{\|\mathbf{x}\| \|\mathbf{y}\|}$ satisfies $|\cos(\theta)| \leq 1$. How is this used in attention mechanisms?
+
+2. **Orthogonal Projection**: Given the subspace $W = \text{span}\{(1, 1, 0), (0, 1, 1)\}$ in $\mathbb{R}^3$, compute the orthogonal projection of $\mathbf{v} = (1, 2, 3)$ onto $W$ using the Gram-Schmidt process. Verify your answer satisfies $\mathbf{v} - P_W\mathbf{v} \perp W$.
+
+3. **Parseval's Identity**: For the orthonormal basis $\{\mathbf{e}_1, \mathbf{e}_2, \mathbf{e}_3\}$ in $\mathbb{R}^3$, verify Parseval's identity for $\mathbf{v} = (3, 4, 0)$ by showing $\|\mathbf{v}\|^2 = \sum_i |\langle \mathbf{v}, \mathbf{e}_i \rangle|^2$.
+
+4. **RKHS and Reproducing Property**: For the linear kernel $K(x, y) = x^T y$ on $\mathbb{R}^d$, show that the RKHS is $\mathbb{R}^d$ itself. Verify the reproducing property $f(x) = \langle f, K(\cdot, x) \rangle$ for a linear function $f(\mathbf{z}) = \mathbf{w}^T \mathbf{z}$.
+
+5. **Kernel Ridge Regression**: Derive the closed-form solution $\alpha = (K + \lambda I)^{-1} \mathbf{y}$ for kernel ridge regression by applying the representer theorem. Show that this is equivalent to the projection interpretation in Hilbert space.
 
 ## References
 

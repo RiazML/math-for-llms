@@ -1,5 +1,13 @@
 # Numerical Optimization
 
+> **Navigation**: [← 02-Numerical-Linear-Algebra](../02-Numerical-Linear-Algebra/) | [Numerical Methods](../) | [04-Interpolation-and-Approximation →](../04-Interpolation-and-Approximation/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Overview
 
 Numerical optimization provides algorithms to find minima of functions when analytical solutions are unavailable. This is the computational backbone of machine learning, powering everything from linear regression to deep neural networks.
@@ -380,6 +388,25 @@ Non-smooth regularizer? → Proximal methods
 3. **Learning rate scheduling** is crucial for good results
 4. **Second-order methods** shine for small, well-conditioned problems
 5. **Convex optimization** has strong theoretical guarantees
+
+---
+
+## Exercises
+
+### Exercise 1: Line Search Methods
+Implement backtracking line search with Armijo condition. Compare with exact line search for quadratic functions.
+
+### Exercise 2: Gradient Descent Variants
+Compare vanilla gradient descent, momentum, and Nesterov accelerated gradient on ill-conditioned quadratics.
+
+### Exercise 3: L-BFGS Implementation
+Implement L-BFGS with m=5 memory. Compare convergence with gradient descent on a logistic regression problem.
+
+### Exercise 4: Convergence Rate Analysis
+Empirically verify the linear convergence rate of gradient descent on strongly convex functions.
+
+### Exercise 5: Trust Region Methods
+Implement a basic trust region method. Compare with line search on the Rosenbrock function.
 
 ---
 

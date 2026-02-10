@@ -1,5 +1,13 @@
 # Mutual Information
 
+> **Navigation**: [← 02-KL-Divergence](../02-KL-Divergence/) | [Information Theory](../) | [04-Cross-Entropy →](../04-Cross-Entropy/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Introduction
 
 Mutual information quantifies the amount of information obtained about one random variable through observing another. It's a fundamental concept connecting probability, information theory, and machine learning, appearing in feature selection, representation learning, generative models, and neural network analysis.
@@ -370,6 +378,20 @@ Challenges:
 - Information bottleneck (representation learning)
 - Contrastive learning (InfoNCE objective)
 - Analyzing neural networks (information plane)
+
+---
+
+## Exercises
+
+1. **MI Computation**: For the joint distribution with $P(0,0)=0.3, P(0,1)=0.2, P(1,0)=0.1, P(1,1)=0.4$, compute $I(X;Y)$ using all four equivalent forms.
+
+2. **Independence**: Prove that $I(X;Y) = 0$ if and only if $X$ and $Y$ are independent.
+
+3. **Gaussian MI**: For bivariate Gaussian with correlation $\rho$, verify that $I(X;Y) = -\frac{1}{2}\log(1-\rho^2)$.
+
+4. **Data Processing**: Prove the data processing inequality: if $X \to Y \to Z$ forms a Markov chain, then $I(X;Z) \leq I(X;Y)$.
+
+5. **Feature Selection**: Given 3 features and a target, compute MI for each feature. Which would you select? How does this compare to correlation?
 
 ---
 

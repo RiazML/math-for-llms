@@ -1,8 +1,17 @@
 # Graph Theory Basics
 
+[← Previous: Numerical Methods](../../10-Numerical-Methods) | [Next: Graph Representations →](../02-Graph-Representations)
+
 ## Overview
 
 Graphs are mathematical structures modeling pairwise relations between objects. They are fundamental to network analysis, social networks, knowledge graphs, and increasingly to deep learning through graph neural networks.
+
+## Files in This Section
+
+| File | Description |
+|------|-------------|
+| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## Learning Objectives
 
@@ -352,3 +361,11 @@ Atoms as nodes, bonds as edges:
 3. Compute degree centrality for all nodes
 4. Identify whether a given graph is bipartite
 5. Find the diameter of a small network
+
+## Exercises
+
+1. **Graph Construction**: Given a list of edges, construct both directed and undirected graph representations and verify the handshaking lemma
+2. **Path Finding**: Implement an algorithm to find all simple paths between two vertices in an undirected graph
+3. **Bipartite Verification**: Write a function that determines if a graph is bipartite and returns the two vertex sets if it is
+4. **Clustering Coefficient**: Calculate the local and global clustering coefficients for a social network dataset
+5. **Graph Isomorphism**: Given two small graphs, determine if they are isomorphic by comparing their structural properties

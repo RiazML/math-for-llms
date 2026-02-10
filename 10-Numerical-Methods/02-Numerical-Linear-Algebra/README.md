@@ -1,5 +1,13 @@
 # Numerical Linear Algebra
 
+> **Navigation**: [← 01-Floating-Point-Arithmetic](../01-Floating-Point-Arithmetic/) | [Numerical Methods](../) | [03-Numerical-Optimization →](../03-Numerical-Optimization/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Overview
 
 Numerical linear algebra provides efficient algorithms for matrix operations that underpin virtually all machine learning computations. Understanding these methods is crucial for implementing efficient and numerically stable ML algorithms.
@@ -467,6 +475,25 @@ Tiled algorithms maximize cache usage.
 3. **Exploit structure**: Sparse, symmetric, positive definite
 4. **Monitor condition number**: Regularize if needed
 5. **Consider iterative methods**: For very large systems
+
+---
+
+## Exercises
+
+### Exercise 1: LU Decomposition
+Implement LU decomposition with partial pivoting. Test on ill-conditioned matrices and measure numerical error.
+
+### Exercise 2: QR vs Normal Equations
+Compare solving least squares via QR decomposition versus normal equations for a near-singular design matrix.
+
+### Exercise 3: Power Iteration
+Implement power iteration for finding the largest eigenvalue. Analyze convergence rate for different eigenvalue ratios.
+
+### Exercise 4: Condition Number Estimation
+Estimate condition numbers without computing the matrix inverse. Compare your estimate with numpy.linalg.cond.
+
+### Exercise 5: Sparse Matrix Operations
+Implement sparse matrix-vector multiplication. Compare memory usage and timing with dense operations for large sparse matrices.
 
 ---
 

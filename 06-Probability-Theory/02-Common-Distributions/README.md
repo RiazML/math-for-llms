@@ -1,413 +1,670 @@
 # Common Probability Distributions
 
-## Introduction
+> **Navigation**: [01-Introduction](../01-Introduction-and-Random-Variables/) | [03-Joint-Distributions](../03-Joint-Distributions/) | [04-Expectation-and-Moments](../04-Expectation-and-Moments/)
 
-Understanding probability distributions is essential for machine learning. Different data types and phenomena are naturally modeled by specific distributions. This section covers the most important distributions used in ML.
+## Overview
+
+Probability distributions are the building blocks of probabilistic ML. Each distribution encapsulates assumptions about data generation processes. Choosing the right distribution enables better modeling, efficient inference, and interpretable results.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    DISTRIBUTION FAMILY TREE                             │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  DISCRETE                           CONTINUOUS                           │
+│  ────────                           ──────────                           │
+│                                                                          │
+│  Bernoulli(p)                       Uniform(a,b)                         │
+│      ↓                                  ↓                                │
+│  Binomial(n,p) ──→ Normal             Beta(α,β) ←──┐                     │
+│      ↓              (CLT)                           │                    │
+│  Poisson(λ) ←────────────→ Exponential(λ)          │                    │
+│      ↓                          ↓                   │                    │
+│  Multinomial ←──→ Dirichlet ────┘                  Gamma(α,β)           │
+│                                                       ↓                  │
+│  Categorical ←──→ Dirichlet              Chi-squared ← Student's t      │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ## Prerequisites
 
-- Basic probability theory
-- Random variables
-- Expectation and variance
+- [01-Introduction-and-Random-Variables](../01-Introduction-and-Random-Variables/)
+- Calculus (integration, gamma function)
 
 ## Learning Objectives
 
-1. Recognize which distribution fits a given problem
-2. Compute probabilities, expectations, and variances
-3. Understand relationships between distributions
-4. Apply distributions to ML models
+1. Master common discrete and continuous distributions
+2. Understand relationships between distributions
+3. Choose appropriate distributions for ML problems
+4. Apply conjugate priors in Bayesian inference
 
 ---
 
 ## 1. Discrete Distributions
 
-### 1.1 Bernoulli Distribution
+### Bernoulli Distribution
 
-**Use case:** Single binary trial (coin flip, binary classification)
+**Single binary trial**: success (1) with probability $p$, failure (0) with probability $1-p$.
 
-$$P(X = k) = p^k (1-p)^{1-k}, \quad k \in \{0, 1\}$$
+$$P(X = x) = p^x(1-p)^{1-x}, \quad x \in \{0, 1\}$$
 
-| Property | Value                              |
-| -------- | ---------------------------------- |
-| Mean     | $p$                                |
-| Variance | $p(1-p)$                           |
-| Mode     | $0$ if $p < 0.5$, $1$ if $p > 0.5$ |
-
-### 1.2 Binomial Distribution
-
-**Use case:** Number of successes in n independent trials
-
-$$P(X = k) = \binom{n}{k} p^k (1-p)^{n-k}$$
-
-| Property | Value                 |
-| -------- | --------------------- |
-| Mean     | $np$                  |
-| Variance | $np(1-p)$             |
-| Support  | $\{0, 1, \ldots, n\}$ |
+| Property | Value |
+|----------|-------|
+| Mean | $p$ |
+| Variance | $p(1-p)$ |
+| Mode | 1 if $p > 0.5$, else 0 |
+| Support | $\{0, 1\}$ |
 
 ```
-Binomial(n=10, p=0.3):
+Bernoulli(p=0.7):
 
-P(X=k)
-0.25 │
-     │    ██
-0.20 │   ████
-     │  █████
-0.15 │  ██████
-     │ ███████
-0.10 │████████
-     │█████████
-0.05 │██████████
-     └──────────────
-       0 1 2 3 4 5 6 7 8 9 10
+P(X)
+1.0 │
+0.8 │                 ████
+0.6 │                 ████
+0.4 │                 ████
+0.3 │   ████          ████
+0.2 │   ████          ████
+0.1 │   ████          ████
+    └───────────────────────
+         0             1
+         failure      success
 ```
 
-### 1.3 Categorical/Multinoulli Distribution
+**ML Applications:**
+- Binary classification labels
+- Dropout (each neuron: Bernoulli)
+- Click/no-click prediction
 
-**Use case:** Single draw from K categories (multi-class classification)
+---
+
+### Binomial Distribution
+
+**Number of successes in $n$ independent Bernoulli trials**.
+
+$$P(X = k) = \binom{n}{k} p^k(1-p)^{n-k}, \quad k = 0, 1, \ldots, n$$
+
+| Property | Value |
+|----------|-------|
+| Mean | $np$ |
+| Variance | $np(1-p)$ |
+| Mode | $\lfloor (n+1)p \rfloor$ |
+| Support | $\{0, 1, \ldots, n\}$ |
+
+```
+Binomial Distributions:
+
+n=10, p=0.2       n=10, p=0.5       n=10, p=0.8
+    │ █                │                    │        █
+    │ ██               │   ███              │       ██
+    │ ███              │  █████             │      ███
+    │ ████             │ ███████            │     ████
+    │ █████            │█████████           │   █████
+    └──────            └──────────          └──────────
+    0  5  10           0   5   10           0   5   10
+    
+    Left-skewed       Symmetric            Right-skewed
+```
+
+> **💡 Intuition**: As $n \to \infty$, Binomial approaches Normal (Central Limit Theorem)
+
+---
+
+### Categorical Distribution
+
+**Single draw from $K$ categories** (generalization of Bernoulli).
 
 $$P(X = k) = p_k, \quad \sum_{k=1}^K p_k = 1$$
 
-Example: Rolling a biased die with probabilities $(p_1, \ldots, p_6)$
+One-hot encoding: $\mathbf{x} = [0, \ldots, 0, 1, 0, \ldots, 0]$
 
-### 1.4 Multinomial Distribution
+**ML Applications:**
+- Multi-class classification output
+- Word prediction in language models
+- Softmax output layer
 
-**Use case:** Counts from n trials with K outcomes
+---
 
-$$P(X_1=x_1, \ldots, X_K=x_K) = \frac{n!}{x_1! \cdots x_K!} p_1^{x_1} \cdots p_K^{x_K}$$
+### Multinomial Distribution
 
-where $\sum_k x_k = n$
+**Counts across $K$ categories in $n$ trials** (generalization of Binomial).
 
-### 1.5 Poisson Distribution
+$$P(X_1 = n_1, \ldots, X_K = n_K) = \frac{n!}{n_1! \cdots n_K!} \prod_{k=1}^K p_k^{n_k}$$
 
-**Use case:** Count of rare events, approximation to Binomial
+where $\sum_k n_k = n$ and $\sum_k p_k = 1$.
 
-$$P(X = k) = \frac{\lambda^k e^{-\lambda}}{k!}$$
+| Property | Value |
+|----------|-------|
+| $E[X_k]$ | $np_k$ |
+| $\text{Var}(X_k)$ | $np_k(1-p_k)$ |
+| $\text{Cov}(X_i, X_j)$ | $-np_ip_j$ (negative!) |
 
-| Property | Value                 |
-| -------- | --------------------- |
-| Mean     | $\lambda$             |
-| Variance | $\lambda$             |
-| Support  | $\{0, 1, 2, \ldots\}$ |
+> **⚠️ Note**: Negative covariance because more of one category means less of others!
 
-**Key property:** If events occur at rate $\lambda$ per unit time, counts follow Poisson($\lambda$).
+**ML Applications:**
+- Topic modeling (LDA)
+- Bag-of-words document representation
+- Multiclass count data
 
-### 1.6 Geometric Distribution
+---
 
-**Use case:** Number of trials until first success
+### Poisson Distribution
 
-$$P(X = k) = (1-p)^{k-1} p, \quad k = 1, 2, \ldots$$
+**Count of rare events** in fixed time/space.
 
-| Property | Value       |
-| -------- | ----------- |
-| Mean     | $1/p$       |
+$$P(X = k) = \frac{\lambda^k e^{-\lambda}}{k!}, \quad k = 0, 1, 2, \ldots$$
+
+| Property | Value |
+|----------|-------|
+| Mean | $\lambda$ |
+| Variance | $\lambda$ (equals mean!) |
+| Mode | $\lfloor \lambda \rfloor$ |
+| Support | $\{0, 1, 2, \ldots\}$ |
+
+```
+Poisson Distributions:
+
+λ = 1              λ = 4              λ = 10
+    │█                  │                    │
+    │██                 │  ██                │    ███
+    │███                │ ████               │   █████
+    │████               │██████              │  ███████
+    │█████              │███████             │ █████████
+    └──────             └──────────          └────────────
+    0 1 2 3 4           0 2 4 6 8            0 5 10 15 20
+```
+
+> **💡 Connection**: As $n \to \infty$ and $p \to 0$ with $np = \lambda$, Binomial → Poisson
+
+**ML Applications:**
+- Website traffic modeling
+- Rare event detection
+- Count regression (Poisson regression)
+
+---
+
+### Geometric Distribution
+
+**Number of trials until first success**.
+
+$$P(X = k) = (1-p)^{k-1}p, \quad k = 1, 2, 3, \ldots$$
+
+| Property | Value |
+|----------|-------|
+| Mean | $1/p$ |
 | Variance | $(1-p)/p^2$ |
+| Memoryless | Only discrete memoryless distribution |
 
-**Memoryless:** $P(X > m+n | X > m) = P(X > n)$
+**ML Applications:**
+- Time until conversion
+- Number of attempts until success
 
 ---
 
 ## 2. Continuous Distributions
 
-### 2.1 Uniform Distribution
+### Uniform Distribution
 
-**Use case:** Random number generation, uninformative prior
+**Equal probability over interval $[a, b]$**.
 
 $$f(x) = \frac{1}{b-a}, \quad a \leq x \leq b$$
 
-| Property | Value         |
-| -------- | ------------- |
-| Mean     | $(a+b)/2$     |
-| Variance | $(b-a)^2/12$  |
-| CDF      | $(x-a)/(b-a)$ |
+| Property | Value |
+|----------|-------|
+| Mean | $(a+b)/2$ |
+| Variance | $(b-a)^2/12$ |
+| Entropy | $\log(b-a)$ (maximum for bounded support) |
 
-### 2.2 Normal (Gaussian) Distribution
+```
+Uniform(0, 1):
 
-**Use case:** Most common, Central Limit Theorem, errors
+f(x)
+1.0 │ ████████████████████
+    │ ████████████████████
+    │ ████████████████████
+0   └──────────────────────
+    0                     1
+```
+
+**ML Applications:**
+- Random initialization
+- Parameter search bounds
+- Prior for unknown parameters
+
+---
+
+### Normal (Gaussian) Distribution
+
+**The most important distribution in statistics and ML**.
 
 $$f(x) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)$$
 
-| Property | Value      |
-| -------- | ---------- |
-| Mean     | $\mu$      |
+| Property | Value |
+|----------|-------|
+| Mean | $\mu$ |
 | Variance | $\sigma^2$ |
-| Mode     | $\mu$      |
-
-**Standard Normal $Z \sim N(0, 1)$:**
+| Mode | $\mu$ (symmetric) |
+| Entropy | $\frac{1}{2}\log(2\pi e\sigma^2)$ |
 
 ```
-68-95-99.7 Rule:
+Normal Distributions with Different Parameters:
 
-     ┌────────────────────────┐
-     │   ┌──────────────┐     │
-     │   │  ┌──────┐    │     │
- f(z)│   │  │ 68%  │    │     │
-     │   │  └──────┘    │     │
-     │   │     95%      │     │
-     │   └──────────────┘     │
-     │        99.7%           │
-     └────────────────────────┘
-        -3  -2  -1  0  1  2  3
+       σ=0.5                                σ=2
+         │                                   │
+       ╱ │ ╲                              ╱──┴──╲
+      ╱  │  ╲         σ=1              ╱         ╲
+     ╱   │   ╲       ╱───╲           ╱             ╲
+    ╱    │    ╲    ╱       ╲       ╱                 ╲
+───╱─────┼─────╲──╱─────────╲────╱─────────────────────╲───
+         μ                                
+
+• Smaller σ → taller, narrower peak
+• Larger σ → shorter, wider spread
+• All centered at μ
 ```
 
-### 2.3 Exponential Distribution
+**Key Properties:**
+1. Sum of independent normals is normal: $X_i \sim N(\mu_i, \sigma_i^2) \Rightarrow \sum X_i \sim N(\sum\mu_i, \sum\sigma_i^2)$
+2. Linear transformation: $aX + b \sim N(a\mu + b, a^2\sigma^2)$
+3. Central Limit Theorem: sample means → normal
 
-**Use case:** Time between events, memoryless processes
+> **🔑 Why Normal is everywhere in ML:**
+> - CLT: sums of random effects → normal
+> - Maximum entropy for fixed mean and variance
+> - Makes math tractable (closed-form convolutions)
+> - Gradient noise in SGD approximately normal
+
+**ML Applications:**
+- Gaussian noise models
+- Weight initialization
+- VAE latent space
+- Gaussian processes
+
+---
+
+### Exponential Distribution
+
+**Time between Poisson events** (continuous analog of Geometric).
 
 $$f(x) = \lambda e^{-\lambda x}, \quad x \geq 0$$
 
-| Property | Value                |
-| -------- | -------------------- |
-| Mean     | $1/\lambda$          |
-| Variance | $1/\lambda^2$        |
-| CDF      | $1 - e^{-\lambda x}$ |
+| Property | Value |
+|----------|-------|
+| Mean | $1/\lambda$ |
+| Variance | $1/\lambda^2$ |
+| Memoryless | $P(X > s+t \mid X > s) = P(X > t)$ |
+| Mode | 0 |
 
-**Memoryless property:** $P(X > s+t | X > s) = P(X > t)$
+```
+Exponential Distributions:
 
-### 2.4 Gamma Distribution
+f(x)                λ = 2
+2.0 │╲
+    │ ╲
+1.0 │  ╲   λ = 1
+    │   ╲──╲
+0.5 │      ╲ ╲___  λ = 0.5
+    │         ╲___╲____
+    └────────────────────→
+    0    1    2    3    4
+```
 
-**Use case:** Sum of exponentials, flexible shape, Bayesian priors
+> **💡 Memoryless property**: The probability of waiting another $t$ time units doesn't depend on how long you've already waited!
 
-$$f(x) = \frac{\beta^\alpha}{\Gamma(\alpha)} x^{\alpha-1} e^{-\beta x}$$
+**ML Applications:**
+- Session duration modeling
+- Inter-arrival times
+- Survival analysis
 
-| Property | Value            |
-| -------- | ---------------- |
-| Mean     | $\alpha/\beta$   |
+---
+
+### Gamma Distribution
+
+**Generalization of Exponential** (sum of $\alpha$ exponentials).
+
+$$f(x) = \frac{\beta^\alpha}{\Gamma(\alpha)} x^{\alpha-1} e^{-\beta x}, \quad x > 0$$
+
+| Property | Value |
+|----------|-------|
+| Mean | $\alpha/\beta$ |
 | Variance | $\alpha/\beta^2$ |
-| Support  | $x > 0$          |
-
-Special cases:
-
-- $\alpha = 1$: Exponential
-- $\alpha = n/2, \beta = 1/2$: Chi-squared with n df
-
-### 2.5 Beta Distribution
-
-**Use case:** Prior for probabilities (bounded [0,1])
-
-$$f(x) = \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha)\Gamma(\beta)} x^{\alpha-1} (1-x)^{\beta-1}$$
-
-| Property | Value                                            |
-| -------- | ------------------------------------------------ |
-| Mean     | $\alpha/(\alpha+\beta)$                          |
-| Variance | $\alpha\beta/[(\alpha+\beta)^2(\alpha+\beta+1)]$ |
-| Support  | $[0, 1]$                                         |
+| Shape | $\alpha$ (shape), $\beta$ (rate) |
+| Special cases | $\alpha=1$ → Exponential, $\alpha=n/2, \beta=1/2$ → Chi-squared |
 
 ```
-Beta distributions for various (α, β):
+Gamma Distributions (β=1):
 
-    (1,1): Uniform
-    (2,2): Bell-shaped symmetric
-    (5,1): Left-skewed
-    (1,5): Right-skewed
-    (0.5,0.5): U-shaped
+f(x)
+    │  α=1 (Exponential)
+    │╲
+    │ ╲     α=2
+    │  ╲   ╱╲
+    │   ╲_╱  ╲___  α=5
+    │          ╱╲____
+    │       __╱      ╲____
+    └──────────────────────→
+    0   2   4   6   8   10
 ```
 
-### 2.6 Student's t-Distribution
+**ML Applications:**
+- Prior for precision (inverse variance)
+- Bayesian inference for rates
+- Wait times in queueing models
 
-**Use case:** Heavy tails, small samples, robust regression
+---
 
-$$f(x) = \frac{\Gamma((\nu+1)/2)}{\sqrt{\nu\pi}\Gamma(\nu/2)} \left(1 + \frac{x^2}{\nu}\right)^{-(\nu+1)/2}$$
+### Beta Distribution
 
-| Property | Value                         |
-| -------- | ----------------------------- |
-| Mean     | $0$ (for $\nu > 1$)           |
-| Variance | $\nu/(\nu-2)$ (for $\nu > 2$) |
-| Limit    | $\nu \to \infty$: Normal(0,1) |
+**Distribution over probabilities** (values in [0, 1]).
 
-Heavy tails compared to Normal - more robust to outliers.
+$$f(x) = \frac{x^{\alpha-1}(1-x)^{\beta-1}}{B(\alpha, \beta)}, \quad 0 \leq x \leq 1$$
+
+where $B(\alpha, \beta) = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}$
+
+| Property | Value |
+|----------|-------|
+| Mean | $\alpha/(\alpha+\beta)$ |
+| Variance | $\frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}$ |
+| Mode | $(\alpha-1)/(\alpha+\beta-2)$ for $\alpha,\beta > 1$ |
+
+```
+Beta Distributions:
+
+α=0.5,β=0.5 (U-shape)    α=1,β=1 (Uniform)    α=2,β=5 (Left-skewed)
+      │ ╱╲                     │                    │  ╱╲
+      │╱  ╲                    │─────────           │ ╱  ╲
+      │    ╲                   │                    │╱    ╲
+      │     ╲                  │                    │      ╲___
+      ╱      ╲                 │                    │          ╲
+     ╱        ╲                │                    │            ╲
+    └──────────                └──────────          └──────────────
+    0         1                0         1          0             1
+
+α=5,β=2 (Right-skewed)   α=5,β=5 (Symmetric bell)
+           ╱╲  │              │      ╱╲
+          ╱  ╲ │              │    ╱    ╲
+        _╱    ╲│              │  ╱        ╲
+      _╱       │              │╱            ╲
+     ╱         │              │               ╲
+    └─────────────            └─────────────────
+    0           1              0              1
+```
+
+> **🔑 Conjugate Prior**: Beta is the conjugate prior for Bernoulli/Binomial likelihood!
+
+$$\text{Prior: } p \sim \text{Beta}(\alpha, \beta)$$
+$$\text{Data: } k \text{ successes in } n \text{ trials}$$
+$$\text{Posterior: } p \mid \text{data} \sim \text{Beta}(\alpha + k, \beta + n - k)$$
+
+**ML Applications:**
+- Bayesian A/B testing
+- Success rate estimation
+- Click-through rate modeling
+
+---
+
+### Student's t-Distribution
+
+**Heavier tails than Normal** (robust to outliers).
+
+$$f(x) = \frac{\Gamma\left(\frac{\nu+1}{2}\right)}{\sqrt{\nu\pi}\,\Gamma\left(\frac{\nu}{2}\right)} \left(1 + \frac{x^2}{\nu}\right)^{-\frac{\nu+1}{2}}$$
+
+| Property | Value |
+|----------|-------|
+| Mean | 0 (for $\nu > 1$) |
+| Variance | $\nu/(\nu-2)$ for $\nu > 2$ |
+| Degrees of freedom | $\nu$ (shape parameter) |
+| Limit | As $\nu \to \infty$, t → Normal |
+
+```
+t-Distribution vs Normal:
+
+            Normal (thin tails)
+               ╱╲
+              ╱  ╲
+             ╱    ╲
+     t-dist ╱──────╲ (heavy tails)
+         _╱   ╲  ╱   ╲_
+      __╱              ╲__
+  ___╱                    ╲___
+     │                        │
+     │  More probability in   │
+     │  tails = more robust   │
+     ▼                        ▼
+```
+
+**ML Applications:**
+- Robust regression
+- Small sample inference
+- Heavy-tailed noise modeling
 
 ---
 
 ## 3. Multivariate Distributions
 
-### 3.1 Multivariate Normal (Gaussian)
+### Multivariate Normal (Gaussian)
 
-$$f(\mathbf{x}) = \frac{1}{(2\pi)^{d/2}|\boldsymbol{\Sigma}|^{1/2}} \exp\left(-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu})^T\boldsymbol{\Sigma}^{-1}(\mathbf{x}-\boldsymbol{\mu})\right)$$
+$$f(\mathbf{x}) = \frac{1}{(2\pi)^{d/2}|\Sigma|^{1/2}} \exp\left(-\frac{1}{2}(\mathbf{x} - \boldsymbol{\mu})^T \Sigma^{-1} (\mathbf{x} - \boldsymbol{\mu})\right)$$
 
-| Property     | Value                 |
-| ------------ | --------------------- |
-| Mean         | $\boldsymbol{\mu}$    |
-| Covariance   | $\boldsymbol{\Sigma}$ |
-| Marginals    | Normal                |
-| Conditionals | Normal                |
+| Property | Value |
+|----------|-------|
+| Mean | $\boldsymbol{\mu} \in \mathbb{R}^d$ |
+| Covariance | $\Sigma \in \mathbb{R}^{d \times d}$ (positive semi-definite) |
+| Marginals | Each $X_i \sim N(\mu_i, \Sigma_{ii})$ |
+| Conditionals | Also Gaussian! |
 
 ```
-2D Gaussian contours:
+2D Multivariate Normal:
 
-        ┌─────────────────┐
-        │    ╭───────╮    │
-        │   ╱ ╭───╮   ╲   │
-        │  │ ╱     ╲  │   │
-y       │  │ │  •  │  │   │
-        │  │ ╲     ╱  │   │
-        │   ╲ ╰───╯  ╱    │
-        │    ╰──────╯     │
-        └─────────────────┘
-                x
-• = mean, ellipses = constant probability
+  Uncorrelated (ρ=0)      Positive correlation (ρ>0)    Negative correlation (ρ<0)
+        y                        y                             y
+        │     ○                  │       ╱                     │  ╲
+        │   ○○○○○                │     ╱╱╱                     │    ╲╲
+        │  ○○○○○○○               │   ╱╱╱╱╱                     │ ╲╲╲╲╲
+        │   ○○○○○                │  ╱╱╱╱╱                      │   ╲╲╲╲
+        │     ○                  │ ╱╱╱                         │     ╲╲
+        └──────────x             └──────────x                  └──────────x
+        
+  Circular contours       Ellipse tilted up           Ellipse tilted down
 ```
 
-### 3.2 Dirichlet Distribution
+**Key Properties:**
+1. Marginals are Gaussian
+2. Conditionals are Gaussian
+3. Affine transformations preserve Gaussianity
+4. Uncorrelated ⟺ Independent (only for Gaussians!)
 
-**Use case:** Prior for probability vectors (simplex)
-
-$$f(\mathbf{x}) = \frac{\Gamma(\sum_i \alpha_i)}{\prod_i \Gamma(\alpha_i)} \prod_{i=1}^K x_i^{\alpha_i - 1}$$
-
-where $\sum_i x_i = 1$, $x_i \geq 0$
-
-- Multivariate generalization of Beta
-- Conjugate prior for Categorical/Multinomial
+**ML Applications:**
+- Gaussian Mixture Models (GMM)
+- Gaussian Processes
+- VAE latent spaces
+- Multivariate regression
 
 ---
 
-## 4. Distribution Relationships
+### Dirichlet Distribution
+
+**Distribution over probability simplices** (generalization of Beta).
+
+$$f(\mathbf{x}) = \frac{1}{B(\boldsymbol{\alpha})} \prod_{k=1}^K x_k^{\alpha_k - 1}$$
+
+where $\sum_k x_k = 1$ and $x_k \geq 0$.
+
+| Property | Value |
+|----------|-------|
+| Mean | $E[x_k] = \alpha_k / \sum_j \alpha_j$ |
+| Concentration | $\alpha_0 = \sum_k \alpha_k$ |
+| Special case | $K=2$ → Beta distribution |
 
 ```
-Distribution Family Tree:
+Dirichlet on 3-Simplex (triangle):
 
-                    Bernoulli(p)
-                         │
-           ┌─────────────┼─────────────┐
-           │             │             │
-    Binomial(n,p)   Geometric(p)  Neg.Binomial
-           │
-           │ n→∞, np→λ
-           ▼
-      Poisson(λ)
-           │ sum of n
-           ▼
-       Gamma(n,λ)
-           │
-           │ α=1
-           ▼
-    Exponential(λ)
+α = (1,1,1) - Uniform       α = (10,10,10) - Concentrated center
+      ▲                              ▲
+     ╱ ╲                            ╱ ╲
+    ╱   ╲                          ╱   ╲
+   ╱ ░░░ ╲                        ╱     ╲
+  ╱ ░░░░░ ╲                      ╱  ░░░  ╲
+ ╱ ░░░░░░░ ╲                    ╱   ░░░   ╲
+▔▔▔▔▔▔▔▔▔▔▔▔                   ▔▔▔▔▔▔▔▔▔▔▔▔
 
-
-Normal Family:
-
-    Normal(μ,σ²) ────────────────────┐
-           │                         │
-           │ sum                     │ ratio
-           ▼                         ▼
-    Normal(nμ,nσ²)            Student's t(ν)
-           │
-           │ standardize
-           ▼
-      N(0,1) squared
-           │
-           ▼
-       Chi-squared(1)
-           │ sum of k
-           ▼
-       Chi-squared(k)
+α = (0.1,0.1,0.1) - Sparse    α = (5,1,1) - Biased to corner
+      ▲                              ▲
+     ╱╲╲                            ╱ ╲
+    ╱  ╲                           ╱   ╲
+   ╱    ╲                         ╱     ╲
+  ╱░    ░╲                       ░░      ╲
+ ░░      ░░                     ░░░░░     ╲
+▔▔▔▔▔▔▔▔▔▔▔▔                   ▔▔▔▔▔▔▔▔▔▔▔▔
 ```
+
+> **🔑 Conjugate Prior**: Dirichlet is the conjugate prior for Categorical/Multinomial!
+
+**ML Applications:**
+- Latent Dirichlet Allocation (LDA)
+- Topic modeling
+- Bayesian multi-class classification
+- Mixture model priors
 
 ---
 
-## 5. Conjugate Priors
+## 4. Conjugate Priors
 
-**Conjugate prior:** Prior and posterior belong to same family.
-
-| Likelihood         | Prior     | Posterior |
-| ------------------ | --------- | --------- |
-| Bernoulli/Binomial | Beta      | Beta      |
-| Poisson            | Gamma     | Gamma     |
-| Normal (known σ²)  | Normal    | Normal    |
-| Normal (known μ)   | Inv-Gamma | Inv-Gamma |
-| Multinomial        | Dirichlet | Dirichlet |
-
-Example: Beta-Binomial conjugacy
-
-- Prior: $p \sim \text{Beta}(\alpha, \beta)$
-- Likelihood: $k | p \sim \text{Binomial}(n, p)$
-- Posterior: $p | k \sim \text{Beta}(\alpha + k, \beta + n - k)$
-
----
-
-## 6. ML Applications
-
-### Classification
-
-- **Binary:** Bernoulli for labels
-- **Multi-class:** Categorical for labels
-- **Logistic regression:** Models Bernoulli parameter
-
-### Regression
-
-- **Linear regression:** Normal errors
-- **Robust regression:** Student's t errors
-- **Count regression:** Poisson
-
-### Generative Models
-
-- **Gaussian Mixture Models:** Mixture of Gaussians
-- **Latent Dirichlet Allocation:** Dirichlet-Multinomial
-
-### Bayesian Inference
-
-- **Prior selection:** Beta, Gamma, Normal
-- **Posterior computation:** Use conjugacy when possible
-
----
-
-## 7. Distribution Selection Guide
+A prior is **conjugate** to a likelihood if the posterior is in the same family.
 
 ```
-Choosing a distribution:
+┌────────────────────────────────────────────────────────────────┐
+│                    CONJUGATE PRIOR PAIRS                       │
+├────────────────────────────────────────────────────────────────┤
+│  Likelihood          Prior              Posterior              │
+│  ──────────          ─────              ─────────              │
+│  Bernoulli/Binomial  Beta(α,β)          Beta(α+k, β+n-k)       │
+│  Poisson             Gamma(α,β)         Gamma(α+Σx, β+n)       │
+│  Exponential         Gamma(α,β)         Gamma(α+n, β+Σx)       │
+│  Normal (μ known)    Normal(μ₀,σ₀²)     Normal(μ', σ'²)        │
+│  Normal (σ² known)   Inv-Gamma(α,β)     Inv-Gamma(α',β')       │
+│  Categorical/Mult.   Dirichlet(α)       Dirichlet(α+n)         │
+│  Multivariate Normal Normal-Wishart     Normal-Wishart         │
+└────────────────────────────────────────────────────────────────┘
+```
 
-Data type?
-├── Discrete
-│   ├── Binary outcome → Bernoulli
-│   ├── Count (bounded) → Binomial
-│   ├── Count (unbounded) → Poisson
-│   └── Multiple categories → Categorical/Multinomial
-│
-└── Continuous
-    ├── Bounded [0,1] → Beta
-    ├── Bounded [a,b] → Uniform or truncated
-    ├── Positive only → Gamma, Exponential, Log-normal
-    ├── Whole real line → Normal
-    └── Heavy tails → Student's t
+> **💡 Why conjugacy matters**: Closed-form posteriors mean fast inference without MCMC!
+
+### Example: Beta-Binomial
+
+```
+Prior:     Beta(2, 2)     (believe p ≈ 0.5)
+           ╱╲
+          ╱  ╲
+         ╱    ╲
+
+Data:     7 successes, 3 failures
+
+Posterior: Beta(2+7, 2+3) = Beta(9, 5)
+                    ╱╲
+                  ╱    ╲
+                ╱        ╲
+               (peaks around 0.64)
 ```
 
 ---
 
-## 8. Summary Tables
+## 5. Distribution Selection Guide
 
-### Discrete Distributions
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                 CHOOSING A DISTRIBUTION                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  What type of data?                                             │
+│  ─────────────────                                              │
+│      │                                                           │
+│      ├── Binary (yes/no) ────────────────→ Bernoulli            │
+│      │                                                           │
+│      ├── Count (0,1,2,...) ──┬── Bounded n ───→ Binomial        │
+│      │                        └── Unbounded ───→ Poisson        │
+│      │                                                           │
+│      ├── Categories (K classes) ─────────→ Categorical          │
+│      │                                                           │
+│      ├── Time/Duration ──────┬── Memoryless ──→ Exponential     │
+│      │                        └── Shape ──────→ Gamma/Weibull   │
+│      │                                                           │
+│      ├── Probability (0 to 1) ───────────→ Beta                 │
+│      │                                                           │
+│      ├── Real values ────────┬── Symmetric bell ─→ Normal       │
+│      │                        ├── Heavy tails ────→ Student's t │
+│      │                        └── Bounded ────────→ Beta (transform)│
+│      │                                                           │
+│      └── Probability vector ─────────────→ Dirichlet            │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-| Distribution  | PMF                                 | Mean      | Variance    |
-| ------------- | ----------------------------------- | --------- | ----------- |
-| Bernoulli(p)  | $p^k(1-p)^{1-k}$                    | $p$       | $p(1-p)$    |
-| Binomial(n,p) | $\binom{n}{k}p^k(1-p)^{n-k}$        | $np$      | $np(1-p)$   |
-| Poisson(λ)    | $\frac{\lambda^k e^{-\lambda}}{k!}$ | $\lambda$ | $\lambda$   |
-| Geometric(p)  | $(1-p)^{k-1}p$                      | $1/p$     | $(1-p)/p^2$ |
+---
 
-### Continuous Distributions
+## 6. Summary Tables
 
-| Distribution   | PDF                                                           | Mean                          | Variance                                               |
-| -------------- | ------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------ |
-| Uniform(a,b)   | $\frac{1}{b-a}$                                               | $\frac{a+b}{2}$               | $\frac{(b-a)^2}{12}$                                   |
-| Normal(μ,σ²)   | $\frac{1}{\sqrt{2\pi\sigma^2}}e^{-(x-\mu)^2/2\sigma^2}$       | $\mu$                         | $\sigma^2$                                             |
-| Exponential(λ) | $\lambda e^{-\lambda x}$                                      | $1/\lambda$                   | $1/\lambda^2$                                          |
-| Gamma(α,β)     | $\frac{\beta^\alpha}{\Gamma(\alpha)}x^{\alpha-1}e^{-\beta x}$ | $\alpha/\beta$                | $\alpha/\beta^2$                                       |
-| Beta(α,β)      | $\frac{x^{\alpha-1}(1-x)^{\beta-1}}{B(\alpha,\beta)}$         | $\frac{\alpha}{\alpha+\beta}$ | $\frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}$ |
+### Quick Reference
+
+| Distribution | Support | Mean | Variance | ML Use Case |
+|-------------|---------|------|----------|-------------|
+| Bernoulli($p$) | {0,1} | $p$ | $p(1-p)$ | Binary labels |
+| Binomial($n,p$) | {0,...,n} | $np$ | $np(1-p)$ | Success counts |
+| Categorical($\mathbf{p}$) | {1,...,K} | — | — | Multi-class |
+| Poisson($\lambda$) | {0,1,2,...} | $\lambda$ | $\lambda$ | Rare events |
+| Uniform($a,b$) | [a,b] | $\frac{a+b}{2}$ | $\frac{(b-a)^2}{12}$ | Initialization |
+| Normal($\mu,\sigma^2$) | $\mathbb{R}$ | $\mu$ | $\sigma^2$ | Everything! |
+| Exponential($\lambda$) | $[0,\infty)$ | $1/\lambda$ | $1/\lambda^2$ | Wait times |
+| Gamma($\alpha,\beta$) | $(0,\infty)$ | $\alpha/\beta$ | $\alpha/\beta^2$ | Rate priors |
+| Beta($\alpha,\beta$) | [0,1] | $\frac{\alpha}{\alpha+\beta}$ | ... | Probability priors |
+| Student's t($\nu$) | $\mathbb{R}$ | 0 | $\frac{\nu}{\nu-2}$ | Robust modeling |
+
+### Relationship Cheat Sheet
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│               DISTRIBUTION RELATIONSHIPS                      │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│  Bernoulli ──(n trials)──→ Binomial ──(n→∞, p→0)──→ Poisson  │
+│      │                         │                              │
+│      │ (K classes)             │ (CLT)                        │
+│      ▼                         ▼                              │
+│  Categorical              Normal ←──(ν→∞)── Student's t      │
+│      │                                                        │
+│      │ (n trials)                                             │
+│      ▼                                                        │
+│  Multinomial                                                  │
+│                                                               │
+│  Beta ──────(K=2)───────→ Dirichlet                          │
+│                                                               │
+│  Exponential ──(α=1)────→ Gamma                              │
+│       │                                                       │
+│       │ (count events)                                        │
+│       ▼                                                       │
+│  Poisson                                                      │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Exercises
 
-1. Derive the MGF of Poisson and use it to find mean and variance
-2. Show that sum of independent Poissons is Poisson
-3. Derive the posterior for Beta-Binomial model
-4. Show that N(μ, σ²) is invariant under linear transformation
-5. Compute the entropy of Bernoulli(p)
+1. Derive the mean and variance of Binomial from Bernoulli sum
+2. Show that Poisson is the limit of Binomial as $n \to \infty$, $p \to 0$, $np = \lambda$
+3. Compute the posterior for Beta(1,1) prior with 5 heads, 3 tails
+4. Prove that exponential distribution is memoryless
+5. Generate samples from a Dirichlet and verify the mean formula
 
 ---
 
 ## References
 
-1. Casella & Berger - "Statistical Inference"
+1. Bishop - "Pattern Recognition and Machine Learning"
 2. Murphy - "Machine Learning: A Probabilistic Perspective"
-3. Bishop - "Pattern Recognition and Machine Learning"
+3. Gelman et al. - "Bayesian Data Analysis"
+
+---
+
+> **Next**: [03-Joint-Distributions](../03-Joint-Distributions/) — Multiple random variables together

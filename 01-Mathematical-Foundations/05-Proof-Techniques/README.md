@@ -440,7 +440,16 @@ Cases:         (C₁ ⟹ P) ∧ (C₂ ⟹ P) ∧ (C₁ ∨ C₂) ⟹ P
 
 ---
 
-## Exercises
+## Companion Notebooks
+
+| Notebook | Description |
+|----------|-------------|
+| [examples.ipynb](examples.ipynb) | Interactive demonstrations of all proof techniques with Python verification |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with step-by-step solutions |
+
+---
+
+## Practice Problems
 
 1. Prove: The sum of an odd and even number is odd (direct proof)
 2. Prove: If n² is even, then n is even (contrapositive)

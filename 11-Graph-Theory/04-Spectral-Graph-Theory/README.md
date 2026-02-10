@@ -1,8 +1,17 @@
 # Spectral Graph Theory
 
+[← Previous: Graph Algorithms](../03-Graph-Algorithms) | [Next: Graph Neural Networks →](../05-Graph-Neural-Networks)
+
 ## Overview
 
 Spectral graph theory studies graphs through the eigenvalues and eigenvectors of matrices associated with graphs. This mathematical framework is foundational for Graph Neural Networks, spectral clustering, and understanding graph structure.
+
+## Files in This Section
+
+| File | Description |
+|------|-------------|
+| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## Learning Objectives
 
@@ -282,3 +291,11 @@ For connected graph, adjacency matrix has:
 3. Implement spectral clustering from scratch
 4. Show that GCN aggregation is equivalent to a specific spectral filter
 5. Compare Laplacian eigenmaps to PCA for graph embedding
+
+## Exercises
+
+1. **Laplacian Properties**: Verify the properties of unnormalized and normalized Laplacians on different graph types (complete, cycle, path)
+2. **Spectral Clustering**: Implement k-way spectral clustering and compare results with k-means on graph node features
+3. **Graph Fourier Analysis**: Compute the Graph Fourier Transform of a signal and visualize low vs high frequency components
+4. **Chebyshev Filters**: Implement polynomial spectral filtering using Chebyshev polynomials without eigendecomposition
+5. **Algebraic Connectivity**: Analyze the relationship between the Fiedler value and graph connectivity for random graphs

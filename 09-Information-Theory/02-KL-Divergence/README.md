@@ -1,5 +1,13 @@
 # KL Divergence
 
+> **Navigation**: [← 01-Entropy](../01-Entropy/) | [Information Theory](../) | [03-Mutual-Information →](../03-Mutual-Information/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Introduction
 
 Kullback-Leibler (KL) divergence measures how one probability distribution differs from another. It's fundamental to machine learning, appearing in variational inference, information bottleneck, loss functions, and regularization. Understanding KL divergence is essential for modern ML practitioners.
@@ -358,6 +366,20 @@ KL can be difficult to estimate in high dimensions due to:
 | Reverse      | Zero-forcing, mode seeking     |
 
 **Key insight:** KL divergence measures information loss when approximating $P$ with $Q$. Its asymmetry leads to different behaviors (forward vs reverse) crucial for choosing the right objective in ML applications.
+
+---
+
+## Exercises
+
+1. **Asymmetry**: For $P = \text{Bernoulli}(0.1)$ and $Q = \text{Bernoulli}(0.5)$, compute both $D_{KL}(P\|Q)$ and $D_{KL}(Q\|P)$. Explain the difference.
+
+2. **Gaussian KL**: Derive the closed-form KL divergence between two univariate Gaussians $\mathcal{N}(\mu_1, \sigma_1^2)$ and $\mathcal{N}(\mu_2, \sigma_2^2)$.
+
+3. **Forward vs Reverse**: Given a bimodal true distribution and unimodal approximate, sketch where forward KL vs reverse KL would place the approximation.
+
+4. **VAE Loss**: Show that the VAE loss (reconstruction + KL to prior) is equivalent to maximizing evidence lower bound (ELBO).
+
+5. **Jensen-Shannon**: Prove that Jensen-Shannon divergence is symmetric and bounded: $0 \leq JS(P,Q) \leq 1$ (for log base 2).
 
 ---
 

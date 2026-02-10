@@ -1,5 +1,13 @@
 # Optimization Landscape Analysis
 
+> **Navigation**: [← 05-Stochastic-Optimization](../05-Stochastic-Optimization/) | [Optimization](../) | [07-Adaptive-Learning-Rate →](../07-Adaptive-Learning-Rate/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Introduction
 
 Understanding the geometry of loss surfaces is crucial for deep learning. The optimization landscape determines which minima we can reach, how fast we converge, and how well our models generalize. This topic explores the mathematical tools for analyzing loss landscapes.
@@ -370,6 +378,20 @@ Seeks parameters that are robust to perturbations.
 | Hessian spectrum  | Most eigenvalues small; few outliers                       |
 
 **Key insight:** Understanding the loss landscape helps explain why deep learning works and guides algorithm design.
+
+---
+
+## Exercises
+
+1. **Critical Point Classification**: For $f(x,y) = x^3 - 3xy^2$, find all critical points and classify each as local min, max, or saddle point using the Hessian.
+
+2. **Condition Number Impact**: Create a 2D quadratic with condition number $\kappa = 100$. Visualize gradient descent paths and count iterations to convergence vs $\kappa = 1$.
+
+3. **Saddle Point Dynamics**: For $f(x,y) = x^2 - y^2$, starting from $(0.1, 0.1)$, simulate gradient descent. Does it escape the saddle? How does noise help?
+
+4. **Flatness Measure**: Propose and implement a measure of minima flatness. Test it on a small neural network trained with different batch sizes.
+
+5. **Mode Connectivity**: Train two neural networks with different random seeds. Interpolate between their weights and plot the loss along the path. Are they linearly connected?
 
 ---
 

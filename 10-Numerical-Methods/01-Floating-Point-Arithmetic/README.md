@@ -1,5 +1,13 @@
 # Floating-Point Arithmetic
 
+> **Navigation**: [← 04-Cross-Entropy](../../09-Information-Theory/04-Cross-Entropy/) | [Numerical Methods](../) | [02-Numerical-Linear-Algebra →](../02-Numerical-Linear-Algebra/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Learning Objectives
 
 - Understand IEEE 754 floating-point representation
@@ -382,6 +390,25 @@ Common Numerical Issues in ML:
 | float16   | Forward pass, large models, inference                  |
 | float32   | Default training, most operations                      |
 | float64   | Sensitive numerical computations, small cumulative ops |
+
+---
+
+## Exercises
+
+### Exercise 1: Machine Epsilon
+Compute and compare machine epsilon for float16, float32, and float64. Verify your results experimentally.
+
+### Exercise 2: Catastrophic Cancellation
+Demonstrate catastrophic cancellation in the quadratic formula for $x^2 + 10^8x + 1 = 0$. Implement a numerically stable alternative.
+
+### Exercise 3: Summation Algorithms
+Compare naive, pairwise, and Kahan summation for adding $10^7$ random numbers. Measure relative errors.
+
+### Exercise 4: Loss Scaling
+Implement automatic mixed precision training with dynamic loss scaling for a simple neural network.
+
+### Exercise 5: Numerical Stability Analysis
+Analyze the condition number of a Hilbert matrix and explain why solving linear systems with it becomes unstable.
 
 ---
 

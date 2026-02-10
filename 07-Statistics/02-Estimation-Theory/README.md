@@ -1,8 +1,34 @@
 # Estimation Theory
 
+> **Navigation**: [← 01-Descriptive-Statistics](../01-Descriptive-Statistics/) | [Statistics](../) | [03-Hypothesis-Testing →](../03-Hypothesis-Testing/)
+
 ## Introduction
 
 Estimation theory provides the mathematical framework for inferring population parameters from sample data. This is foundational for machine learning, where we estimate model parameters from training data.
+
+```
+Estimation in Machine Learning Context:
+══════════════════════════════════════════════════════════════════
+
+            Population                    Sample
+              (Unknown)                   (Observed)
+           ┌───────────┐               ┌───────────┐
+           │           │               │           │
+           │  θ = ?    │  ◄─────────   │  Data X   │
+           │           │   Estimation  │           │
+           └───────────┘               └───────────┘
+                ▲                            │
+                │                            ▼
+                │                    ┌───────────────┐
+                │                    │  Estimator θ̂  │
+                │         ◀────────  │  = g(X₁...Xₙ) │
+                │                    └───────────────┘
+                │
+        ┌───────┴───────┐
+        │               │
+   True weights     Estimated weights
+   in nature        from training data
+```
 
 ## Prerequisites
 
@@ -57,26 +83,30 @@ MSE combines bias and variance:
 $$\text{MSE}(\hat{\theta}) = E[(\hat{\theta} - \theta)^2] = \text{Var}(\hat{\theta}) + [\text{Bias}(\hat{\theta})]^2$$
 
 ```
-Bias-Variance Tradeoff:
+Bias-Variance Tradeoff Illustrated:
+══════════════════════════════════════════════════════════════════
 
-        Low Variance           High Variance
-       ┌─────────────┐        ┌─────────────┐
-Low    │    ·  ·     │        │  ·      ·   │
-Bias   │      ⊕      │        │    ⊕        │
-       │   ·    ·    │        │      ·   ·  │
-       └─────────────┘        └─────────────┘
-          Ideal!              Imprecise but
-                              centered
-       ┌─────────────┐        ┌─────────────┐
-High   │             │        │ ·           │
-Bias   │    · · ·    │        │         ·   │
-       │      ⊕      │        │    ⊕  ·     │
-       └─────────────┘        └─────────────┘
-       Precise but            Worst case
-       off target
+          Low Variance                    High Variance
+    ┌─────────────────────┐         ┌─────────────────────┐
+    │       · ·           │         │     ·           ·   │
+  L │         ⊕           │         │           ⊕         │
+  o │      ·    ·         │         │  ·              ·   │
+  w │                     │         │                     │
+    └─────────────────────┘         └─────────────────────┘
+       IDEAL! Low MSE                Imprecise but centered
+    
+    ┌─────────────────────┐         ┌─────────────────────┐
+  H │                     │         │  ·                  │
+  i │    · · · ·          │         │                 ·   │
+  g │                     │         │                     │
+  h │         ⊕           │         │           ⊕     ·   │
+    └─────────────────────┘         └─────────────────────┘
+       Precise but wrong              WORST! High MSE
 
-⊕ = True value, · = Estimates
+    ⊕ = True parameter value    · = Individual estimates
 ```
+
+> 💡 **Key Insight**: Sometimes a biased estimator with low variance can have lower MSE than an unbiased estimator with high variance. This is why regularization (which introduces bias) often improves prediction!
 
 ### 2.4 Consistency
 
@@ -96,6 +126,26 @@ $$\text{Var}(\hat{\theta}) \geq \frac{1}{I(\theta)}$$
 
 where $I(\theta)$ is Fisher Information.
 
+```
+Estimator Properties Summary:
+══════════════════════════════════════════════════════════════════
+
+           Unbiased               Consistent              Efficient
+              │                       │                       │
+              ▼                       ▼                       ▼
+       E[θ̂] = θ             θ̂ₙ → θ as n→∞          Min variance among
+       (Centered)           (Eventually correct)    unbiased estimators
+       
+                     ┌─────────────────────────┐
+                     │     The Golden Trio     │
+                     │   (Best-case scenario)  │
+                     │                         │
+                     │  Unbiased + Consistent  │
+                     │  + Efficient = MLE      │
+                     │  (asymptotically)       │
+                     └─────────────────────────┘
+```
+
 ---
 
 ## 3. Maximum Likelihood Estimation (MLE)
@@ -110,11 +160,39 @@ $$L(\theta | \mathbf{x}) = \prod_{i=1}^n f(x_i | \theta)$$
 
 $$\ell(\theta) = \log L(\theta) = \sum_{i=1}^n \log f(x_i | \theta)$$
 
+> 💡 **Why Log?** 
+> 1. Converts products to sums (easier math)
+> 2. Avoids numerical underflow with many data points
+> 3. Same maximizer as likelihood (log is monotonic)
+
 ### 3.3 MLE
 
 $$\hat{\theta}_{MLE} = \arg\max_\theta \ell(\theta)$$
 
 Find by solving: $\frac{\partial \ell}{\partial \theta} = 0$
+
+```
+MLE Intuition:
+══════════════════════════════════════════════════════════════════
+
+Given observed data, which parameter value makes this data most likely?
+
+        P(data | θ)            Find θ that maximizes
+             │                  this probability
+    ┌────────┼────────┐              │
+    │        │        │              ▼
+    │       ╱│╲       │         θ̂_MLE
+    │      ╱ │ ╲      │
+    │     ╱  │  ╲     │
+    │    ╱   │   ╲    │
+    └───╱────┼────╲───┘
+       ╱     │     ╲
+    ──────────────────────▶ θ
+            θ̂
+
+Example: Flip coin 70 heads, 30 tails
+   → MLE for p(heads) = 70/100 = 0.7
+```
 
 ### 3.4 Example: Normal Distribution
 
@@ -130,7 +208,7 @@ $$\hat{\mu}_{MLE} = \bar{x}$$
 **MLE for σ²:**
 $$\hat{\sigma}^2_{MLE} = \frac{1}{n}\sum_{i=1}^n (x_i - \bar{x})^2$$
 
-Note: MLE for variance uses $n$, not $n-1$ (slightly biased).
+> ⚠️ **Caution**: MLE for variance uses $n$, not $n-1$. It's slightly biased! The unbiased estimator divides by $n-1$, but MLE is still consistent.
 
 ---
 
@@ -151,6 +229,22 @@ As $n \to \infty$:
 
 If $\hat{\theta}$ is MLE of $\theta$, then $g(\hat{\theta})$ is MLE of $g(\theta)$.
 
+```
+MLE Properties - The Big Picture:
+══════════════════════════════════════════════════════════════════
+
+          Small Sample                 Large Sample (n→∞)
+       ┌────────────────┐          ┌────────────────────────┐
+       │ • May be biased│          │ • Consistent (unbiased)│
+       │ • Variance can │    →     │ • Minimum variance     │
+       │   be high      │          │ • Approximately Normal │
+       │ • Works anyway │          │ • Optimal!             │
+       └────────────────┘          └────────────────────────┘
+              
+       For finite n:                    Asymptotically:
+       Consider regularization          MLE is gold standard
+```
+
 ---
 
 ## 5. Fisher Information
@@ -164,6 +258,26 @@ $$I(\theta) = -E\left[\frac{\partial^2 \ell}{\partial \theta^2}\right] = E\left[
 - Higher Fisher Information → More information about $\theta$ in data
 - Inverse gives lower bound on estimator variance
 
+```
+Fisher Information Intuition:
+══════════════════════════════════════════════════════════════════
+
+Low Fisher Information:          High Fisher Information:
+Flat likelihood                  Peaked likelihood
+
+        ___________                        ╱╲
+       ╱           ╲                      ╱  ╲
+      ╱             ╲                    ╱    ╲
+     ╱               ╲                  ╱      ╲
+    ╱                 ╲                ╱        ╲
+   ─────────────────────              ─────────────────
+
+   Hard to pinpoint θ              Easy to pinpoint θ
+   High estimation variance        Low estimation variance
+   
+   Example: 10 coin flips         Example: 10,000 coin flips
+```
+
 ### 5.3 Example: Bernoulli
 
 $X \sim \text{Bernoulli}(p)$
@@ -173,6 +287,8 @@ $$\ell(p) = x\log p + (1-x)\log(1-p)$$
 $$\frac{\partial \ell}{\partial p} = \frac{x}{p} - \frac{1-x}{1-p}$$
 
 $$I(p) = E\left[\left(\frac{x}{p} - \frac{1-x}{1-p}\right)^2\right] = \frac{1}{p(1-p)}$$
+
+> 💡 **Notice**: Fisher Information is highest at p = 0.5 (most uncertain case) and lowest near p = 0 or 1 (already know outcome). Wait, that seems backwards? No! More information is AVAILABLE when outcomes are uncertain, making p easier to estimate precisely.
 
 ---
 
@@ -207,12 +323,34 @@ $$\hat{\alpha}_{MoM} = \bar{x} \cdot \hat{\beta}_{MoM}$$
 
 ## 7. MLE vs Method of Moments
 
-| Aspect      | MLE                        | Method of Moments     |
-| ----------- | -------------------------- | --------------------- |
-| Efficiency  | Asymptotically optimal     | Can be less efficient |
-| Computation | May need numerical methods | Often closed-form     |
-| Complexity  | Can be complex             | Usually simpler       |
-| Properties  | Well-studied theory        | Easier to derive      |
+| Aspect      | MLE                           | Method of Moments          |
+| ----------- | ----------------------------- | -------------------------- |
+| Efficiency  | Asymptotically optimal        | Can be less efficient      |
+| Computation | May need numerical methods    | Often closed-form          |
+| Complexity  | Can be complex                | Usually simpler            |
+| Properties  | Well-studied asymptotic theory | Easier to derive           |
+| Use Case    | When efficiency matters        | Quick initial estimates    |
+
+```
+When to Use Which:
+══════════════════════════════════════════════════════════════════
+
+        ┌─────────────────────────────────────────────────────┐
+        │              Need Quick Estimate?                    │
+        │                      │                               │
+        │         Yes ◀────────┼────────▶ No                   │
+        │          │                        │                  │
+        │          ▼                        ▼                  │
+        │    Method of                 Is likelihood          │
+        │     Moments                  tractable?              │
+        │                                   │                  │
+        │                     Yes ◀─────────┼─────────▶ No     │
+        │                      │                        │      │
+        │                      ▼                        ▼      │
+        │                    MLE                   Numerical   │
+        │               (analytical)                  MLE      │
+        └─────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -238,10 +376,33 @@ $$\hat{\theta}_{MLE} = \arg\max_\theta \log p(\mathbf{x}|\theta)$$
 
 $$\hat{\theta}_{MAP} = \arg\max_\theta [\log p(\mathbf{x}|\theta) + \log p(\theta)]$$
 
+```
+MLE vs MAP - The Connection:
+══════════════════════════════════════════════════════════════════
+
+   MLE = MAP with uniform (uninformative) prior
+   
+   ┌──────────────────────────────────────────────────────────┐
+   │                                                          │
+   │  MLE:  argmax  log P(data | θ)                          │
+   │                                                          │
+   │  MAP:  argmax  log P(data | θ)  +  log P(θ)             │
+   │                └──────┬──────┘     └───┬───┘            │
+   │                       │                 │                │
+   │                  Likelihood          Prior               │
+   │                  (fit data)        (regularize)          │
+   └──────────────────────────────────────────────────────────┘
+```
+
 **Connection to Regularization:**
 
-- Gaussian prior on $\theta$ → L2 regularization (Ridge)
-- Laplace prior on $\theta$ → L1 regularization (Lasso)
+| Prior on θ    | Regularization | Penalty Term     |
+| ------------- | -------------- | ---------------- |
+| Gaussian      | L2 (Ridge)     | $\lambda\|\theta\|^2$ |
+| Laplace       | L1 (Lasso)     | $\lambda\|\theta\|_1$ |
+| Spike-and-Slab| Subset selection | Sparsity       |
+
+> 💡 **The Big Picture**: Every regularization technique in ML corresponds to a prior distribution in Bayesian inference!
 
 ---
 
@@ -257,30 +418,96 @@ $$\hat{\mathbf{w}}_{MLE} = \arg\min_\mathbf{w} \sum_{i=1}^n -\log p(y_i | \mathb
 
 $$\hat{\mathbf{w}}_{MAP} = \arg\min_\mathbf{w} \left[\sum_{i=1}^n -\log p(y_i | \mathbf{x}_i, \mathbf{w}) + \lambda||\mathbf{w}||^2\right]$$
 
-### 9.3 Bias-Variance in ML
+```
+Neural Network Training = Estimation Theory:
+══════════════════════════════════════════════════════════════════
 
-| Model                 | Bias   | Variance | MSE    |
-| --------------------- | ------ | -------- | ------ |
-| Simple (few params)   | High   | Low      | Medium |
-| Complex (many params) | Low    | High     | Medium |
-| Regularized           | Medium | Medium   | Low!   |
+         Training Loss                    Estimation View
+    ┌──────────────────────┐         ┌──────────────────────┐
+    │ Cross-Entropy Loss   │    =    │ Negative Log-        │
+    │                      │         │ Likelihood           │
+    ├──────────────────────┤         ├──────────────────────┤
+    │ + L2 Regularization  │    =    │ + Gaussian Prior     │
+    │   (weight decay)     │         │   on weights         │
+    ├──────────────────────┤         ├──────────────────────┤
+    │ = Total Loss         │    =    │ = Negative Log-      │
+    │                      │         │   Posterior (MAP)    │
+    └──────────────────────┘         └──────────────────────┘
+```
+
+### 9.3 Bias-Variance in ML Models
+
+| Model Type           | Bias   | Variance | MSE       |
+| -------------------- | ------ | -------- | --------- |
+| Simple (few params)  | High   | Low      | Medium    |
+| Complex (many params)| Low    | High     | Medium    |
+| Regularized (optimal)| Medium | Medium   | **Low!**  |
+
+```
+Bias-Variance Tradeoff in Model Complexity:
+══════════════════════════════════════════════════════════════════
+
+Error
+  │
+  │╲                              ╱
+  │ ╲         Total Error       ╱
+  │  ╲          ╱ ╲           ╱
+  │   ╲        ╱   ╲         ╱
+  │    ╲     ╱      ╲       ╱  Variance
+  │     ╲   ╱        ╲_____╱
+  │      ╲_╱
+  │       ╲
+  │        ╲_______________  Bias²
+  │
+  └──────────────────────────────▶ Model Complexity
+        │           │
+      Simple     Complex
+     (underfit)  (overfit)
+                    
+                ★ Optimal
+```
 
 ---
 
 ## 10. Summary
 
-| Estimator | Formula                        | Properties                           |
-| --------- | ------------------------------ | ------------------------------------ | ----------------------------------- |
-| MLE       | $\arg\max_\theta \ell(\theta)$ | Consistent, asymptotically efficient |
-| MoM       | Equate moments                 | Simple, may be inefficient           |
-| MAP       | $\arg\max\_\theta [p(x         | \theta)p(\theta)]$                   | Incorporates prior (regularization) |
+### Estimator Comparison Table
 
-**Key Concepts:**
+| Estimator | Formula                         | Properties                            |
+| --------- | ------------------------------- | ------------------------------------- |
+| MLE       | $\arg\max_\theta \ell(\theta)$  | Consistent, asymptotically efficient  |
+| MoM       | Equate sample/population moments| Simple, may be inefficient            |
+| MAP       | $\arg\max_\theta [p(x|\theta)p(\theta)]$ | Incorporates prior (= regularization) |
 
-- Bias-Variance Tradeoff
-- Fisher Information bounds variance
-- MLE = cross-entropy minimization
-- MAP = regularized MLE
+### Key Concepts Cheat Sheet
+
+```
+Quick Reference:
+══════════════════════════════════════════════════════════════════
+
+Bias:      E[θ̂] - θ              (systematic error)
+Variance:  E[(θ̂ - E[θ̂])²]       (spread of estimates)
+MSE:       Variance + Bias²       (total error)
+
+Fisher Info: I(θ) = -E[∂²ℓ/∂θ²]  (information about θ in data)
+
+Cramér-Rao: Var(θ̂) ≥ 1/I(θ)     (lower bound on variance)
+
+MLE = minimize cross-entropy = minimize negative log-likelihood
+MAP = MLE + regularization = MLE + log-prior
+```
+
+---
+
+## Exercises
+
+1. **Bias Calculation**: Show that $\hat{\sigma}^2 = \frac{1}{n}\sum(X_i - \bar{X})^2$ is biased for $\sigma^2$. What is the bias?
+
+2. **MLE Derivation**: Derive the MLE for $\lambda$ in a Poisson distribution.
+
+3. **Fisher Information**: Calculate Fisher Information for an Exponential($\lambda$) distribution.
+
+4. **Bias-Variance**: A ridge regression has higher bias than OLS. Under what conditions would you prefer ridge regression?
 
 ---
 

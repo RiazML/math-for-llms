@@ -1,8 +1,17 @@
 # Graph Algorithms
 
+[← Previous: Graph Representations](../02-Graph-Representations) | [Next: Spectral Graph Theory →](../04-Spectral-Graph-Theory)
+
 ## Overview
 
 Graph algorithms are fundamental to many ML applications: shortest paths for network routing, minimum spanning trees for clustering, flow algorithms for assignment problems, and traversal algorithms for feature propagation in GNNs.
+
+## Files in This Section
+
+| File | Description |
+|------|-------------|
+| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## Learning Objectives
 
@@ -353,3 +362,11 @@ $$\pi_v = \frac{\deg(v)}{2|E|}$$
 3. Implement the Louvain algorithm for community detection
 4. Compute PageRank using power iteration
 5. Design an algorithm to find the shortest path that visits all nodes (TSP variant)
+
+## Exercises
+
+1. **BFS/DFS Applications**: Implement cycle detection and topological sorting using both BFS and DFS approaches
+2. **Shortest Path Comparison**: Compare Dijkstra's and Bellman-Ford performance on graphs with varying density
+3. **MST Construction**: Implement both Kruskal's and Prim's algorithms and verify they produce the same total weight
+4. **Community Detection**: Apply the Girvan-Newman algorithm to a social network and visualize the communities
+5. **Random Walk Embeddings**: Implement DeepWalk-style random walks and compare node similarity to graph distance

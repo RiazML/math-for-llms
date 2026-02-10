@@ -1,332 +1,503 @@
-# Joint Distributions and Independence
+# Joint Distributions and Dependence
 
-## Introduction
+> **Navigation**: [01-Introduction](../01-Introduction-and-Random-Variables/) | [02-Common-Distributions](../02-Common-Distributions/) | [04-Expectation-and-Moments](../04-Expectation-and-Moments/)
 
-Most real-world problems involve multiple random variables simultaneously. Joint distributions describe the probabilistic behavior of two or more random variables together. Understanding joint distributions is crucial for multivariate analysis and machine learning.
+## Overview
+
+Real-world ML problems involve **multiple random variables**. Joint distributions capture how variables relate—enabling us to model dependencies, compute conditionals, and make predictions. Understanding joint distributions is essential for multivariate modeling, graphical models, and dimensionality reduction.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│              JOINT DISTRIBUTIONS IN MACHINE LEARNING                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  Given: Joint P(X,Y)                                                     │
+│  ─────                                                                   │
+│       ┌──────────────┬───────────────┬───────────────┐                  │
+│       │              │               │               │                  │
+│       ▼              ▼               ▼               ▼                  │
+│   Marginal       Conditional    Covariance      Independence           │
+│   P(X), P(Y)     P(Y|X)        Cov(X,Y)        X ⊥ Y ?                  │
+│       │              │               │               │                  │
+│       ▼              ▼               ▼               ▼                  │
+│   Feature        Prediction     Feature          Model                  │
+│   Selection      Y from X       Engineering      Simplification         │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ## Prerequisites
 
-- Single-variable probability
-- Basic calculus (integration)
-- Matrix operations
+- [01-Introduction-and-Random-Variables](../01-Introduction-and-Random-Variables/)
+- [02-Common-Distributions](../02-Common-Distributions/)
+- Linear algebra basics (matrices)
 
 ## Learning Objectives
 
-1. Work with joint, marginal, and conditional distributions
-2. Understand independence and conditional independence
-3. Compute covariance and correlation
-4. Apply Bayes' theorem to multiple variables
+1. Understand joint, marginal, and conditional distributions
+2. Compute and interpret covariance and correlation
+3. Master multivariate Gaussian properties
+4. Apply independence concepts in ML
 
 ---
 
-## 1. Joint Probability Distributions
+## 1. Joint Probability Mass Function (Discrete)
 
-### 1.1 Discrete Joint Distribution
+For discrete random variables $X$ and $Y$:
 
-For discrete random variables X and Y:
+$$p_{X,Y}(x, y) = P(X = x, Y = y)$$
 
-**Joint PMF:** $P(X=x, Y=y) = p_{XY}(x, y)$
+### Properties
 
-Properties:
+1. **Non-negativity:** $p_{X,Y}(x, y) \geq 0$
+2. **Normalization:** $\sum_x \sum_y p_{X,Y}(x, y) = 1$
 
-- $p_{XY}(x, y) \geq 0$
-- $\sum_x \sum_y p_{XY}(x, y) = 1$
-
-```
-Example joint PMF table:
-
-           Y=0    Y=1    Y=2
-        ┌──────┬──────┬──────┐
-  X=0   │ 0.10 │ 0.15 │ 0.05 │  → 0.30
-        ├──────┼──────┼──────┤
-  X=1   │ 0.20 │ 0.30 │ 0.20 │  → 0.70
-        └──────┴──────┴──────┘
-           0.30   0.45   0.25    = 1.00
-           ↓      ↓      ↓
-        (Marginals of Y)
-```
-
-### 1.2 Continuous Joint Distribution
-
-For continuous random variables X and Y:
-
-**Joint PDF:** $f_{XY}(x, y)$
-
-Properties:
-
-- $f_{XY}(x, y) \geq 0$
-- $\int \int f_{XY}(x, y) \, dx \, dy = 1$
-
-**Probability over region:**
-
-$$P((X, Y) \in A) = \iint_A f_{XY}(x, y) \, dx \, dy$$
-
----
-
-## 2. Marginal Distributions
-
-### Obtaining Marginals from Joint
-
-**Discrete case:**
-$$p_X(x) = \sum_y p_{XY}(x, y)$$
-$$p_Y(y) = \sum_x p_{XY}(x, y)$$
-
-**Continuous case:**
-$$f_X(x) = \int_{-\infty}^{\infty} f_{XY}(x, y) \, dy$$
-$$f_Y(y) = \int_{-\infty}^{\infty} f_{XY}(x, y) \, dx$$
+### Example: Joint PMF Table
 
 ```
-Visual: Marginal from Joint
+                        Y
+                 0      1      2      P(X=x)
+           ┌────────────────────────┬─────────
+         0 │  0.10   0.15   0.05   │  0.30
+    X    1 │  0.20   0.25   0.05   │  0.50
+         2 │  0.10   0.05   0.05   │  0.20
+           └────────────────────────┴─────────
+      P(Y=y)   0.40   0.45   0.15     1.00
 
-Joint PDF f(x,y)       Marginal f_X(x)
-     ┌─────────┐       ┌─────────┐
-     │ ╭───╮   │       │         │
-     │╱     ╲  │  →    │   ╱╲    │
-     │   •   │ │ sum   │  ╱  ╲   │
-     │╲     ╱  │ over  │ ╱    ╲  │
-     │ ╰───╯   │   y   └─────────┘
-     └─────────┘
-         x,y               x
+• Each cell: P(X=x, Y=y)
+• Row sums: Marginal P(X=x)
+• Column sums: Marginal P(Y=y)
+• Grand total: 1.00
 ```
 
 ---
 
-## 3. Conditional Distributions
+## 2. Joint Probability Density Function (Continuous)
+
+For continuous random variables:
+
+$$P((X, Y) \in A) = \iint_A f_{X,Y}(x, y) \, dx \, dy$$
+
+### Properties
+
+1. **Non-negativity:** $f_{X,Y}(x, y) \geq 0$
+2. **Normalization:** $\int_{-\infty}^{\infty} \int_{-\infty}^{\infty} f_{X,Y}(x, y) \, dx \, dy = 1$
+
+```
+Joint PDF Visualization (Bivariate Normal):
+
+       y
+       │               ░░░░
+       │            ░░░████░░░
+       │          ░░██████████░░
+       │         ░████████████████░
+       │        ░██████████████████░
+       │         ░████████████████░
+       │          ░░██████████░░
+       │            ░░░████░░░
+       │               ░░░░
+       └────────────────────────── x
+
+Contour lines show constant density levels
+Volume under surface = 1
+```
+
+---
+
+## 3. Marginal Distributions
+
+**Marginal distribution** of $X$ "integrates out" $Y$:
+
+$$\text{Discrete: } p_X(x) = \sum_y p_{X,Y}(x, y)$$
+$$\text{Continuous: } f_X(x) = \int_{-\infty}^{\infty} f_{X,Y}(x, y) \, dy$$
+
+> **💡 Intuition**: To find P(X=x), sum over all possible values of Y
+
+```
+Marginalization:
+
+Joint P(X,Y)                        Marginal P(X)
+┌─────────────────┐                 ┌─────────────┐
+│  ░░░░  ░░       │   Sum over Y    │    ████     │
+│ ░████░░██░      │  ───────────→   │   ██████    │
+│░██████████░     │                 │  ████████   │
+│ ░████░░██░      │                 │   ██████    │
+│  ░░░░  ░░       │                 │    ████     │
+└─────────────────┘                 └─────────────┘
+     (2D surface)                       (1D curve)
+
+"Project" the joint distribution onto one axis
+```
+
+---
+
+## 4. Conditional Distributions
 
 ### Definition
 
-$$P(Y = y | X = x) = \frac{P(X = x, Y = y)}{P(X = x)}$$
+$$p_{Y|X}(y|x) = \frac{p_{X,Y}(x, y)}{p_X(x)}, \quad \text{if } p_X(x) > 0$$
 
-**Discrete:** $p_{Y|X}(y|x) = \frac{p_{XY}(x, y)}{p_X(x)}$
+$$f_{Y|X}(y|x) = \frac{f_{X,Y}(x, y)}{f_X(x)}, \quad \text{if } f_X(x) > 0$$
 
-**Continuous:** $f_{Y|X}(y|x) = \frac{f_{XY}(x, y)}{f_X(x)}$
+> **💡 Intuition**: "Slice" the joint distribution at X=x, then renormalize to get a valid distribution for Y.
 
-### Relationship: Joint = Marginal × Conditional
+```
+Conditional Distribution:
 
-$$p_{XY}(x, y) = p_X(x) \cdot p_{Y|X}(y|x)$$
+Joint P(X,Y)                        Conditional P(Y|X=x₀)
+┌─────────────────┐                 
+│      │          │                      │
+│   ░░░│░░        │   Slice at X=x₀      │   ░░
+│  ░███│███░      │  ─────────────→      │  ████
+│ ░████│████░     │                      │ ██████
+│  ░███│███░      │                      │  ████
+│   ░░░│░░        │                      │   ░░
+│      │          │                      │
+└──────┴──────────┘                      └─────────
+       x₀                                    y
+```
 
-or equivalently:
+### Chain Rule
 
-$$p_{XY}(x, y) = p_Y(y) \cdot p_{X|Y}(x|y)$$
-
-### Chain Rule (Product Rule)
+$$p_{X,Y}(x, y) = p_{Y|X}(y|x) \cdot p_X(x) = p_{X|Y}(x|y) \cdot p_Y(y)$$
 
 For multiple variables:
-
-$$P(X_1, X_2, \ldots, X_n) = P(X_1) \cdot P(X_2|X_1) \cdot P(X_3|X_1, X_2) \cdots P(X_n|X_1, \ldots, X_{n-1})$$
+$$p(x_1, x_2, \ldots, x_n) = p(x_1) \cdot p(x_2|x_1) \cdot p(x_3|x_1,x_2) \cdots$$
 
 ---
 
-## 4. Independence
+## 5. Independence
 
 ### Definition
 
-X and Y are independent if and only if:
+$X$ and $Y$ are **independent** ($X \perp\!\!\!\perp Y$) if:
 
-$$P(X = x, Y = y) = P(X = x) \cdot P(Y = y) \quad \forall x, y$$
+$$p_{X,Y}(x, y) = p_X(x) \cdot p_Y(y) \quad \text{for all } x, y$$
 
-or equivalently: $f_{XY}(x, y) = f_X(x) \cdot f_Y(y)$
-
-### Tests for Independence
-
-1. Joint = product of marginals
-2. $P(Y|X) = P(Y)$ (knowing X doesn't help predict Y)
-3. Covariance = 0 (necessary but not sufficient!)
+Equivalently:
+- $p_{Y|X}(y|x) = p_Y(y)$ (conditioning doesn't change distribution)
+- Knowing X gives no information about Y
 
 ```
-Independence visualization:
+Independence vs Dependence:
 
-Independent:            Not Independent:
-  Y                       Y
-  │  □ □ □ □               │    □
-  │  □ □ □ □               │  □ □ □
-  │  □ □ □ □               │□ □ □ □ □
-  └──────────→ X           └──────────→ X
+Independent Joint P(X,Y)          Dependent Joint P(X,Y)
+┌─────────────────────┐          ┌─────────────────────┐
+│                     │          │            ╱        │
+│  ░░░░     ░░░░      │          │          ╱          │
+│  ████     ████      │          │        ░░░          │
+│  ░░░░     ░░░░      │          │      ░████░         │
+│                     │          │    ░████████░       │
+│  ░░░░     ░░░░      │          │      ░████░         │
+│  ████     ████      │          │        ░░░          │
+│  ░░░░     ░░░░      │          │          ╲          │
+│                     │          │            ╲        │
+└─────────────────────┘          └─────────────────────┘
 
-(uniform rows)         (pattern varies)
+Joint = Product of marginals      Joint ≠ Product of marginals
 ```
 
 ### Conditional Independence
 
-X and Y are conditionally independent given Z:
+$X \perp\!\!\!\perp Y \mid Z$ means:
 
-$$X \perp Y \mid Z$$
+$$p_{X,Y|Z}(x, y | z) = p_{X|Z}(x|z) \cdot p_{Y|Z}(y|z)$$
 
-if $P(X, Y | Z) = P(X|Z) \cdot P(Y|Z)$
+> **🔑 Key ML Concept**: Many graphical models rely on conditional independence to simplify computation!
 
-**Important:** Independence and conditional independence are different!
+```
+Conditional Independence:
 
-- X ⊥ Y does NOT imply X ⊥ Y | Z
-- X ⊥ Y | Z does NOT imply X ⊥ Y
+              Z (condition)
+             ╱ ╲
+            ╱   ╲
+           ▼     ▼
+          X       Y
+
+Given Z, X and Y are independent.
+But marginally (ignoring Z), X and Y may be dependent!
+```
 
 ---
 
-## 5. Covariance and Correlation
+## 6. Covariance and Correlation
 
 ### Covariance
 
 $$\text{Cov}(X, Y) = E[(X - \mu_X)(Y - \mu_Y)] = E[XY] - E[X]E[Y]$$
 
-Properties:
+| Cov(X,Y) | Interpretation |
+|----------|----------------|
+| $> 0$ | X and Y tend to move together |
+| $< 0$ | X and Y tend to move oppositely |
+| $= 0$ | No linear relationship |
 
-- $\text{Cov}(X, X) = \text{Var}(X)$
-- $\text{Cov}(X, Y) = \text{Cov}(Y, X)$
-- $\text{Cov}(aX + b, cY + d) = ac \cdot \text{Cov}(X, Y)$
-- If X ⊥ Y, then Cov(X, Y) = 0
+### Properties of Covariance
 
-**Warning:** Cov(X, Y) = 0 does NOT imply independence!
+| Property | Formula |
+|----------|---------|
+| Symmetry | $\text{Cov}(X, Y) = \text{Cov}(Y, X)$ |
+| Self-covariance | $\text{Cov}(X, X) = \text{Var}(X)$ |
+| Linearity | $\text{Cov}(aX + b, Y) = a \cdot \text{Cov}(X, Y)$ |
+| Sum | $\text{Cov}(X + Y, Z) = \text{Cov}(X, Z) + \text{Cov}(Y, Z)$ |
+| Constant | $\text{Cov}(c, X) = 0$ |
+
+### Variance of Sum
+
+$$\text{Var}(X + Y) = \text{Var}(X) + \text{Var}(Y) + 2\text{Cov}(X, Y)$$
+
+$$\text{Var}\left(\sum_{i=1}^n X_i\right) = \sum_{i=1}^n \text{Var}(X_i) + 2\sum_{i<j} \text{Cov}(X_i, X_j)$$
 
 ### Correlation
 
-$$\rho_{XY} = \frac{\text{Cov}(X, Y)}{\sigma_X \sigma_Y}$$
-
-Properties:
-
-- $-1 \leq \rho \leq 1$
-- $\rho = \pm 1$ iff Y = aX + b (perfect linear relationship)
-- $\rho = 0$ means no linear relationship
+$$\rho_{X,Y} = \frac{\text{Cov}(X, Y)}{\sigma_X \sigma_Y}, \quad -1 \leq \rho \leq 1$$
 
 ```
-Correlation examples:
+Correlation Patterns:
 
-ρ ≈ 1          ρ ≈ 0.5        ρ ≈ 0          ρ ≈ -1
-  y              y              y              y
-  │    •        │     •        │  • • •       │•
-  │   •         │    •  •      │ • • • •      │ •
-  │  •          │  •   •       │• • • • •     │  •
-  │ •           │ •  •         │ • • • •      │   •
-  │•            │•    •        │  • • •       │    •
-  └─────→x      └─────→x       └─────→x       └─────→x
+ρ = 1 (perfect +)     ρ = 0.7 (strong +)    ρ = 0 (none)
+    y                      y                     y
+    │    ●●●               │      ●              │  ●   ●  ●
+    │   ●●●●               │    ●●●●             │●  ●  ● ●
+    │  ●●●●●               │   ●●●●●●            │ ● ●●●●
+    │ ●●●●●                │  ●●●●●●●            │●●●● ●● ●
+    │●●●●●                 │ ●●●●●●              │ ● ●  ●●●
+    └────────── x          └────────── x         └────────── x
+
+ρ = -0.7 (strong -)   ρ = -1 (perfect -)
+    y                      y
+    │●●                    │●●●●●
+    │ ●●●●                 │ ●●●●
+    │  ●●●●●               │  ●●●
+    │   ●●●●●●             │   ●●
+    │     ●●●              │    ●
+    └────────── x          └────────── x
 ```
 
-### Covariance Matrix
-
-For random vector $\mathbf{X} = (X_1, \ldots, X_n)^T$:
-
-$$\boldsymbol{\Sigma} = \text{Cov}(\mathbf{X}) = E[(\mathbf{X} - \boldsymbol{\mu})(\mathbf{X} - \boldsymbol{\mu})^T]$$
-
-$$\boldsymbol{\Sigma}_{ij} = \text{Cov}(X_i, X_j)$$
-
-Properties:
-
-- Symmetric: $\boldsymbol{\Sigma} = \boldsymbol{\Sigma}^T$
-- Positive semi-definite: $\mathbf{a}^T \boldsymbol{\Sigma} \mathbf{a} \geq 0$
-- Diagonal elements are variances
+> **⚠️ Warning**: Correlation = 0 does NOT imply independence!
+> (Counterexample: $X \sim N(0,1)$, $Y = X^2$ have zero correlation but are clearly dependent)
 
 ---
 
-## 6. Bayes' Theorem for Random Variables
+## 7. Covariance Matrix
 
-### Discrete Case
+For random vector $\mathbf{X} = [X_1, \ldots, X_n]^T$:
 
-$$P(Y = y | X = x) = \frac{P(X = x | Y = y) \cdot P(Y = y)}{\sum_{y'} P(X = x | Y = y') \cdot P(Y = y')}$$
+$$\Sigma = E[(\mathbf{X} - \boldsymbol{\mu})(\mathbf{X} - \boldsymbol{\mu})^T]$$
 
-### Continuous Case
+$$\Sigma_{ij} = \text{Cov}(X_i, X_j)$$
 
-$$f_{Y|X}(y|x) = \frac{f_{X|Y}(x|y) \cdot f_Y(y)}{\int f_{X|Y}(x|y') \cdot f_Y(y') \, dy'}$$
+```
+Covariance Matrix Structure:
 
-### Bayesian Interpretation
+         X₁       X₂       X₃       X₄
+    ┌────────────────────────────────────┐
+X₁  │ Var(X₁)  Cov₁₂    Cov₁₃    Cov₁₄  │
+X₂  │ Cov₂₁   Var(X₂)   Cov₂₃    Cov₂₄  │
+X₃  │ Cov₃₁   Cov₃₂    Var(X₃)   Cov₃₄  │
+X₄  │ Cov₄₁   Cov₄₂    Cov₄₃    Var(X₄) │
+    └────────────────────────────────────┘
 
-$$\underbrace{P(\theta | \text{data})}_{\text{posterior}} = \frac{\overbrace{P(\text{data} | \theta)}^{\text{likelihood}} \cdot \overbrace{P(\theta)}^{\text{prior}}}{\underbrace{P(\text{data})}_{\text{evidence}}}$$
+• Diagonal: Variances
+• Off-diagonal: Covariances
+• Symmetric: Σᵢⱼ = Σⱼᵢ
+• Positive semi-definite: xᵀΣx ≥ 0
+```
+
+### Properties
+
+1. **Symmetric:** $\Sigma = \Sigma^T$
+2. **Positive semi-definite:** $\mathbf{x}^T \Sigma \mathbf{x} \geq 0$
+3. **Linear transformation:** If $\mathbf{Y} = A\mathbf{X} + \mathbf{b}$, then $\Sigma_Y = A \Sigma_X A^T$
 
 ---
 
-## 7. Multivariate Normal Distribution
+## 8. Multivariate Normal
 
-The most important multivariate distribution!
+The **multivariate normal** is the most important joint distribution in ML:
 
-### Definition
-
-$$\mathbf{X} \sim \mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\Sigma})$$
-
-$$f(\mathbf{x}) = \frac{1}{(2\pi)^{n/2}|\boldsymbol{\Sigma}|^{1/2}} \exp\left(-\frac{1}{2}(\mathbf{x} - \boldsymbol{\mu})^T \boldsymbol{\Sigma}^{-1}(\mathbf{x} - \boldsymbol{\mu})\right)$$
+$$f(\mathbf{x}) = \frac{1}{(2\pi)^{n/2}|\Sigma|^{1/2}} \exp\left(-\frac{1}{2}(\mathbf{x} - \boldsymbol{\mu})^T \Sigma^{-1} (\mathbf{x} - \boldsymbol{\mu})\right)$$
 
 ### Key Properties
 
-**Marginals are Normal:**
-If $\mathbf{X} \sim \mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\Sigma})$, then each $X_i \sim \mathcal{N}(\mu_i, \Sigma_{ii})$
+| Property | Result |
+|----------|--------|
+| Marginals | Gaussian |
+| Conditionals | Gaussian |
+| Linear combos | Gaussian |
+| Uncorrelated ⟺ Independent | Only true for Gaussians! |
 
-**Conditionals are Normal:**
-Partition: $\mathbf{X} = \begin{pmatrix} \mathbf{X}_1 \\ \mathbf{X}_2 \end{pmatrix}$, $\boldsymbol{\mu} = \begin{pmatrix} \boldsymbol{\mu}_1 \\ \boldsymbol{\mu}_2 \end{pmatrix}$, $\boldsymbol{\Sigma} = \begin{pmatrix} \boldsymbol{\Sigma}_{11} & \boldsymbol{\Sigma}_{12} \\ \boldsymbol{\Sigma}_{21} & \boldsymbol{\Sigma}_{22} \end{pmatrix}$
+### Conditional Gaussian
 
-$$\mathbf{X}_1 | \mathbf{X}_2 = \mathbf{x}_2 \sim \mathcal{N}(\boldsymbol{\mu}_{1|2}, \boldsymbol{\Sigma}_{1|2})$$
+For partitioned $\mathbf{X} = [X_1, X_2]^T$ with:
+$$\boldsymbol{\mu} = \begin{bmatrix} \mu_1 \\ \mu_2 \end{bmatrix}, \quad \Sigma = \begin{bmatrix} \Sigma_{11} & \Sigma_{12} \\ \Sigma_{21} & \Sigma_{22} \end{bmatrix}$$
 
-where:
+The conditional distribution $X_1 | X_2 = x_2$ is Gaussian with:
+$$\mu_{1|2} = \mu_1 + \Sigma_{12}\Sigma_{22}^{-1}(x_2 - \mu_2)$$
+$$\Sigma_{1|2} = \Sigma_{11} - \Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21}$$
 
-- $\boldsymbol{\mu}_{1|2} = \boldsymbol{\mu}_1 + \boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}(\mathbf{x}_2 - \boldsymbol{\mu}_2)$
-- $\boldsymbol{\Sigma}_{1|2} = \boldsymbol{\Sigma}_{11} - \boldsymbol{\Sigma}_{12}\boldsymbol{\Sigma}_{22}^{-1}\boldsymbol{\Sigma}_{21}$
+```
+Conditioning in 2D Gaussian:
 
-**Linear Transformations:**
-If $\mathbf{X} \sim \mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\Sigma})$ and $\mathbf{Y} = \mathbf{A}\mathbf{X} + \mathbf{b}$, then:
-$$\mathbf{Y} \sim \mathcal{N}(\mathbf{A}\boldsymbol{\mu} + \mathbf{b}, \mathbf{A}\boldsymbol{\Sigma}\mathbf{A}^T)$$
+      y
+      │         ╱╲
+      │       ╱    ╲
+      │     ╱░░░░░░░░╲  ← Contour of joint P(X,Y)
+      │   ╱░░░░░░░░░░░░╲
+  y₀ ─┼──▓▓▓▓▓▓▓▓▓▓▓▓▓▓──── ← Slice at Y = y₀
+      │   ╲░░░░░░░░░░░░╱
+      │     ╲░░░░░░░░╱
+      │       ╲    ╱
+      │         ╲╱
+      └──────────────────── x
+                 ↑
+           Conditional P(X|Y=y₀)
+           is also Gaussian!
+```
 
-**Uncorrelated = Independent:**
-For multivariate normal, zero covariance implies independence!
+> **🔑 ML Applications:**
+> - Gaussian Processes: conditionals for prediction
+> - Kalman Filter: state estimation
+> - Linear regression: posterior distribution
 
 ---
 
-## 8. Functions of Random Variables
+## 9. Bayes' Theorem for Random Variables
 
-### Transformation Method
+For random variables:
 
-If $Y = g(X)$ and g is monotonic with inverse $g^{-1}$:
+$$f_{Y|X}(y|x) = \frac{f_{X|Y}(x|y) \cdot f_Y(y)}{f_X(x)}$$
 
-$$f_Y(y) = f_X(g^{-1}(y)) \cdot \left|\frac{d}{dy}g^{-1}(y)\right|$$
+In ML notation:
 
-### Sum of Random Variables
+$$p(\theta | \mathbf{x}) = \frac{p(\mathbf{x} | \theta) \cdot p(\theta)}{p(\mathbf{x})} \propto p(\mathbf{x} | \theta) \cdot p(\theta)$$
 
-**Convolution:**
-$$f_{X+Y}(z) = \int f_X(x) f_Y(z-x) \, dx$$
+```
+Bayesian Inference:
 
-**Sum of Normals:**
-If $X \sim N(\mu_X, \sigma_X^2)$ and $Y \sim N(\mu_Y, \sigma_Y^2)$ independent:
-$$X + Y \sim N(\mu_X + \mu_Y, \sigma_X^2 + \sigma_Y^2)$$
+Prior P(θ)              Likelihood P(x|θ)           Posterior P(θ|x)
+    │                        │                          │
+    │     ╱╲                 │          ╱╲              │      ╱╲
+    │   ╱    ╲               │        ╱    ╲            │    ╱    ╲
+    │ ╱        ╲             │  ────╱────────╲────     │  ╱        ╲
+    │╱          ╲            │                          │╱            ╲
+    └────────────            └─────────────────         └──────────────
+                    ×                           =
+     What we                  How well             Updated belief
+     believe                  data fits            after seeing data
+```
 
 ---
 
-## 9. ML Applications
+## 10. Transformations of Random Variables
 
-### Naive Bayes Classifier
+### Single Variable
 
-Assumes conditional independence:
-$$P(Y | X_1, \ldots, X_n) \propto P(Y) \prod_{i=1}^n P(X_i | Y)$$
+If $Y = g(X)$ and $g$ is monotonic:
+
+$$f_Y(y) = f_X(g^{-1}(y)) \left| \frac{d g^{-1}(y)}{dy} \right|$$
+
+### Multiple Variables (Jacobian)
+
+If $\mathbf{Y} = g(\mathbf{X})$:
+
+$$f_Y(\mathbf{y}) = f_X(g^{-1}(\mathbf{y})) \left| \det\left( \frac{\partial g^{-1}}{\partial \mathbf{y}} \right) \right|$$
+
+> **🔑 ML Application**: Normalizing flows use this formula to transform simple distributions into complex ones!
+
+---
+
+## 11. ML Applications
+
+### Feature Independence (Naive Bayes)
+
+$$P(y | x_1, \ldots, x_n) \propto P(y) \prod_{i=1}^n P(x_i | y)$$
+
+Assumes: $x_i \perp\!\!\!\perp x_j \mid y$ for all $i \neq j$
 
 ### Gaussian Mixture Models
 
-$$P(\mathbf{x}) = \sum_{k=1}^K \pi_k \mathcal{N}(\mathbf{x}; \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)$$
+$$p(\mathbf{x}) = \sum_{k=1}^K \pi_k \cdot \mathcal{N}(\mathbf{x} | \boldsymbol{\mu}_k, \Sigma_k)$$
 
-### Hidden Markov Models
+Joint over $(X, Z)$ where $Z$ is the latent cluster assignment.
 
-Chain of conditional independence:
-$$P(X_{t+1} | X_1, \ldots, X_t) = P(X_{t+1} | X_t)$$
+### Principal Component Analysis
+
+Find directions that maximize variance:
+$$\text{maximize } \mathbf{w}^T \Sigma \mathbf{w} \quad \text{subject to } \|\mathbf{w}\| = 1$$
+
+Solution: eigenvectors of covariance matrix $\Sigma$.
 
 ### Graphical Models
 
-Joint distribution factorizes according to graph structure:
-$$P(X_1, \ldots, X_n) = \prod_i P(X_i | \text{Parents}(X_i))$$
+```
+Bayesian Network:
+
+     Rain
+      │╲
+      │ ╲
+      ▼  ▼
+  Sprinkler  Cloudy
+      │╲      ╱
+      │ ╲    ╱
+      ▼  ▼  ▼
+        Wet Grass
+
+Joint = P(Rain) × P(Cloudy|Rain) × P(Sprinkler|Rain) × P(Wet|Sprinkler,Cloudy)
+```
 
 ---
 
-## 10. Summary
+## 12. Summary Tables
 
-| Concept       | Definition                                  |
-| ------------- | ------------------------------------------- | ----------------- |
-| Joint PMF/PDF | $P(X=x, Y=y)$ or $f(x,y)$                   |
-| Marginal      | Sum/integrate out other variable            |
-| Conditional   | $P(Y                                        | X) = P(X,Y)/P(X)$ |
-| Independence  | $P(X,Y) = P(X)P(Y)$                         |
-| Covariance    | $E[XY] - E[X]E[Y]$                          |
-| Correlation   | $\rho = \text{Cov}(X,Y)/(\sigma_X\sigma_Y)$ |
+### Key Formulas
+
+| Concept | Formula |
+|---------|---------|
+| Marginal | $p_X(x) = \sum_y p_{X,Y}(x,y)$ |
+| Conditional | $p_{Y\|X}(y\|x) = p_{X,Y}(x,y) / p_X(x)$ |
+| Independence | $p_{X,Y}(x,y) = p_X(x) \cdot p_Y(y)$ |
+| Covariance | $\text{Cov}(X,Y) = E[XY] - E[X]E[Y]$ |
+| Correlation | $\rho = \text{Cov}(X,Y) / (\sigma_X \sigma_Y)$ |
+| Var of sum | $\text{Var}(X+Y) = \text{Var}(X) + \text{Var}(Y) + 2\text{Cov}(X,Y)$ |
+
+### Independence Cheat Sheet
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    INDEPENDENCE FACTS                         │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│  X ⊥ Y (independent)                                         │
+│  ────────────────────                                        │
+│  • P(X,Y) = P(X)P(Y)                                         │
+│  • P(Y|X) = P(Y)                                             │
+│  • Cov(X,Y) = 0                                              │
+│  • Var(X+Y) = Var(X) + Var(Y)                                │
+│                                                               │
+│  BUT: Cov(X,Y) = 0 does NOT imply X ⊥ Y !                    │
+│                                                               │
+│  For Gaussians ONLY:                                         │
+│  • Cov(X,Y) = 0 ⟺ X ⊥ Y                                      │
+│                                                               │
+│  X ⊥ Y | Z (conditionally independent)                      │
+│  ─────────────────────────────────────                       │
+│  • P(X,Y|Z) = P(X|Z)P(Y|Z)                                   │
+│  • X ⊥ Y | Z does NOT imply X ⊥ Y                            │
+│  • X ⊥ Y does NOT imply X ⊥ Y | Z                            │
+│                                                               │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Exercises
 
-1. Given a joint PMF table, find marginals, conditionals, and check independence
-2. Prove that uncorrelated normal RVs are independent
-3. Derive the conditional distribution of bivariate normal
-4. Show that Cov(X,Y)=0 doesn't imply independence with counterexample
-5. Apply Bayes' theorem for a classification problem
+1. Compute marginal and conditional distributions from a given joint PMF table
+2. Verify that $\text{Var}(X + Y) = \text{Var}(X) + \text{Var}(Y)$ when $X \perp\!\!\!\perp Y$
+3. Find the conditional distribution $X_1 | X_2 = 1$ for bivariate normal
+4. Show that correlation = 0 doesn't imply independence (find counterexample)
+5. Compute the Jacobian for polar coordinate transformation
 
 ---
 
@@ -334,4 +505,8 @@ $$P(X_1, \ldots, X_n) = \prod_i P(X_i | \text{Parents}(X_i))$$
 
 1. Casella & Berger - "Statistical Inference"
 2. Bishop - "Pattern Recognition and Machine Learning"
-3. Murphy - "Machine Learning: A Probabilistic Perspective"
+3. Koller & Friedman - "Probabilistic Graphical Models"
+
+---
+
+> **Next**: [04-Expectation-and-Moments](../04-Expectation-and-Moments/) — Expected values and higher moments

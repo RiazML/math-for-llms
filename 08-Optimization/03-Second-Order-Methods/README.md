@@ -1,5 +1,13 @@
 # Second-Order Optimization Methods
 
+> **Navigation**: [← 02-Gradient-Descent](../02-Gradient-Descent/) | [Optimization](../) | [04-Constrained-Optimization →](../04-Constrained-Optimization/)
+
+**Files in this section:**
+- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
+
+---
+
 ## Introduction
 
 Second-order optimization methods use curvature information (Hessian) to achieve faster convergence than first-order methods. While computationally expensive for deep learning, they are essential for convex optimization, hyperparameter tuning, and understanding optimization landscapes.
@@ -377,6 +385,20 @@ $$\rho = \frac{f(\mathbf{w}) - f(\mathbf{w} + \mathbf{p})}{m(\mathbf{0}) - m(\ma
 - Use L-BFGS for convex problems with moderate $d$
 - Use Adam/SGD for deep learning
 - Consider K-FAC for research
+
+---
+
+## Exercises
+
+1. **Newton's Method**: Apply Newton's method to minimize $f(x) = x^4 - 3x^2 + 2$. Starting from $x_0 = 2$, compute the first 3 iterations.
+
+2. **Hessian Computation**: For logistic regression loss, derive the Hessian matrix and show it is positive semidefinite.
+
+3. **BFGS Update**: Given $s = [1, 0]^T$, $y = [2, 1]^T$, and $H_0 = I$, compute $H_1$ using the BFGS update formula.
+
+4. **L-BFGS Memory**: Explain why L-BFGS is preferred over BFGS for problems with $d > 10000$ parameters. What is the memory complexity of each?
+
+5. **Gauss-Newton**: For a nonlinear least squares problem $\min_w \|r(w)\|^2$ where $r(w) = [w^2 - 1, w - 2]^T$, derive and apply one Gauss-Newton step from $w_0 = 0$.
 
 ---
 
