@@ -1,8 +1,40 @@
 # Loss Functions for Machine Learning
 
+[← Previous: Functional Analysis](../../12-Functional-Analysis) | [Next: Activation Functions →](../02-Activation-Functions)
+
+---
+
 ## Overview
 
 Loss functions quantify the discrepancy between model predictions and true targets, serving as the objective to minimize during training. The choice of loss function fundamentally shapes what the model learns.
+
+### Files in This Section
+
+| File | Description |
+|------|-------------|
+| [README.md](README.md) | Comprehensive theory and mathematical foundations |
+| [theory.ipynb](theory.ipynb) | Worked examples with Python implementations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+
+## Why This Matters for Machine Learning
+
+Loss functions are the cornerstone of machine learning optimization—they define the precise objective a model learns to minimize during training. Every gradient computed during backpropagation originates from the loss function, making its selection one of the most consequential design decisions in any ML pipeline. A poorly chosen loss function can lead to models that technically converge but fail to capture the relationships that matter for the underlying task.
+
+Understanding the mathematical properties of different loss functions—convexity, smoothness, robustness to outliers, and calibration behavior—empowers practitioners to diagnose training failures and tailor objectives to specific problems. For instance, knowing that MSE implicitly assumes Gaussian noise explains why it struggles with heavy-tailed distributions, while understanding the connection between cross-entropy and maximum likelihood estimation reveals why it is the default for classification.
+
+Beyond standard losses, modern ML increasingly relies on specialized objectives: contrastive losses power self-supervised learning, focal loss addresses class imbalance in detection, and the ELBO underpins variational autoencoders. Mastering the geometry of loss landscapes—how different losses shape the optimization surface—is essential for training stable, high-performing models.
+
+## Chapter Roadmap
+
+- Formal definition of loss functions and the risk minimization framework
+- Regression losses: MSE, MAE, Huber, quantile, and log-cosh
+- Classification losses: cross-entropy, hinge, focal, and their properties
+- Probabilistic losses: NLL, Gaussian NLL, KL divergence, and the ELBO
+- Structured prediction and sequence losses (CTC, sequence cross-entropy)
+- Ranking and contrastive losses: triplet, InfoNCE, and margin-based objectives
+- Regularization as loss terms (L1, L2, elastic net)
+- Loss function properties: convexity, calibration, consistency, and Lipschitz continuity
+- Computational considerations: numerical stability, label smoothing, and multi-task balancing
 
 ## Mathematical Framework
 
@@ -337,18 +369,24 @@ $$\mathcal{L}_{\text{total}} = \sum_{t=1}^T w_t \mathcal{L}_t$$
 | Contrastive Learning   | InfoNCE, Triplet          |
 | Reinforcement Learning | TD error, Policy gradient |
 
-## Summary
+## Key Takeaways
 
-Loss functions determine:
+- **Loss functions define the learning objective**: the choice of loss fundamentally determines what the model learns and how it generalizes to unseen data
+- **Regression losses trade robustness for efficiency**: MSE is optimal under Gaussian noise, MAE is robust to outliers, and Huber loss provides a tunable compromise between the two
+- **Cross-entropy is the principled default for classification**: it arises from maximum likelihood estimation, produces calibrated probabilities, and has clean gradients through the softmax
+- **Contrastive and ranking losses enable representation learning**: triplet loss, InfoNCE, and margin-based objectives learn embeddings without explicit class labels
+- **Loss geometry shapes optimization**: convexity guarantees global optima for linear models, while non-convex loss landscapes in deep learning require careful initialization and learning rate schedules
+- **Numerical stability is critical**: the log-sum-exp trick, label smoothing, and proper gradient clipping prevent NaN values and training divergence
+- **Multi-task losses require balancing**: uncertainty weighting, gradient normalization, or adaptive schemes are needed when optimizing multiple objectives simultaneously
 
-1. **What the model optimizes** (objective)
-2. **Sensitivity to errors** (robustness)
-3. **Probability interpretation** (calibration)
-4. **Optimization landscape** (convexity)
+## Exercises
 
-Key considerations:
+1. **Loss Comparison**: Implement MSE, MAE, and Huber loss from scratch. Plot each loss and its gradient as a function of the residual $r = \hat{y} - y$ for $r \in [-5, 5]$. At what residual magnitude does Huber loss transition from quadratic to linear behavior for $\delta = 1$?
 
-- Match loss to problem type (regression/classification/ranking)
-- Consider outlier sensitivity
-- Ensure numerical stability
-- Balance multiple objectives in multi-task learning
+2. **Cross-Entropy Derivation**: Starting from the assumption that labels follow a categorical distribution, derive the cross-entropy loss as the negative log-likelihood. Show that the gradient of cross-entropy with respect to the logits $z$ (before softmax) simplifies to $\hat{p} - y$, where $\hat{p} = \text{softmax}(z)$.
+
+3. **Focal Loss Analysis**: Implement focal loss and plot it for $\gamma \in \{0, 1, 2, 5\}$. For a binary classification problem with 1% positive examples, demonstrate how increasing $\gamma$ shifts the loss contribution from easy negatives to hard positives. Compute the effective weight given to a sample with predicted probability $\hat{p} = 0.95$ under each $\gamma$ value.
+
+4. **Contrastive Loss Geometry**: Given a mini-batch of 256 samples with 128-dimensional embeddings, implement InfoNCE loss. Investigate how temperature $\tau$ affects the gradient magnitudes and the resulting embedding space geometry. What happens to the loss surface as $\tau \to 0$ and $\tau \to \infty$?
+
+5. **Loss Landscape Visualization**: For a simple 2-parameter linear model trained on synthetic data, plot the 2D loss landscape for MSE, MAE, and Huber losses. Overlay gradient descent trajectories starting from the same initial point. How do the loss surfaces differ in terms of smoothness and the convergence behavior of gradient descent?

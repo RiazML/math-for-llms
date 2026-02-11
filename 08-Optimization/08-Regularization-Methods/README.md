@@ -3,7 +3,7 @@
 > **Navigation**: [← 07-Adaptive-Learning-Rate](../07-Adaptive-Learning-Rate/) | [Optimization](../) | [09-Hyperparameter-Optimization →](../09-Hyperparameter-Optimization/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

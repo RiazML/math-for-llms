@@ -10,7 +10,7 @@ Spectral graph theory studies graphs through the eigenvalues and eigenvectors of
 
 | File | Description |
 |------|-------------|
-| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [theory.ipynb](theory.ipynb) | Interactive examples with visualizations |
 | [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## Learning Objectives

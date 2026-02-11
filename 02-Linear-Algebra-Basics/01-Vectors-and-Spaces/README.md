@@ -772,7 +772,7 @@ The best fit scalar is $\frac{14}{5} = 2.8$.
 
 | Notebook | Description |
 |----------|-------------|
-| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations covering vector operations, norms, similarity, projection, and ML applications |
+| [theory.ipynb](theory.ipynb) | Interactive examples with visualizations covering vector operations, norms, similarity, projection, and ML applications |
 | [exercises.ipynb](exercises.ipynb) | 10 hands-on exercises implementing vector operations from scratch (⭐ to ⭐⭐⭐ difficulty) |
 
 ---

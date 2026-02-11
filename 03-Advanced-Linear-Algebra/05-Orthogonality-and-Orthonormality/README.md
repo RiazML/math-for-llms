@@ -794,5 +794,5 @@ Benefits of orthogonal computations:
 
 ## Files in This Section
 
-- [examples.ipynb](examples.ipynb) - Comprehensive code examples with visualizations
+- [theory.ipynb](theory.ipynb) - Comprehensive code examples with visualizations
 - [exercises.ipynb](exercises.ipynb) - Practice problems with solutions

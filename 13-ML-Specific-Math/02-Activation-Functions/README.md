@@ -1,8 +1,41 @@
 # Activation Functions for Neural Networks
 
+[← Previous: Loss Functions](../01-Loss-Functions) | [Next: Attention Mechanisms →](../03-Attention-Mechanisms)
+
+---
+
 ## Overview
 
 Activation functions introduce non-linearity into neural networks, enabling them to learn complex, non-linear mappings. Without activation functions, neural networks would only represent linear transformations regardless of depth.
+
+### Files in This Section
+
+| File | Description |
+|------|-------------|
+| [README.md](README.md) | Comprehensive theory and mathematical foundations |
+| [theory.ipynb](theory.ipynb) | Worked examples with Python implementations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+
+## Why This Matters for Machine Learning
+
+Activation functions are the key ingredient that gives neural networks their expressive power. The universal approximation theorem guarantees that a single hidden layer with a non-linear activation can approximate any continuous function—but the *choice* of activation profoundly affects how quickly and reliably a network trains. Understanding activation function mathematics is essential for diagnosing vanishing and exploding gradients, two of the most common failure modes in deep learning.
+
+The evolution from sigmoid and tanh to ReLU and its variants reflects hard-won lessons about gradient flow in deep networks. Sigmoid's maximum derivative of 0.25 means gradients shrink exponentially through layers—a depth-10 network with sigmoid activations sees gradients attenuated by a factor of $0.25^{10} \approx 10^{-6}$. ReLU's identity gradient for positive inputs solved this, but introduced the dying neuron problem. Modern activations like GELU and Swish achieve smooth, non-monotonic behavior that combines the benefits of gradient preservation with implicit stochastic regularization.
+
+For practitioners, activation selection is not merely a hyperparameter to tune—it is an architectural decision that interacts with initialization schemes (He vs. Xavier), normalization strategies (BatchNorm, LayerNorm), and the overall model topology. The rise of transformer-based architectures has elevated GELU and SwiGLU to default choices, while mobile deployment favors hard approximations that trade smoothness for computational efficiency.
+
+## Chapter Roadmap
+
+- Mathematical role of non-linearity and the universal approximation theorem
+- Classic activations: sigmoid and tanh, including saturation analysis
+- ReLU family: ReLU, Leaky ReLU, PReLU, ELU, and SELU
+- Modern smooth activations: GELU, Swish/SiLU, and Mish
+- Output layer activations: softmax, log-softmax, and temperature scaling
+- Specialized activations: hard variants, Maxout, and GLU/SwiGLU
+- Gradient flow analysis and the impact of activation choice on deep networks
+- Lipschitz continuity and its role in stability and adversarial robustness
+- Initialization strategies matched to activation functions
+- Computational cost and memory considerations for deployment
 
 ## Mathematical Role
 
@@ -389,20 +422,24 @@ Activations that depend on the input distribution:
 - Batch normalization + activation
 - Layer normalization + GELU
 
-## Summary
+## Key Takeaways
 
-Key takeaways:
+- **Non-linearity is non-negotiable**: without activation functions, any depth of linear layers collapses to a single linear transformation, making the universal approximation theorem impossible to invoke
+- **ReLU remains the pragmatic default**: its simplicity, sparse activation, and identity gradient for positive inputs make it fast to compute and effective for most hidden layers
+- **GELU and SwiGLU dominate modern transformers**: their smooth, non-monotonic profiles provide implicit regularization and better gradient properties than ReLU in attention-based architectures
+- **Sigmoid and tanh cause vanishing gradients in deep networks**: their bounded derivatives ($\leq 0.25$ and $\leq 1$ respectively) attenuate gradients exponentially through layers
+- **Initialization must match the activation**: He initialization for ReLU variants and Xavier/Glorot for sigmoid/tanh ensure unit-variance activations at the start of training
+- **Zero-centered activations improve optimization**: non-zero-centered outputs (sigmoid, ReLU) force same-sign weight gradients, causing inefficient zig-zag descent paths
+- **Computational cost matters for deployment**: hard sigmoid and hard swish provide piecewise-linear approximations suitable for mobile and edge inference
 
-1. **ReLU family** dominates practical use due to simplicity and effectiveness
-2. **GELU/Swish** for transformers and modern architectures
-3. **Avoid sigmoid/tanh** in hidden layers (vanishing gradients)
-4. **Match initialization** to activation function
-5. **Consider computational cost** for deployment
-6. **Zero-centered activations** improve optimization
+## Exercises
 
-The choice of activation function significantly impacts:
+1. **Gradient Flow Experiment**: Build a 20-layer MLP with 128 hidden units per layer. Train it on MNIST using sigmoid, tanh, ReLU, and GELU activations. For each, record the mean gradient magnitude at layers 1, 5, 10, 15, and 20 during the first epoch. Plot these to visualize vanishing/exploding gradient behavior. Which activation maintains the most uniform gradient magnitudes?
 
-- Training dynamics and convergence speed
-- Expressivity and function approximation
-- Gradient flow and stability
-- Computational efficiency
+2. **Dying ReLU Investigation**: Initialize a 5-layer ReLU network with weights drawn from $\mathcal{N}(0, 0.5)$ (intentionally large variance). Feed a batch of 1000 random inputs and measure the fraction of neurons with zero activation at each layer. Repeat with Leaky ReLU ($\alpha = 0.01$) and ELU ($\alpha = 1.0$). How does the dead neuron fraction change?
+
+3. **GELU vs. ReLU Approximation**: Plot GELU and ReLU on the interval $[-3, 3]$. Compute and plot their derivatives. Find the point where GELU achieves its minimum value (hint: it is slightly negative). Implement the tanh-based GELU approximation and measure the maximum absolute error compared to the exact GELU over this interval.
+
+4. **Universal Approximation Visualization**: Using a single-hidden-layer network with 50 neurons, approximate the function $f(x) = \sin(3x) \cdot e^{-x^2}$ on $[-3, 3]$ using sigmoid, ReLU, and GELU activations. Train each for 5000 steps and compare the final approximation quality. Which activation achieves the best fit and why?
+
+5. **Activation Function Design**: Derive the Swish derivative $\frac{d}{dx}[x \cdot \sigma(x)]$ analytically. Show that Swish is not monotonic by finding the critical point where $\text{Swish}'(x) = 0$ for $x < 0$. Compute the Lipschitz constant of Swish on $\mathbb{R}$ and compare it to ReLU.

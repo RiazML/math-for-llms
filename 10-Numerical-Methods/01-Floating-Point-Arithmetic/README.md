@@ -3,7 +3,7 @@
 > **Navigation**: [← 04-Cross-Entropy](../../09-Information-Theory/04-Cross-Entropy/) | [Numerical Methods](../) | [02-Numerical-Linear-Algebra →](../02-Numerical-Linear-Algebra/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

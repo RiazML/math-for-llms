@@ -1,8 +1,41 @@
 # Attention Mechanisms in Deep Learning
 
+[← Previous: Activation Functions](../02-Activation-Functions) | [Next: Normalization Techniques →](../04-Normalization-Techniques)
+
+---
+
 ## Overview
 
 Attention mechanisms allow neural networks to dynamically focus on relevant parts of the input when producing each part of the output. Originally developed for sequence-to-sequence models, attention has become the foundation of transformer architectures.
+
+### Files in This Section
+
+| File | Description |
+|------|-------------|
+| [README.md](README.md) | Comprehensive theory and mathematical foundations |
+| [theory.ipynb](theory.ipynb) | Worked examples with Python implementations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+
+## Why This Matters for Machine Learning
+
+Attention mechanisms represent arguably the most important architectural innovation in modern deep learning. The transformer architecture—built entirely on attention—underpins virtually every state-of-the-art model across NLP (GPT, BERT, LLaMA), vision (ViT, DINO), and multimodal AI (CLIP, DALL-E). Understanding the mathematics of attention is no longer optional for anyone working in ML; it is foundational knowledge.
+
+The mathematical elegance of scaled dot-product attention lies in its simplicity: it computes a weighted sum of values based on query-key compatibility, with the $1/\sqrt{d_k}$ scaling factor ensuring stable softmax gradients. Multi-head attention extends this by projecting queries, keys, and values into multiple subspaces, allowing the model to simultaneously attend to different types of relationships—syntactic structure in one head, semantic similarity in another.
+
+Equally important is the mathematics of positional encoding. Self-attention is inherently permutation-equivariant: it treats its input as a set, not a sequence. Sinusoidal encodings, learned embeddings, RoPE, and ALiBi each inject position information differently, with profound implications for length generalization and computational efficiency. Understanding these tradeoffs—along with masking strategies, efficient attention variants like Flash Attention, and modern extensions like grouped-query attention—is essential for both building and optimizing transformer-based systems.
+
+## Chapter Roadmap
+
+- Core intuition: from fixed-size bottlenecks to dynamic attention
+- General attention formulation: queries, keys, values, and scoring functions
+- Scaled dot-product attention and the variance-stabilizing $1/\sqrt{d_k}$ factor
+- Multi-head attention: parallel subspace projections and their benefits
+- Self-attention and cross-attention: intra-sequence and inter-sequence interactions
+- Masking strategies: padding masks and causal (autoregressive) masks
+- Positional encoding: sinusoidal, learned, RoPE, and ALiBi approaches
+- Efficient attention: linear attention, sparse attention, Flash Attention, and sliding window
+- Attention pattern analysis: entropy, effective receptive field, and interpretability
+- Modern variants: grouped-query attention (GQA), multi-query attention (MQA), and state-space alternatives
 
 ## Core Intuition
 
@@ -343,20 +376,24 @@ Self-attention layers can:
 - Implement certain algorithms (sorting, copying)
 - Simulate Turing machines (with sufficient depth)
 
-## Summary
+## Key Takeaways
 
-Key concepts:
+- **Attention replaces recurrence with parallelism**: by computing all pairwise interactions simultaneously, attention removes the sequential bottleneck of RNNs and enables GPU-efficient training on long sequences
+- **Scaling by $1/\sqrt{d_k}$ is mathematically necessary**: without it, dot products grow with dimension, pushing softmax into saturated regions where gradients vanish
+- **Multi-head attention learns diverse relationships**: each head operates in its own low-dimensional subspace, collectively capturing both local syntactic and long-range semantic patterns
+- **Positional encoding is essential for sequence tasks**: since self-attention is permutation-equivariant, position information must be explicitly injected via sinusoidal functions, learned embeddings, or rotary encodings (RoPE)
+- **Masking controls information flow**: causal masks enforce autoregressive constraints in language models, while padding masks prevent attention to invalid positions
+- **$O(n^2)$ complexity is the fundamental bottleneck**: Flash Attention, linear attention, and sparse patterns address this through algorithmic and hardware-aware optimizations
+- **Attention weights provide interpretability**: unlike opaque hidden states, attention distributions can be visualized and analyzed, though they are not always faithful explanations of model behavior
 
-1. **Queries, Keys, Values:** the fundamental abstraction
-2. **Scaling:** prevents softmax saturation
-3. **Multi-head:** parallel attention in subspaces
-4. **Masking:** control information flow (padding, causal)
-5. **Position:** inject sequence order information
-6. **Efficiency:** linear attention, sparsity, Flash Attention
+## Exercises
 
-Attention enables:
+1. **Scaled Dot-Product Attention by Hand**: For query $q = [1, 0, 1]$, keys $K = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 1 \\ 1 & 1 & 0 \end{bmatrix}$, and values $V = \begin{bmatrix} 1 & 2 \\ 3 & 4 \\ 5 & 6 \end{bmatrix}$, compute the scaled dot-product attention output step by step. What are the attention weights $\alpha_i$? How would the weights change if you doubled $d_k$ without scaling?
 
-- Parallel computation over sequences
-- Direct long-range dependencies
-- Interpretable alignment/importance weights
-- Flexible architectural compositions
+2. **Multi-Head vs. Single-Head**: Implement both single-head attention (with $d_{model} = 64$) and multi-head attention (with $h = 8$, $d_k = d_v = 8$). Apply both to a random sequence of length 20 and compare the parameter counts. Show that multi-head attention has the same total parameter count as a single attention head with the same $d_{model}$.
+
+3. **Positional Encoding Analysis**: Implement sinusoidal positional encodings for $d = 128$ and sequence length $n = 100$. Plot the encodings as a heatmap. Compute the dot product $PE_{pos} \cdot PE_{pos+k}$ as a function of relative offset $k$ and show that it depends only on $k$, not on the absolute position. Compare with random learned embeddings—does this property hold?
+
+4. **Causal Masking and Autoregression**: Implement causal self-attention for a sequence of length 10. Verify that the output at position $i$ depends only on positions $\leq i$ by computing the Jacobian $\partial y_i / \partial x_j$ and confirming it is zero for $j > i$. What happens to the attention entropy $H(\alpha)$ at position 1 vs. position 10?
+
+5. **Flash Attention vs. Standard**: Implement standard attention and tiled (block-wise) attention for sequence lengths $n \in \{128, 512, 2048, 8192\}$. Measure peak memory usage and wall-clock time. At what sequence length does the standard implementation run out of memory on your GPU (or system RAM)? How does the tiled version compare?

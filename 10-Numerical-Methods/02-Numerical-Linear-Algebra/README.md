@@ -3,7 +3,7 @@
 > **Navigation**: [← 01-Floating-Point-Arithmetic](../01-Floating-Point-Arithmetic/) | [Numerical Methods](../) | [03-Numerical-Optimization →](../03-Numerical-Optimization/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

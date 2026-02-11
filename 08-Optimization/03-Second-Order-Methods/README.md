@@ -3,7 +3,7 @@
 > **Navigation**: [← 02-Gradient-Descent](../02-Gradient-Descent/) | [Optimization](../) | [04-Constrained-Optimization →](../04-Constrained-Optimization/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

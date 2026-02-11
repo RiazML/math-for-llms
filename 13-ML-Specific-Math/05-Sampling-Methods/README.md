@@ -1,8 +1,41 @@
 # Sampling Methods in Machine Learning
 
+[← Previous: Normalization Techniques](../04-Normalization-Techniques) | [Next: Math for Specific Models →](../../14-Math-for-Specific-Models)
+
+---
+
 ## Overview
 
 Sampling methods are fundamental to probabilistic machine learning, enabling inference, generation, and optimization in complex probability distributions where analytical solutions are intractable.
+
+### Files in This Section
+
+| File | Description |
+|------|-------------|
+| [README.md](README.md) | Comprehensive theory and mathematical foundations |
+| [theory.ipynb](theory.ipynb) | Worked examples with Python implementations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+
+## Why This Matters for Machine Learning
+
+Sampling methods are the computational backbone of probabilistic machine learning. Whenever a model involves a posterior distribution, a latent variable, or a generative process, sampling provides the practical means to perform inference and learning. From training variational autoencoders to running Bayesian neural networks, the ability to draw representative samples from complex distributions is indispensable.
+
+The landscape of sampling methods spans from simple techniques like inverse transform sampling—which works only when the CDF is known and invertible—to sophisticated algorithms like Hamiltonian Monte Carlo (HMC) and NUTS that exploit gradient information to explore high-dimensional distributions efficiently. Understanding these methods reveals a fundamental tension: simple samplers are easy to implement but scale poorly, while advanced methods require careful tuning but can handle the geometry of modern posterior distributions with thousands or millions of parameters.
+
+Modern generative AI has placed sampling at the forefront of ML research. Diffusion models generate images by learning to reverse a noise process, with each denoising step being a learned sampling operation. Score-based methods use Langevin dynamics to produce samples from the learned score function. The reparameterization trick enables gradient-based optimization of stochastic objectives in VAEs. Mastering sampling theory and diagnostics—convergence checks, effective sample size, acceptance rates—is essential for any practitioner working with probabilistic or generative models.
+
+## Chapter Roadmap
+
+- Basic sampling: inverse transform, Box-Muller, and rejection sampling
+- Markov Chain Monte Carlo (MCMC): detailed balance, Metropolis-Hastings, and Gibbs sampling
+- Hamiltonian Monte Carlo (HMC): physical intuition, leapfrog integration, and gradient-based exploration
+- No-U-Turn Sampler (NUTS): automatic trajectory length tuning
+- Importance sampling: basic and self-normalized estimators, effective sample size
+- Sequential Monte Carlo: particle filtering and systematic resampling
+- Variational inference connection: the reparameterization trick and Gumbel-Softmax
+- Modern generative sampling: ancestral sampling, diffusion processes, and score-based Langevin dynamics
+- Sampling diagnostics: trace plots, Gelman-Rubin $\hat{R}$, autocorrelation, and ESS
+- Practical considerations: burn-in, thinning, multiple chains, and high-dimensional strategies
 
 ## 1. Basic Sampling Methods
 
@@ -299,10 +332,22 @@ $$p_t(x) \propto p_0(x)^{1-\beta_t} p_T(x)^{\beta_t}$$
 
 ## Key Takeaways
 
-1. **Inverse transform/Box-Muller**: Simple distributions only
-2. **MCMC**: General framework for sampling intractable distributions
-3. **HMC/NUTS**: State-of-the-art for continuous distributions
-4. **Importance sampling**: Unbiased estimates, beware of ESS
-5. **Reparameterization**: Enables gradients through stochastic nodes
-6. **Diagnostics**: Always check convergence ($\hat{R}$, ESS, trace plots)
-7. **Modern samplers**: NUTS for most problems, SMC for sequences
+- **Simple samplers have limited reach**: inverse transform and Box-Muller work beautifully for standard distributions but cannot handle the complex, high-dimensional posteriors common in modern ML
+- **MCMC provides a general-purpose framework**: by constructing Markov chains with the target distribution as their stationary distribution, MCMC methods can sample from virtually any distribution given enough time
+- **HMC and NUTS exploit gradient geometry**: using Hamiltonian dynamics to propose distant, high-probability states, HMC avoids the random walk behavior that plagues basic Metropolis-Hastings in high dimensions
+- **Importance sampling trades sampling for reweighting**: it provides unbiased estimates without running a chain, but weight degeneracy (low ESS) makes it unreliable when the proposal poorly matches the target
+- **The reparameterization trick is essential for variational learning**: by expressing stochastic samples as deterministic functions of noise, it enables backpropagation through sampling operations in VAEs and related models
+- **Diagnostics are non-negotiable**: convergence must always be verified using $\hat{R}$ (target $< 1.01$), effective sample size, and trace plots before trusting MCMC results
+- **Diffusion and score-based sampling power modern generative AI**: these methods learn to reverse noise processes, producing high-quality samples from complex data distributions one denoising step at a time
+
+## Exercises
+
+1. **Rejection Sampling Efficiency**: Implement rejection sampling to draw from a Beta(2.7, 6.3) distribution using a Uniform(0, 1) proposal. Compute the optimal bounding constant $M$ and measure the empirical acceptance rate over 100,000 proposals. Now repeat using a Beta(2, 6) proposal. How much does the acceptance rate improve?
+
+2. **Metropolis-Hastings for a Bimodal Distribution**: Implement the Metropolis-Hastings algorithm to sample from $p(x) \propto 0.3 \cdot \mathcal{N}(x; -3, 1) + 0.7 \cdot \mathcal{N}(x; 4, 0.5)$. Use a Gaussian random walk proposal with standard deviation $\sigma$. Run chains for $\sigma \in \{0.1, 1.0, 5.0, 20.0\}$ and compare trace plots, acceptance rates, and the quality of the resulting histograms. Which $\sigma$ best balances exploration and acceptance?
+
+3. **HMC vs. Random Walk**: Sample from a 10-dimensional Gaussian $\mathcal{N}(0, \Sigma)$ where $\Sigma$ has eigenvalues geometrically spaced from 0.01 to 100. Compare random walk Metropolis-Hastings and HMC (with leapfrog integration) in terms of effective sample size per gradient evaluation. Why does HMC dramatically outperform random walk as dimensionality increases?
+
+4. **Importance Sampling Weight Degeneracy**: Estimate $\mathbb{E}_{p}[x^2]$ where $p = \mathcal{N}(0, 1)$ using importance sampling with proposal $q = \mathcal{N}(\mu, 1)$ for $\mu \in \{0, 1, 2, 3, 5\}$. For each $\mu$, compute the ESS from 10,000 samples. Plot ESS vs. $\mu$ and explain why ESS collapses as the proposal diverges from the target. At what $\mu$ does ESS drop below 100?
+
+5. **Langevin Dynamics and Diffusion**: Implement unadjusted Langevin dynamics (ULD) to sample from a 2D distribution $p(x) \propto \exp(-\frac{1}{2}(x_1^2 + x_2^2 - 2\rho x_1 x_2)/(1-\rho^2))$ with $\rho = 0.9$. Run for 10,000 steps with step sizes $\epsilon \in \{0.01, 0.1, 0.5, 1.0\}$. Compare the sample covariance to the true covariance. At what step size does ULD become unstable? How does Metropolis adjustment (MALA) fix this?

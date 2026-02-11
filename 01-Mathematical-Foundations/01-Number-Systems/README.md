@@ -14,7 +14,7 @@ Understanding number systems is the bedrock of all mathematical concepts in mach
 
 | Notebook | Description |
 |----------|-------------|
-| [examples.ipynb](examples.ipynb) | Interactive code examples with visualizations |
+| [theory.ipynb](theory.ipynb) | Interactive code examples with visualizations |
 | [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## Learning Objectives

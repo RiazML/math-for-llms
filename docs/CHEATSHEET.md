@@ -11,6 +11,9 @@
 3. [Probability & Statistics](#probability--statistics)
 4. [Optimization](#optimization)
 5. [Information Theory](#information-theory)
+6. [Numerical Methods](#numerical-methods)
+7. [Graph Theory](#graph-theory)
+8. [Functional Analysis & Kernels](#functional-analysis--kernels)
 
 ---
 
@@ -245,6 +248,73 @@ $$IG(S, A) = H(S) - \sum_v \frac{|S_v|}{|S|} H(S_v)$$
 
 ---
 
+## Numerical Methods
+
+### Floating Point
+- Machine epsilon: $\epsilon_{mach} \approx 2.2 \times 10^{-16}$ (float64)
+- Condition number: $\kappa(A) = \|A\| \cdot \|A^{-1}\|$
+
+### Numerical Differentiation
+| Method | Formula | Error |
+|--------|---------|-------|
+| Forward | $f'(x) \approx \frac{f(x+h)-f(x)}{h}$ | $O(h)$ |
+| Central | $f'(x) \approx \frac{f(x+h)-f(x-h)}{2h}$ | $O(h^2)$ |
+
+### Numerical Integration
+- Trapezoidal: $\int_a^b f(x)dx \approx \frac{h}{2}[f(a) + 2\sum f(x_i) + f(b)]$
+- Simpson's: $\int_a^b f(x)dx \approx \frac{h}{3}[f(a) + 4\sum_{\text{odd}} + 2\sum_{\text{even}} + f(b)]$
+
+---
+
+## Graph Theory
+
+### Basics
+| Concept | Formula |
+|---------|--------|
+| Degree | $\deg(v) = \sum_u A_{vu}$ |
+| Adjacency | $A_{ij} = 1$ if edge $(i,j)$ exists |
+| Laplacian | $L = D - A$ |
+| Norm. Laplacian | $\mathcal{L} = D^{-1/2}LD^{-1/2}$ |
+
+### Spectral Properties
+- Algebraic connectivity: $\lambda_2(L)$
+- Number of components = multiplicity of $\lambda = 0$
+
+### PageRank
+$$\mathbf{r} = \alpha M\mathbf{r} + \frac{(1-\alpha)}{n}\mathbf{1}$$
+
+### GNN Layer (GCN)
+$$H^{(l+1)} = \sigma(\hat{A}H^{(l)}W^{(l)})$$
+where $\hat{A} = \tilde{D}^{-1/2}\tilde{A}\tilde{D}^{-1/2}$
+
+---
+
+## Functional Analysis & Kernels
+
+### Norms
+| Norm | Formula | Use |
+|------|---------|-----|
+| $\ell^1$ | $\sum|x_i|$ | Sparsity (Lasso) |
+| $\ell^2$ | $\sqrt{\sum x_i^2}$ | Weight decay (Ridge) |
+| $\ell^\infty$ | $\max|x_i|$ | Adversarial robustness |
+| Frobenius | $\sqrt{\sum a_{ij}^2}$ | Matrix regularization |
+| Nuclear | $\sum \sigma_i$ | Low-rank |
+
+### Kernel Functions
+| Kernel | Formula | Parameters |
+|--------|---------|------------|
+| Linear | $K(x,x') = x^Tx'$ | — |
+| Polynomial | $K(x,x') = (x^Tx' + c)^d$ | $c, d$ |
+| RBF/Gaussian | $K(x,x') = \exp(-\|x-x'\|^2/2\sigma^2)$ | $\sigma$ |
+
+### Reproducing Property
+$$f(x) = \langle f, K(x, \cdot)\rangle_{\mathcal{H}}$$
+
+### Representer Theorem
+$$f^* = \sum_{i=1}^n \alpha_i K(x_i, \cdot)$$
+
+---
+
 ## Neural Network Math
 
 ### Softmax
@@ -278,6 +348,34 @@ $$y_i = \gamma \hat{x}_i + \beta$$
 ### Attention
 
 $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+
+---
+
+## Quick Reference: PyTorch
+
+```python
+import torch
+
+# Tensor operations
+torch.matmul(A, B)          # Matrix multiply (or A @ B)
+torch.linalg.inv(A)         # Inverse
+torch.linalg.eig(A)         # Eigendecomposition
+torch.linalg.svd(A)         # SVD
+torch.linalg.norm(x)        # Norm
+
+# Autograd
+x = torch.tensor([1.0], requires_grad=True)
+y = x**2 + 3*x
+y.backward()                # Compute gradients
+x.grad                      # Access gradient
+
+# Common layers
+torch.nn.Linear(in, out)
+torch.nn.ReLU()
+torch.nn.Softmax(dim=-1)
+torch.nn.CrossEntropyLoss()
+torch.nn.BatchNorm1d(features)
+```
 
 ---
 

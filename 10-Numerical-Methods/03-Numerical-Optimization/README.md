@@ -3,7 +3,7 @@
 > **Navigation**: [← 02-Numerical-Linear-Algebra](../02-Numerical-Linear-Algebra/) | [Numerical Methods](../) | [04-Interpolation-and-Approximation →](../04-Interpolation-and-Approximation/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

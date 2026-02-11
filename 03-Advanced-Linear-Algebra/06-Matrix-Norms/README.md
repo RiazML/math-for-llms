@@ -655,7 +655,7 @@ Analysis:
 
 | File | Description |
 |------|-------------|
-| [examples.ipynb](examples.ipynb) | Interactive demonstrations of all norm types |
+| [theory.ipynb](theory.ipynb) | Interactive demonstrations of all norm types |
 | [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## Further Reading

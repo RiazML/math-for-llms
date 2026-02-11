@@ -626,7 +626,7 @@ Key Properties:                  Key Properties:
 
 | Notebook | Description |
 |----------|-------------|
-| [examples.ipynb](examples.ipynb) | Interactive examples: summations, products, log-sum trick, loss functions |
+| [theory.ipynb](theory.ipynb) | Interactive examples: summations, products, log-sum trick, loss functions |
 | [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ---

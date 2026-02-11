@@ -3,7 +3,7 @@
 > **Navigation**: [← 01-Convex-Optimization](../01-Convex-Optimization/) | [Optimization](../) | [03-Second-Order-Methods →](../03-Second-Order-Methods/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

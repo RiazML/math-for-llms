@@ -3,7 +3,7 @@
 > **Navigation**: [← 08-Regularization-Methods](../08-Regularization-Methods/) | [Optimization](../) | [09-Information-Theory →](../../09-Information-Theory/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

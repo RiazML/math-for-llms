@@ -26,7 +26,7 @@ Projections—perhaps the most powerful concept in this chapter—underpin every
 
 | File | Description |
 |------|-------------|
-| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [theory.ipynb](theory.ipynb) | Interactive examples with visualizations |
 | [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## 1. Definition and Axioms

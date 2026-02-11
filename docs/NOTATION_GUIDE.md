@@ -14,7 +14,12 @@
 6. [Probability](#probability)
 7. [Linear Algebra Specific](#linear-algebra-specific)
 8. [Greek Letters](#greek-letters)
-9. [Common Conventions in ML](#common-conventions-in-ml)
+9. [Information Theory](#information-theory)
+10. [Graph Theory](#graph-theory)
+11. [Norms and Spaces](#norms-and-spaces)
+12. [Optimization](#optimization)
+13. [Common Conventions in ML](#common-conventions-in-ml)
+14. [Reading ML Papers: Notation Tips](#reading-ml-papers-notation-tips)
 
 ---
 
@@ -329,6 +334,75 @@ Row i→  │ a₂₁ a₂₂ a₂₃│   A ∈ ℝ^(3×3)
 
 ---
 
+## Information Theory
+
+| Symbol | Name | Definition |
+|--------|------|------------|
+| $H(X)$ | Entropy | $-\sum p(x) \log p(x)$ |
+| $H(X,Y)$ | Joint entropy | $-\sum_{x,y} p(x,y) \log p(x,y)$ |
+| $H(X\|Y)$ | Conditional entropy | $H(X,Y) - H(Y)$ |
+| $D_{KL}(p\|\|q)$ | KL divergence | $\sum p(x) \log\frac{p(x)}{q(x)}$ |
+| $H(p,q)$ | Cross-entropy | $-\sum p(x) \log q(x)$ |
+| $I(X;Y)$ | Mutual information | $H(X) - H(X\|Y)$ |
+
+> **Note:** $\log$ typically means $\ln$ (nats) or $\log_2$ (bits) depending on context.
+
+---
+
+## Graph Theory
+
+| Symbol | Meaning |
+|--------|----------|
+| $G = (V, E)$ | Graph with vertices $V$ and edges $E$ |
+| $A$ | Adjacency matrix |
+| $D$ | Degree matrix |
+| $L = D - A$ | Graph Laplacian |
+| $\mathcal{N}(v)$ | Neighborhood of vertex $v$ |
+| $\deg(v)$ | Degree of vertex $v$ |
+| $d(u,v)$ | Distance between $u$ and $v$ |
+| $\lambda_i$ | $i$-th eigenvalue of Laplacian |
+| $K_n$ | Complete graph on $n$ vertices |
+| $G'$ (or $\bar{G}$) | Complement graph |
+
+---
+
+## Norms and Spaces
+
+| Symbol | Meaning |
+|--------|----------|
+| $\|\mathbf{x}\|_p$ | $\ell^p$ norm |
+| $\|A\|_F$ | Frobenius norm |
+| $\|A\|_2$ | Spectral norm (operator norm) |
+| $\|A\|_*$ | Nuclear norm (trace norm) |
+| $\langle x, y \rangle$ | Inner product |
+| $\mathcal{H}$ | Hilbert space |
+| $\mathcal{H}_K$ | Reproducing Kernel Hilbert Space |
+| $K(x,x')$ | Kernel function |
+| $L^p$ | Lebesgue space of $p$-integrable functions |
+| $\ell^2$ | Space of square-summable sequences |
+| $(V, \|\cdot\|)$ | Normed space |
+
+---
+
+## Optimization
+
+| Symbol | Meaning |
+|--------|----------|
+| $\arg\min_x f(x)$ | Value of $x$ minimizing $f$ |
+| $\arg\max_x f(x)$ | Value of $x$ maximizing $f$ |
+| $\text{s.t.}$ | Subject to (constraint) |
+| $\mathcal{L}(x, \lambda)$ | Lagrangian |
+| $\lambda_i$ | Lagrange multiplier |
+| $\mu$ | KKT dual variable |
+| $\nabla^2 f$ or $H$ | Hessian matrix |
+| $\succeq 0$ | Positive semi-definite |
+| $\succ 0$ | Positive definite |
+| $f^*$ | Optimal value |
+| $x^*$ | Optimal solution |
+| $\mathcal{C}$ | Constraint set |
+
+---
+
 ## Common Conventions in ML
 
 ### Data and Models
@@ -413,6 +487,30 @@ Exists: ∃
 Implies: ⟹
 If and only if: ⟺
 ```
+
+---
+
+## Reading ML Papers: Notation Tips
+
+Common notation patterns you'll encounter:
+
+| Paper Convention | Meaning |
+|-----------------|----------|
+| $\theta$ | Model parameters |
+| $\phi$ | Variational/encoder parameters |
+| $\psi$ | Auxiliary parameters |
+| $\mathcal{D}$ | Dataset |
+| $\mathcal{L}$ | Loss or ELBO |
+| $p_\theta(x)$ | Model distribution |
+| $q_\phi(z\|x)$ | Approximate posterior |
+| $\mathbb{E}_{q}[\cdot]$ | Expectation under $q$ |
+| $\text{KL}(q\|\|p)$ | KL divergence |
+| $\odot$ | Element-wise (Hadamard) product |
+| $\otimes$ | Kronecker/tensor product |
+| $[N]$ | Set $\{1, 2, \ldots, N\}$ |
+| $\mathbb{1}[\cdot]$ | Indicator function |
+| $\propto$ | Proportional to |
+| $\sim$ | Distributed as (e.g., $x \sim \mathcal{N}(0,1)$) |
 
 ---
 

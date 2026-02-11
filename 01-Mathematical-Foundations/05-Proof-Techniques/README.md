@@ -444,7 +444,7 @@ Cases:         (C₁ ⟹ P) ∧ (C₂ ⟹ P) ∧ (C₁ ∨ C₂) ⟹ P
 
 | Notebook | Description |
 |----------|-------------|
-| [examples.ipynb](examples.ipynb) | Interactive demonstrations of all proof techniques with Python verification |
+| [theory.ipynb](theory.ipynb) | Interactive demonstrations of all proof techniques with Python verification |
 | [exercises.ipynb](exercises.ipynb) | Practice problems with step-by-step solutions |
 
 ---

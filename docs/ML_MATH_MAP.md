@@ -13,7 +13,11 @@
 5. [Optimization in ML](#optimization-in-ml)
 6. [Information Theory in ML](#information-theory-in-ml)
 7. [By ML Model/Algorithm](#by-ml-modelalgorithm)
-8. [By Deep Learning Component](#by-deep-learning-component)
+8. [Numerical Methods in ML](#numerical-methods-in-ml)
+9. [Graph Theory in ML](#graph-theory-in-ml)
+10. [Functional Analysis & Kernels in ML](#functional-analysis--kernels-in-ml)
+11. [By Deep Learning Component](#by-deep-learning-component)
+12. [Suggested Learning Path](#-suggested-learning-path)
 
 ---
 
@@ -408,6 +412,92 @@ L = E[log p(x|z)] - KL(q(z|x) || p(z))
 
 ---
 
+## Numerical Methods in ML
+
+### Core Concepts → ML Applications
+
+| Numerical Concept | ML Application | Example |
+|-------------------|----------------|--------|
+| **Floating point** | Training stability | Mixed precision (FP16/BF16) |
+| **Condition number** | Ill-conditioned problems | Feature scaling necessity |
+| **Iterative solvers** | Large-scale systems | Conjugate gradient for GP |
+| **Numerical differentiation** | Gradient checking | Finite differences vs autograd |
+| **Interpolation** | Data augmentation | Spline interpolation |
+| **Random sampling** | Stochastic methods | Monte Carlo estimation |
+| **Matrix decomposition** | Efficient computation | Cholesky for GP inference |
+
+### Where Numerical Issues Arise
+
+```
+Training Pipeline:
+  Data → [Normalization] → Model → [Loss] → [Gradient] → [Update]
+                ↑                     ↑           ↑           ↑
+           Scale issues        Log-sum-exp   Vanishing/    Learning
+           (condition #)       trick         exploding     rate scale
+```
+
+---
+
+## Graph Theory in ML
+
+### Core Concepts → ML Applications
+
+| Graph Concept | ML Application | Example |
+|---------------|----------------|--------|
+| **Adjacency matrix** | Graph representation | Social network data |
+| **Graph Laplacian** | Spectral clustering | Community detection |
+| **Random walks** | Node embedding | Node2Vec, DeepWalk |
+| **Message passing** | GNN framework | Node classification |
+| **Spectral methods** | Graph convolution | Spectral GCN (ChebNet) |
+| **Graph isomorphism** | Expressiveness | GIN (WL-test equivalent) |
+| **Attention on graphs** | Heterogeneous importance | GAT |
+| **Graph pooling** | Graph-level tasks | DiffPool |
+| **Shortest paths** | Distance features | Graph kernels |
+
+### GNN Architecture Map
+
+```
+Input Graph → [Encode] → Message Passing Layers → [Readout] → Prediction
+                            ↓
+              ┌─────────────────────────────────┐
+              │    h_v^{k+1} = UPDATE(          │
+              │        h_v^k,                    │
+              │        AGG({h_u^k : u ∈ N(v)})  │
+              │    )                              │
+              └─────────────────────────────────┘
+              Math: Linear algebra (matrix ops)
+                    + Calculus (backprop through graph)
+                    + Probability (attention weights)
+```
+
+---
+
+## Functional Analysis & Kernels in ML
+
+### Core Concepts → ML Applications
+
+| Concept | ML Application | Example |
+|---------|----------------|--------|
+| **Norms** | Regularization | L1 (Lasso), L2 (Ridge) |
+| **Inner products** | Similarity | Cosine similarity, attention |
+| **Hilbert spaces** | Function spaces | RKHS for kernel methods |
+| **Reproducing kernels** | Kernel trick | SVM, GP |
+| **Spectral theorem** | Kernel PCA | Nonlinear dimensionality reduction |
+| **Banach fixed point** | Convergence | Bellman equation, iterative methods |
+| **NTK** | Neural network theory | Infinite-width analysis |
+
+### The Kernel Methods Pipeline
+
+```
+Input Space → [Feature Map φ] → Feature Space → [Linear Method] → Output
+     x          φ(x)              <φ(x),φ(x')>
+                  ↕                      ↕
+           Kernel Trick:            K(x,x')
+           Never compute φ(x)!     Compute directly
+```
+
+---
+
 ## By Deep Learning Component
 
 ### Activation Functions
@@ -500,6 +590,65 @@ Multi-Head Attention:
 - Probability: Markov decision processes
 - Optimization: Policy gradient
 - Linear algebra: Value function approximation
+
+---
+
+## 📚 Suggested Learning Path
+
+```
+Start Here
+    │
+    ▼
+┌─────────────────┐
+│ 1. LINEAR       │ → Vectors, matrices, eigenvalues
+│    ALGEBRA      │    (Foundation for everything)
+└────────┬────────┘
+         │
+    ┌────┴────┐
+    ▼         ▼
+┌────────┐ ┌────────┐
+│CALCULUS│ │PROB &  │
+│        │ │STATS   │
+└───┬────┘ └───┬────┘
+    └────┬─────┘
+         ▼
+┌─────────────────┐
+│ 4. OPTIMIZATION │ → Training ML models
+└────────┬────────┘
+         │
+    ┌────┴────┐
+    ▼         ▼
+┌────────┐ ┌────────────┐
+│INFO    │ │NUMERICAL   │
+│THEORY  │ │METHODS     │
+└───┬────┘ └─────┬──────┘
+    └────┬───────┘
+         ▼
+┌─────────────────┐
+│ ADVANCED:       │
+│ • Graph Theory  │
+│ • Func. Analysis│
+│ • ML-Specific   │
+│ • Model Math    │
+└─────────────────┘
+```
+
+### Recommended Order for This Repository
+
+1. **01-Mathematical-Foundations** → Start here if rusty on basics
+2. **02-Linear-Algebra-Basics** → Essential for all ML
+3. **04-Calculus-Fundamentals** → Needed for optimization
+4. **05-Multivariate-Calculus** → Gradients and backprop
+5. **06-Probability-Theory** → Uncertainty and inference
+6. **07-Statistics** → Data analysis and estimation
+7. **08-Optimization** → Training algorithms
+8. **09-Information-Theory** → Loss functions and metrics
+9. **03-Advanced-Linear-Algebra** → Deeper theory
+10. **10-Numerical-Methods** → Implementation concerns
+11. **11-Graph-Theory** → Graph-structured data
+12. **12-Functional-Analysis** → Theory behind kernels
+13. **13-ML-Specific-Math** → Directly applied concepts
+14. **14-Math-for-Specific-Models** → Model-specific derivations
 
 ---
 

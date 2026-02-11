@@ -10,7 +10,7 @@ Graph Neural Networks (GNNs) learn representations of graph-structured data by c
 
 | File | Description |
 |------|-------------|
-| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [theory.ipynb](theory.ipynb) | Interactive examples with visualizations |
 | [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## 1. The GNN Framework

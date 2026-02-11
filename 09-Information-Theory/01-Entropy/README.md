@@ -3,7 +3,7 @@
 > **Navigation**: [← 09-Hyperparameter-Optimization](../../08-Optimization/09-Hyperparameter-Optimization/) | [Information Theory](../) | [02-KL-Divergence →](../02-KL-Divergence/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

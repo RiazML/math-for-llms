@@ -1,8 +1,38 @@
 # Linear Models: Mathematical Foundations
 
+[← Previous: ML-Specific Math](../../13-ML-Specific-Math) | [Next: Neural Networks →](../02-Neural-Networks)
+
 ## Overview
 
 Linear models form the foundation of machine learning, providing interpretable, efficient, and theoretically well-understood methods for regression and classification. Despite their simplicity, they remain essential building blocks and baselines.
+
+## Files in This Section
+
+| File | Description |
+|------|-------------|
+| [theory.ipynb](theory.ipynb) | Interactive examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+
+## Why This Matters for Machine Learning
+
+Linear models are far more than a stepping stone to deep learning — they are the mathematical lens through which we understand what every neural network layer actually computes. The ordinary least squares (OLS) solution reveals that regression is fundamentally a geometric projection: the model finds the point in the column space of the feature matrix closest to the target vector. This geometric intuition carries directly into understanding embeddings, attention outputs, and residual connections in modern architectures.
+
+Regularization techniques like Ridge and Lasso are not just engineering tricks; they have deep Bayesian interpretations. Ridge regression is equivalent to placing a Gaussian prior on the weights, while Lasso corresponds to a Laplace prior that encourages sparsity. Recognizing this duality connects frequentist optimization objectives to probabilistic inference, a bridge that recurs throughout machine learning — from weight decay in neural networks to sparsity-inducing priors in compressed sensing.
+
+The bias-variance tradeoff, most clearly analyzed in linear models, establishes the fundamental tension in all of machine learning: a model must be complex enough to capture signal but simple enough to avoid fitting noise. Every choice of regularization strength, network depth, or ensemble size is an implicit negotiation along this tradeoff curve.
+
+## Chapter Roadmap
+
+- **Linear Regression**: OLS derivation, closed-form solutions, and the geometric interpretation of projections
+- **Regularized Models**: Ridge (L2), Lasso (L1), and Elastic Net — shrinkage, sparsity, and the Bayesian connection
+- **Bayesian Linear Regression**: Prior-posterior framework, predictive distributions, and uncertainty quantification
+- **Linear Classification**: Logistic regression, softmax, cross-entropy, and decision boundaries
+- **Discriminative vs Generative**: LDA, QDA, and the modeling choice between $p(y|x)$ and $p(x,y)$
+- **Support Vector Machines**: Margin maximization, the kernel trick, and duality
+- **Model Selection**: Bias-variance decomposition, information criteria, and cross-validation
+- **Statistical Properties**: Hypothesis testing, confidence intervals, and OLS assumptions
+- **Optimization Methods**: Gradient descent, coordinate descent, and Newton's method
+- **Deep Learning Connections**: Linear layers, probing classifiers, and the neural tangent kernel
 
 ## 1. Linear Regression
 
@@ -27,6 +57,8 @@ $$\hat{\beta} = (X^T X)^{-1} X^T y$$
 - Solution projects $y$ onto column space of $X$
 - Residuals orthogonal to column space: $X^T(y - X\hat{\beta}) = 0$
 - Hat matrix: $H = X(X^T X)^{-1}X^T$, $\hat{y} = Hy$
+
+> 💡 **Insight:** The OLS solution is a *projection*. Imagine $y$ as a vector in $n$-dimensional space and the columns of $X$ as spanning a lower-dimensional subspace. The predicted $\hat{y} = Hy$ is the shadow of $y$ cast onto that subspace, and the residuals point straight "up" — perpendicular to every feature. This geometric picture explains why adding correlated features barely changes the fit (they don't expand the subspace much) and why orthogonal features are ideal.
 
 ## 2. Regularized Linear Models
 
@@ -62,6 +94,8 @@ $$\min_\beta \frac{1}{2n}\|y - X\beta\|_2^2 + \lambda \|\beta\|_1$$
 $$\min_\beta \frac{1}{2n}\|y - X\beta\|_2^2 + \lambda_1 \|\beta\|_1 + \lambda_2 \|\beta\|_2^2$$
 
 **Benefits**: Combines sparsity of Lasso with grouping effect of Ridge.
+
+> 💡 **Insight:** Regularization *is* a Bayesian prior in disguise. Ridge regression ($\lambda\|\beta\|_2^2$) is algebraically identical to maximum a posteriori estimation with a Gaussian prior $\beta \sim \mathcal{N}(0, \sigma^2/\lambda \cdot I)$, while Lasso corresponds to a Laplace prior. This means every time you tune a regularization hyperparameter, you are implicitly choosing how strongly you believe the weights should be small — a belief expressed in the language of probability distributions.
 
 ## 3. Bayesian Linear Regression
 
@@ -166,6 +200,8 @@ Replace $x_i^T x_j$ with $k(x_i, x_j)$:
 
 $$\mathbb{E}[(y - \hat{f}(x))^2] = \text{Bias}^2 + \text{Variance} + \text{Noise}$$
 
+> 💡 **Insight:** The bias-variance decomposition reveals that prediction error has an irreducible floor (noise), and the remaining error is split between a model being systematically wrong (bias) and being overly sensitive to the training sample (variance). Increasing $\lambda$ in regularized models shifts the balance: more regularization raises bias but lowers variance. The sweet spot — minimum total error — is the entire motivation for techniques like cross-validation.
+
 ### Information Criteria
 
 **AIC**: $\text{AIC} = -2\ell + 2k$
@@ -262,6 +298,28 @@ Neural network linear layer: $h = Wx + b$
 | Logistic | $p = \sigma(w^Tx + b)$, cross-entropy loss             |
 | SVM      | $\min \frac{1}{2}\|w\|^2 + C\sum_i \xi_i$              |
 | Bayesian | $p(\beta                                               | y) \propto p(y | \beta)p(\beta)$ |
+
+## Key Takeaways
+
+- The OLS solution $\hat{\beta} = (X^TX)^{-1}X^Ty$ is a geometric projection of the target vector onto the column space of the design matrix — residuals are always orthogonal to the features.
+- Ridge regression adds $\lambda I$ to $X^TX$, guaranteeing invertibility and shrinking coefficients; it is mathematically equivalent to a Gaussian prior on the weights.
+- Lasso uses an L1 penalty that drives coefficients exactly to zero, performing automatic feature selection — useful when true models are sparse.
+- The bias-variance tradeoff governs all model selection: more complexity reduces bias but increases variance, and the regularization strength $\lambda$ controls this balance.
+- Logistic regression applies the sigmoid to a linear model, yielding convex cross-entropy optimization — the Hessian is always positive semi-definite.
+- SVMs maximize the margin between classes; through the kernel trick, they implicitly map data to high-dimensional spaces where linear separation is possible.
+- Bayesian linear regression provides full posterior distributions over predictions, naturally quantifying uncertainty with no additional machinery.
+
+## Exercises
+
+1. **OLS Geometry**: Show that the OLS residual vector $e = y - X\hat{\beta}$ is orthogonal to every column of $X$. Start from the normal equations and interpret the result geometrically as a projection.
+
+2. **Ridge as Bayesian MAP**: Derive the Ridge regression solution $\hat{\beta}_{\text{ridge}} = (X^TX + \lambda I)^{-1}X^Ty$ starting from the Bayesian posterior with a Gaussian prior $\beta \sim \mathcal{N}(0, \tau^2 I)$ and Gaussian likelihood. Express $\lambda$ in terms of $\sigma^2$ and $\tau^2$.
+
+3. **Bias-Variance for Ridge**: For a fixed design matrix $X$ and true model $y = X\beta^* + \epsilon$, derive expressions for the bias and variance of the Ridge estimator as functions of $\lambda$. Show that bias increases and variance decreases with $\lambda$.
+
+4. **Lasso Soft Thresholding**: Prove that the coordinate descent update for a single Lasso coefficient is the soft-thresholding operator $S_\lambda(z) = \text{sign}(z)\max(|z| - \lambda, 0)$. Hint: take the subgradient of the Lasso objective with respect to $\beta_j$.
+
+5. **Kernel SVM Duality**: Starting from the soft-margin SVM primal, derive the dual formulation using Lagrange multipliers. Show that the kernel trick allows replacing all inner products $x_i^Tx_j$ with $k(x_i, x_j)$ without ever computing the feature map explicitly.
 
 ## References
 

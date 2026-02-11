@@ -27,7 +27,7 @@ Most surprisingly, kernels have re-emerged at the heart of deep learning theory.
 
 | File | Description |
 |------|-------------|
-| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [theory.ipynb](theory.ipynb) | Interactive examples with visualizations |
 | [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## Prerequisites

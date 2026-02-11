@@ -3,7 +3,7 @@
 > **Navigation**: [← 04-Expectation-and-Moments](../../06-Probability-Theory/04-Expectation-and-Moments/) | [Optimization](../) | [02-Gradient-Descent →](../02-Gradient-Descent/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

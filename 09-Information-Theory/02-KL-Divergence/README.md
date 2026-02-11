@@ -3,7 +3,7 @@
 > **Navigation**: [← 01-Entropy](../01-Entropy/) | [Information Theory](../) | [03-Mutual-Information →](../03-Mutual-Information/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

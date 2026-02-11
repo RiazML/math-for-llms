@@ -1,5 +1,7 @@
 # Generative Models: Mathematical Foundations
 
+[← Previous: Reinforcement Learning](../04-Reinforcement-Learning) | [Next: Documentation →](../../docs)
+
 ## Overview
 
 Generative models learn the underlying data distribution $p(x)$ or the conditional distribution $p(x|z)$ to generate new samples. This section covers the mathematical theory behind various generative model architectures used in modern AI systems.
@@ -11,6 +13,35 @@ Generative models learn the underlying data distribution $p(x)$ or the condition
 - Learn the mathematics of normalizing flows
 - Study GAN theory and training dynamics
 - Explore diffusion models and score matching
+
+## Files in This Section
+
+| File | Description |
+|------|-------------|
+| [theory.ipynb](theory.ipynb) | Interactive examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+
+## Why This Matters for Machine Learning
+
+Generative models address the most ambitious goal in machine learning: learning the full data distribution $p(x)$ so that entirely new, realistic samples can be created from scratch. The mathematical frameworks behind modern generative models — VAEs, GANs, normalizing flows, and diffusion models — each offer a different tradeoff between exact likelihood computation, sample quality, training stability, and computational cost. Understanding these tradeoffs mathematically is essential for choosing the right tool and diagnosing failures.
+
+The VAE’s ELBO connects generative modeling to variational inference: the encoder approximates the intractable posterior while the decoder learns a generative process, and the KL term prevents the latent space from collapsing. GANs take a radically different approach by framing generation as a minimax game where the optimum corresponds to the generator matching the data distribution exactly — a result tied to the Jensen-Shannon divergence. Wasserstein GANs replace this with the earth-mover distance, fixing vanishing gradient problems at the cost of enforcing a Lipschitz constraint.
+
+Diffusion models and score matching represent the current state of the art. They decompose generation into a sequence of small denoising steps, each of which is easy to learn, and the simplified training objective reduces to predicting the noise added at each step. The connection to score matching $\nabla_x \log p(x)$ unifies denoising diffusion with Langevin dynamics and stochastic differential equations, providing a rigorous continuous-time framework. Normalizing flows complement these approaches by offering exact, tractable log-likelihoods through invertible transformations with efficient Jacobian determinants.
+
+## Chapter Roadmap
+
+- **Foundations of Generative Modeling**: Maximum likelihood, explicit vs implicit density models, and latent variable formulations
+- **Autoregressive Models**: Chain rule factorization, MADE, and causal-masked transformers
+- **Variational Autoencoders**: ELBO derivation, reparameterization trick, $\beta$-VAE, and VQ-VAE
+- **Normalizing Flows**: Change of variables, coupling layers (RealNVP), and continuous normalizing flows (Neural ODE)
+- **GANs**: Minimax formulation, optimal discriminator, Jensen-Shannon divergence, and Wasserstein distance
+- **Diffusion Models**: Forward/reverse processes, the simplified denoising objective, and score matching
+- **Energy-Based Models**: Boltzmann distributions, contrastive divergence, and score-based training
+- **Flow Matching**: Conditional flow matching, optimal transport paths, and rectified flows
+- **Autoencoder Variants**: Denoising autoencoders, masked autoencoders, and their connection to score matching
+- **Evaluation Metrics**: Inception Score, FID, and precision/recall for generative models
+- **Advanced Topics**: Hierarchical VAEs, consistency models, and classifier-free guidance
 
 ---
 
@@ -71,6 +102,8 @@ The ELBO consists of:
 
 - **Reconstruction term**: $\mathbb{E}_{q(z|x)}[\log p(x|z)]$
 - **Regularization term**: $-D_{KL}(q(z|x) \| p(z))$
+
+> 💡 **Insight:** The ELBO is the cornerstone of VAE theory. The reconstruction term $\mathbb{E}_q[\log p(x|z)]$ asks "given a latent code sampled from the encoder, can the decoder reconstruct the input?" while the KL term $D_{KL}(q(z|x)\|p(z))$ asks "how far is the encoder’s output from the prior?" If the KL term is zero, every input maps to the same prior — good for generation but useless for reconstruction. If the KL is unconstrained, the model memorizes inputs without learning a smooth latent space. The tension between these terms is what makes the VAE latent space both *structured* (nearby codes produce similar outputs) and *complete* (sampling from the prior produces valid data).
 
 ### Reparameterization Trick
 
@@ -160,6 +193,8 @@ $$\mathcal{L} = \mathbb{E}_{x \sim p_r}[D(x)] - \mathbb{E}_{z \sim p_z}[D(G(z))]
 
 with Lipschitz constraint on $D$ (gradient penalty or spectral normalization).
 
+> 💡 **Insight:** The GAN minimax theorem reveals a deep connection to information theory. When the discriminator is optimal, the generator’s loss reduces to $2 \cdot D_{JS}(p_{\text{data}}\|p_g) - \log 4$, where $D_{JS}$ is the Jensen-Shannon divergence. At Nash equilibrium, $p_g = p_{\text{data}}$ and $D(x) = 1/2$ everywhere — the discriminator can’t tell real from fake. But this equilibrium is notoriously unstable: if $D$ becomes too strong, $\log(1 - D(G(z))) \to 0$ and gradients vanish for the generator. Wasserstein GANs fix this by replacing JSD with the earth-mover distance $W$, which provides gradients even when the two distributions have non-overlapping support.
+
 ---
 
 ## 6. Diffusion Models
@@ -194,6 +229,8 @@ Score function: $s_\theta(x) \approx \nabla_x \log p(x)$
 
 Denoising score matching:
 $$\mathcal{L}_{DSM} = \mathbb{E}_{x_0, \tilde{x}}\left[\|s_\theta(\tilde{x}) - \nabla_{\tilde{x}} \log q(\tilde{x}|x_0)\|^2\right]$$
+
+> 💡 **Insight:** Diffusion models flip the generative modeling problem: instead of learning to generate data in one shot, they learn to *denoise* — to remove small amounts of noise step by step. The forward process is fixed (just add Gaussian noise), so all learning happens in the reverse process. The simplified training objective $\|\epsilon - \epsilon_\theta(x_t, t)\|^2$ is just noise prediction: given a noisy image and the noise level $t$, predict the noise that was added. This is equivalent to score matching because $\nabla_{x_t}\log q(x_t|x_0) = -(x_t - \sqrt{\bar\alpha_t}x_0)/(1-\bar\alpha_t) = -\epsilon/\sqrt{1-\bar\alpha_t}$. The stunning result is that this simple denoising objective, repeated across all noise levels, suffices to learn the entire data distribution.
 
 ---
 
@@ -313,6 +350,30 @@ $$\tilde{\epsilon}_\theta = (1 + w)\epsilon_\theta(x_t, y) - w\epsilon_\theta(x_
 | Diffusion         | State-of-the-art generation               |
 | Score matching    | Density estimation                        |
 | Flow matching     | Efficient training                        |
+
+---
+
+## Key Takeaways
+
+- Generative models can be categorized by how they represent the data distribution: explicit density (autoregressive, flows), latent variable (VAE), implicit (GAN), or iterative refinement (diffusion).
+- The VAE ELBO = reconstruction - KL divergence; the reparameterization trick enables gradient-based optimization through the stochastic sampling step by expressing $z = \mu + \sigma \odot \epsilon$.
+- Normalizing flows provide exact log-likelihoods via the change of variables formula, but require invertible architectures with efficiently computable Jacobian determinants.
+- GANs optimize a minimax game whose equilibrium corresponds to $p_g = p_{\text{data}}$; the Wasserstein formulation provides more stable gradients by using the earth-mover distance.
+- Diffusion models learn a denoising process across many noise levels; the simplified objective is just noise prediction, which is equivalent to denoising score matching.
+- Score matching learns $\nabla_x \log p(x)$ without requiring the normalizing constant, connecting energy-based models, diffusion, and Langevin dynamics into a unified framework.
+- Flow matching offers a simulation-free alternative to diffusion with straight-line OT paths, achieving faster sampling while maintaining competitive generation quality.
+
+## Exercises
+
+1. **VAE ELBO Derivation**: Starting from $\log p(x)$, multiply and divide by $q(z|x)$ inside the integral, apply Jensen’s inequality, and arrive at the ELBO. Then decompose the ELBO into the reconstruction term and the KL term. Compute the KL analytically when both $q(z|x)$ and $p(z)$ are Gaussian.
+
+2. **Normalizing Flow Jacobian**: For a RealNVP coupling layer where $y_a = z_a$ and $y_b = z_b \odot \exp(s(z_a)) + t(z_a)$, write out the full Jacobian $\partial y / \partial z$ in block form. Show that it is triangular and that its log-determinant reduces to $\sum_i s_i(z_a)$.
+
+3. **GAN Optimal Discriminator**: Given the GAN value function $V(D, G)$, fix $G$ and maximize $V$ with respect to $D(x)$ pointwise. Show that $D^*(x) = p_{\text{data}}(x)/(p_{\text{data}}(x) + p_g(x))$. Substitute back and show the resulting generator objective equals $2D_{JS}(p_{\text{data}}\|p_g) - \log 4$.
+
+4. **Diffusion Forward Process**: Prove that $q(x_t|x_0) = \mathcal{N}(\sqrt{\bar\alpha_t}\,x_0,\,(1-\bar\alpha_t)I)$ by inductively composing the single-step transitions $q(x_t|x_{t-1}) = \mathcal{N}(\sqrt{1-\beta_t}\,x_{t-1},\,\beta_t I)$. Show that as $t \to \infty$ with appropriate $\beta_t$ schedule, $q(x_t|x_0) \to \mathcal{N}(0, I)$.
+
+5. **Score Matching Equivalence**: Show that the denoising score matching objective $\mathbb{E}[\|s_\theta(\tilde{x}) - \nabla_{\tilde{x}}\log q(\tilde{x}|x_0)\|^2]$ is equivalent (up to a constant) to the explicit score matching objective $\mathbb{E}[\|s_\theta(x) - \nabla_x \log p(x)\|^2]$. Explain why the denoising formulation is tractable while the explicit one is not.
 
 ---
 

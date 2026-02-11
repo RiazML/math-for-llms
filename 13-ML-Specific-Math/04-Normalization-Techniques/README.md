@@ -1,8 +1,41 @@
 # Normalization Techniques in Machine Learning
 
+[← Previous: Attention Mechanisms](../03-Attention-Mechanisms) | [Next: Sampling Methods →](../05-Sampling-Methods)
+
+---
+
 ## Overview
 
 Normalization techniques are essential for stabilizing neural network training, reducing internal covariate shift, and enabling deeper architectures with higher learning rates.
+
+### Files in This Section
+
+| File | Description |
+|------|-------------|
+| [README.md](README.md) | Comprehensive theory and mathematical foundations |
+| [theory.ipynb](theory.ipynb) | Worked examples with Python implementations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+
+## Why This Matters for Machine Learning
+
+Normalization is one of the most impactful techniques for making deep networks trainable. Before BatchNorm, training a 50-layer network was notoriously unstable—afterward, networks with hundreds of layers became routine. The mathematics behind normalization explains *why*: by controlling the mean and variance of activations at each layer, normalization bounds gradient magnitudes, smooths the loss landscape, and effectively decouples the learning of scale/shift parameters from the optimization of weight directions.
+
+Understanding the differences between normalization variants is critical for modern architecture design. BatchNorm depends on batch statistics, making it ill-suited for small batch sizes or sequential models. LayerNorm, which computes statistics across features for each sample independently, became the standard for transformers precisely because it avoids this batch dependency. RMSNorm further simplifies by dropping the mean-centering step, achieving comparable performance with reduced computation—it is now the default in LLaMA and other large language models.
+
+The choice of normalization also interacts deeply with other architectural decisions: pre-norm vs. post-norm placement affects gradient flow in deep transformers, spectral normalization controls the Lipschitz constant of discriminators in GANs, and adaptive normalization techniques like AdaIN and SPADE enable style transfer and conditional generation. A strong mathematical understanding of these techniques is essential for diagnosing training instabilities and achieving state-of-the-art results.
+
+## Chapter Roadmap
+
+- Batch Normalization: definition, learnable parameters, training vs. inference behavior, and gradient flow
+- Layer Normalization: feature-wise normalization and its role in transformers
+- Group Normalization and Instance Normalization: bridging batch and layer norm
+- RMSNorm: efficient mean-free normalization for large language models
+- Weight Normalization and Spectral Normalization: reparameterization-based approaches
+- Pre-norm vs. Post-norm: placement strategies for residual networks and transformers
+- Dimension summary: a unified view of normalization across tensor axes
+- Adaptive normalization: AdaIN, conditional batch norm, and SPADE for generative models
+- Numerical stability: Welford's algorithm and floating-point considerations
+- Theoretical analysis: loss landscape smoothing, implicit regularization, and internal covariate shift
 
 ## 1. Batch Normalization
 
@@ -322,9 +355,22 @@ Batch norm introduces noise (via mini-batch statistics), acting as implicit regu
 
 ## Key Takeaways
 
-1. **Batch Norm**: Original, powerful but batch-dependent
-2. **Layer Norm**: Batch-independent, standard for Transformers
-3. **Group Norm**: Bridges batch/layer norm, good for small batches
-4. **RMSNorm**: Efficient alternative to Layer Norm
-5. **Pre-norm**: Better training stability for deep models
-6. **Normalization smooths loss landscape** and enables larger learning rates
+- **Batch Normalization revolutionized deep learning**: by normalizing per-channel statistics across the batch, it smooths the loss landscape and enables much larger learning rates
+- **Layer Normalization is the transformer standard**: computing statistics per-sample across features avoids batch size dependence and gives consistent train/inference behavior
+- **Group Normalization bridges batch and layer norm**: it works well with small batch sizes common in detection and segmentation tasks
+- **RMSNorm offers efficiency without sacrificing quality**: dropping mean-centering saves computation while matching LayerNorm performance in large language models
+- **Pre-norm placement improves training stability**: normalizing before the sublayer (rather than after) provides cleaner gradient paths in deep transformers
+- **Spectral normalization controls the Lipschitz constant**: enforcing 1-Lipschitz layers is critical for stable GAN training and adversarial robustness
+- **Normalization smooths the loss landscape**: bounded gradient magnitudes and reduced sensitivity to initialization enable faster, more reliable convergence
+
+## Exercises
+
+1. **BatchNorm Forward and Backward**: Implement BatchNorm from scratch (no framework). For a mini-batch of shape $(4, 3)$ with known values, compute the normalized output, the scaled/shifted result with $\gamma = [1, 2, 3]$ and $\beta = [0, 1, 0]$, and the full gradient $\partial L / \partial x_i$. Verify your gradients against PyTorch autograd.
+
+2. **Normalization Axis Comparison**: Create a random tensor of shape $(8, 64, 16, 16)$ (batch, channels, height, width). Apply BatchNorm, LayerNorm, InstanceNorm, and GroupNorm (with $G = 8$) to it. For each method, verify the shape of the computed mean and variance tensors. Visualize the activation distributions before and after each normalization.
+
+3. **RMSNorm vs. LayerNorm**: Implement both RMSNorm and LayerNorm. For input vectors drawn from $\mathcal{N}(2, 3)$ (non-zero mean), compare their outputs. Under what conditions do the two produce identical results? Prove algebraically that if $\mathbb{E}[x] = 0$, then $\text{RMS}(x) = \sqrt{\text{Var}(x)}$.
+
+4. **Pre-Norm vs. Post-Norm Training Dynamics**: Train a 12-layer transformer on a small language modeling task (e.g., WikiText-2) with both pre-norm and post-norm configurations. Track the gradient norm at each layer throughout training. Which configuration requires learning rate warmup? Plot the training loss curves and compare convergence speed.
+
+5. **Spectral Normalization Implementation**: Implement spectral normalization using the power iteration method. Apply it to a linear layer $W \in \mathbb{R}^{64 \times 64}$ and verify that the spectral norm $\sigma(\bar{W}) = 1$ after normalization. How many power iteration steps are needed for the estimate to converge within 1% of the true spectral norm (computed via SVD)?

@@ -3,7 +3,7 @@
 > **Navigation**: [← 06-Optimization-Landscape](../06-Optimization-Landscape/) | [Optimization](../) | [08-Regularization-Methods →](../08-Regularization-Methods/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

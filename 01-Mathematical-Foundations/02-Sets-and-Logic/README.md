@@ -872,7 +872,7 @@ $$|\mathcal{P}(A)| = 2^{|A|}$$
 
 | Notebook | Description |
 |----------|-------------|
-| [examples.ipynb](examples.ipynb) | Interactive examples: set operations, De Morgan's laws, confusion matrices, Jaccard similarity |
+| [theory.ipynb](theory.ipynb) | Interactive examples: set operations, De Morgan's laws, confusion matrices, Jaccard similarity |
 | [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ---

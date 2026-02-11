@@ -1017,7 +1017,7 @@ System Ax = b:
 ## 11. Practice Problems
 
 See the accompanying Jupyter notebooks:
-- **[examples.ipynb](examples.ipynb)**: Worked examples with visualizations
+- **[theory.ipynb](theory.ipynb)**: Worked examples with visualizations
 - **[exercises.ipynb](exercises.ipynb)**: Practice problems with solutions
 
 Key exercises include:

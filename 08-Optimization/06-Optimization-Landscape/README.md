@@ -3,7 +3,7 @@
 > **Navigation**: [← 05-Stochastic-Optimization](../05-Stochastic-Optimization/) | [Optimization](../) | [07-Adaptive-Learning-Rate →](../07-Adaptive-Learning-Rate/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

@@ -12,7 +12,10 @@
 4. [Optimization Questions](#optimization-questions)
 5. [Information Theory Questions](#information-theory-questions)
 6. [Applied ML Math Questions](#applied-ml-math-questions)
-7. [Quick Review Checklist](#quick-review-checklist)
+7. [Deep Learning Math Questions](#deep-learning-math-questions)
+8. [Generative Models Math Questions](#generative-models-math-questions)
+9. [Quick Review Checklist](#quick-review-checklist)
+10. [Study Plan](#-study-plan)
 
 ---
 
@@ -580,6 +583,119 @@ where $\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$
 
 ---
 
+## Deep Learning Math Questions
+
+### Q21: Explain the math behind the Transformer's attention mechanism.
+
+**Answer:**
+
+Scaled dot-product attention:
+$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+
+**Why $\sqrt{d_k}$?** Without scaling, dot products grow with dimension $d_k$, pushing softmax into saturation (near 0 or 1 gradients). Scaling keeps variance ~1.
+
+**Multi-head attention** allows attending to information from different representation subspaces:
+$$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W^O$$
+
+**Complexity:** $O(n^2 d)$ where $n$ is sequence length — the quadratic bottleneck motivating efficient attention.
+
+---
+
+### Q22: Derive the backpropagation equations for a simple 2-layer network.
+
+**Answer:**
+
+Network: $z_1 = W_1x + b_1$, $a_1 = \sigma(z_1)$, $z_2 = W_2a_1 + b_2$, $\hat{y} = \text{softmax}(z_2)$
+
+Loss: $L = -\sum_k y_k \log \hat{y}_k$ (cross-entropy)
+
+**Backward pass** (using chain rule):
+1. $\delta_2 = \hat{y} - y$ (softmax + cross-entropy simplification)
+2. $\frac{\partial L}{\partial W_2} = \delta_2 a_1^T$
+3. $\frac{\partial L}{\partial b_2} = \delta_2$
+4. $\delta_1 = (W_2^T \delta_2) \odot \sigma'(z_1)$ (element-wise)
+5. $\frac{\partial L}{\partial W_1} = \delta_1 x^T$
+6. $\frac{\partial L}{\partial b_1} = \delta_1$
+
+**Key insight:** Each layer's gradient depends on the downstream gradient $(W^T \delta)$ modulated by the local derivative $\sigma'(z)$.
+
+---
+
+### Q23: What causes vanishing/exploding gradients and how are they addressed?
+
+**Answer:**
+
+For deep network with $L$ layers, gradient magnitude scales as:
+$$\prod_{l=1}^L \|W_l\| \cdot |\sigma'(z_l)|$$
+
+- **Vanishing:** $\|W_l\| \cdot |\sigma'| < 1$ repeatedly → gradient → 0
+- **Exploding:** $\|W_l\| \cdot |\sigma'| > 1$ repeatedly → gradient → ∞
+
+**Solutions:**
+| Technique | How it helps |
+|-----------|-------------|
+| ReLU | $\sigma'(x) = 1$ for $x > 0$ (no shrinkage) |
+| Residual connections | Gradient flows through skip: $\frac{\partial}{\partial x}(x + F(x)) = 1 + F'(x)$ |
+| Batch normalization | Keeps activations well-conditioned |
+| Xavier/He initialization | Sets $\text{Var}(W) = 1/n_{\text{in}}$ or $2/n_{\text{in}}$ |
+| Gradient clipping | Caps gradient norm to threshold |
+
+---
+
+### Q24: Explain batch normalization mathematically. Why does it help?
+
+**Answer:**
+
+**Forward pass** (for mini-batch $\mathcal{B}$):
+$$\mu_\mathcal{B} = \frac{1}{m}\sum_i x_i, \quad \sigma^2_\mathcal{B} = \frac{1}{m}\sum_i(x_i - \mu_\mathcal{B})^2$$
+$$\hat{x}_i = \frac{x_i - \mu_\mathcal{B}}{\sqrt{\sigma^2_\mathcal{B} + \epsilon}}, \quad y_i = \gamma\hat{x}_i + \beta$$
+
+**Why it helps:**
+1. Reduces internal covariate shift (distribution of inputs to each layer stabilizes)
+2. Allows higher learning rates (smoother loss landscape)
+3. Acts as regularizer (batch statistics add noise)
+4. Makes the loss landscape smoother: $\|\nabla L\|$ varies less
+
+---
+
+## Generative Models Math Questions
+
+### Q25: Derive the ELBO for VAEs.
+
+**Answer:**
+
+Start with log-likelihood:
+$$\log p(x) = \log \int p(x|z)p(z)dz$$
+
+Introduce variational distribution $q(z|x)$:
+$$\log p(x) = \underbrace{E_{q(z|x)}[\log p(x|z)] - D_{KL}(q(z|x) \| p(z))}_{\text{ELBO}} + D_{KL}(q(z|x) \| p(z|x))$$
+
+Since KL ≥ 0: $\log p(x) \geq \text{ELBO}$
+
+**ELBO = Reconstruction - KL:**
+- Reconstruction: How well can we decode $z$ back to $x$?
+- KL: How close is the encoder to the prior?
+
+---
+
+### Q26: What is the GAN objective and what does the optimal discriminator look like?
+
+**Answer:**
+
+$$\min_G \max_D \; E_{x \sim p_{\text{data}}}[\log D(x)] + E_{z \sim p_z}[\log(1 - D(G(z)))]$$
+
+**Optimal discriminator** (for fixed $G$):
+$$D^*(x) = \frac{p_{\text{data}}(x)}{p_{\text{data}}(x) + p_G(x)}$$
+
+With $D^*$, the generator minimizes:
+$$2 \cdot D_{JS}(p_{\text{data}} \| p_G) - \log 4$$
+
+where $D_{JS}$ is the Jensen-Shannon divergence.
+
+**Problem:** When $D$ is too good, $\log(1 - D(G(z)))$ saturates → vanishing gradients for $G$.
+
+---
+
 ## Quick Review Checklist
 
 ### Before Your Interview, Make Sure You Can:
@@ -636,6 +752,34 @@ where $\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$
 4. **Be honest** if you don't know something
 5. **Practice derivations** by hand
 6. **Understand, don't memorize** - interviewers test understanding
+
+---
+
+## 📅 Study Plan
+
+### Week 1: Foundations
+- **Day 1-2:** Linear algebra (vectors, matrices, eigenvalues)
+- **Day 3-4:** Calculus (derivatives, gradients, chain rule)
+- **Day 5-6:** Probability (Bayes, distributions, expectation)
+- **Day 7:** Review + practice problems
+
+### Week 2: Core ML Math
+- **Day 1-2:** Optimization (gradient descent, convexity, Adam)
+- **Day 3-4:** Information theory (entropy, KL, cross-entropy)
+- **Day 5-6:** Statistics (MLE, MAP, hypothesis testing)
+- **Day 7:** Review + mock interview
+
+### Week 3: Advanced Topics
+- **Day 1-2:** Deep learning math (backprop, batch norm, attention)
+- **Day 3-4:** Generative models (VAE ELBO, GAN theory, diffusion)
+- **Day 5-6:** Graph theory + kernel methods
+- **Day 7:** Full review + timed practice
+
+### Daily Practice Routine
+1. ⏰ **10 min:** Review 5 formulas from cheatsheet
+2. 📝 **20 min:** Derive one key result by hand
+3. 💻 **20 min:** Implement one concept in code
+4. 🎯 **10 min:** Answer one interview question aloud
 
 ---
 

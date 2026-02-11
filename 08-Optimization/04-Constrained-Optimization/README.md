@@ -3,7 +3,7 @@
 > **Navigation**: [← 03-Second-Order-Methods](../03-Second-Order-Methods/) | [Optimization](../) | [05-Stochastic-Optimization →](../05-Stochastic-Optimization/)
 
 **Files in this section:**
-- [examples.ipynb](examples.ipynb) - 12 worked examples
+- [theory.ipynb](theory.ipynb) - 12 worked examples
 - [exercises.ipynb](exercises.ipynb) - 10 practice problems with solutions
 
 ---

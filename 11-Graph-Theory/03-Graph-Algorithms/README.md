@@ -10,7 +10,7 @@ Graph algorithms are fundamental to many ML applications: shortest paths for net
 
 | File | Description |
 |------|-------------|
-| [examples.ipynb](examples.ipynb) | Interactive examples with visualizations |
+| [theory.ipynb](theory.ipynb) | Interactive examples with visualizations |
 | [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
 
 ## Learning Objectives
