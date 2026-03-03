@@ -1,3 +1,7 @@
+[← Sets and Logic](../02-Sets-and-Logic/notes.md) | [Home](../../README.md) | [Summation and Product Notation →](../04-Summation-and-Product-Notation/notes.md)
+
+---
+
 # Functions and Mappings
 
 ## Introduction
@@ -30,9 +34,10 @@ Functions are the mathematical objects that model relationships and transformati
 6. [Multivariate Functions](#6-multivariate-functions)
 7. [AI/ML Domain Connections](#7-aiml-domain-connections)
 8. [Real-World Code Examples](#8-real-world-code-examples)
-9. [Common Pitfalls & Interview Questions](#9-common-pitfalls)
-10. [Summary](#10-summary)
-11. [Further Reading](#11-further-reading)
+9. [Function Spaces](#9-function-spaces--where-functions-live)
+10. [Common Pitfalls & Interview Questions](#10-common-pitfalls--interview-questions)
+11. [Summary](#11-summary)
+12. [Further Reading](#12-further-reading)
 
 ---
 
@@ -334,6 +339,92 @@ J_f = \begin{bmatrix}
 \end{bmatrix}
 $$
 
+### Lipschitz Continuity
+
+A function f is **Lipschitz continuous** with constant L if:
+
+$$\|f(x) - f(y)\| \leq L \cdot \|x - y\| \quad \forall x, y$$
+
+This bounds how fast the function can change — critical for neural network stability.
+
+```
+LIPSCHITZ CONTINUITY IN ML
+═══════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────┬────────────┬──────────────────────────────┐
+│ Function                 │ Lipschitz L│ ML Implication               │
+├──────────────────────────┼────────────┼──────────────────────────────┤
+│ ReLU: max(0, x)          │     1      │ Gradient ≤ 1, stable         │
+│ Sigmoid: σ(x)            │    0.25    │ Gradients shrink (vanishing) │
+│ Tanh: tanh(x)            │     1      │ Better than sigmoid          │
+│ Linear: Wx               │   ‖W‖      │ Depends on weight norm       │
+│ Layer norm               │    ~1      │ Stabilizes per-layer         │
+│ Softmax                  │     1      │ Bounded output change        │
+└──────────────────────────┴────────────┴──────────────────────────────┘
+
+WHY IT MATTERS:
+  • Spectral normalization: forces L = 1 for discriminator (GAN stability)
+  • Gradient clipping: ensures ‖∇L‖ ≤ max_norm (bounded update step)
+  • Wasserstein GAN: critic MUST be 1-Lipschitz for valid distance
+  • Robustness: small input perturbation → bounded output change
+```
+
+#### Code Example
+
+```python
+import numpy as np
+
+# Compute empirical Lipschitz constant
+def estimate_lipschitz(f, x_range, n_pairs=10000):
+    """Estimate Lipschitz constant by sampling."""
+    x1 = np.random.uniform(*x_range, n_pairs)
+    x2 = np.random.uniform(*x_range, n_pairs)
+    ratios = np.abs(f(x1) - f(x2)) / (np.abs(x1 - x2) + 1e-10)
+    return np.max(ratios)
+
+# Test different activations
+sigmoid = lambda x: 1 / (1 + np.exp(-x))
+relu = lambda x: np.maximum(0, x)
+
+print(f"ReLU Lipschitz:    {estimate_lipschitz(relu, (-5, 5)):.2f}")    # ~1.0
+print(f"Sigmoid Lipschitz: {estimate_lipschitz(sigmoid, (-5, 5)):.2f}")  # ~0.25
+print(f"x² Lipschitz on [-5,5]: {estimate_lipschitz(lambda x: x**2, (-5, 5)):.1f}")  # ~10
+```
+
+### Fixed Points and Iterative Algorithms
+
+A **fixed point** of function f is a value x* where f(x*) = x\*.
+
+$$f(x^*) = x^*$$
+
+Many ML algorithms are fixed-point iterations:
+
+```
+FIXED POINTS IN ML
+═══════════════════════════════════════════════════════════════════════
+
+┌────────────────────────────┬──────────────────────────────────────────┐
+│ Algorithm                  │ Fixed Point Formulation                  │
+├────────────────────────────┼──────────────────────────────────────────┤
+│ Gradient descent           │ θ* = θ* - α∇L(θ*) ⟹ ∇L(θ*) = 0       │
+│ K-means                    │ centroids = mean(assigned points)        │
+│ EM algorithm               │ θ* = argmax E[log L | θ*]               │
+│ Power iteration (eigvec)   │ v* = Av* / ‖Av*‖                        │
+│ PageRank                   │ r* = M·r* (stationary distribution)     │
+│ Self-attention (deep eq.)  │ z* = f_attn(z*) (deep equilibrium model)│
+│ Batch norm running stats   │ μ* = (1-α)μ* + α·batch_mean             │
+└────────────────────────────┴──────────────────────────────────────────┘
+
+BANACH FIXED POINT THEOREM:
+  If f is a contraction (Lipschitz L < 1), then:
+  1. There exists a UNIQUE fixed point x*
+  2. Iterating x_{n+1} = f(x_n) ALWAYS converges to x*
+  3. Convergence rate is geometric: ‖x_n - x*‖ ≤ L^n · ‖x_0 - x*‖
+
+  → This is why gradient descent with small enough lr converges!
+  → This is why contraction mappings guarantee EM convergence!
+```
+
 ---
 
 ## 7. AI/ML Domain Connections
@@ -360,6 +451,56 @@ Softmax: σ(z)ᵢ = eᶻⁱ / Σⱼ eᶻʲ
 - Range: Δⁿ⁻¹ (Probability Simplex)
 - Property: Maps logits to probability distribution
 - Use: Multi-class classification
+```
+
+### 2. Modern Activation Function Zoo
+
+Beyond classic sigmoid/ReLU, modern LLMs and vision models use specialized activations:
+
+| Activation     | Formula               | Where Used      | Key Property            |
+| -------------- | --------------------- | --------------- | ----------------------- |
+| **ReLU**       | max(0, x)             | Classic default | Dead neuron problem     |
+| **GELU**       | x · Φ(x)              | GPT, BERT, ViT  | Smooth, stochastic      |
+| **SwiGLU**     | Swish(xW) ⊙ (xV)      | LLaMA, PaLM     | Gated, best for LLMs    |
+| **Mish**       | x · tanh(softplus(x)) | YOLOv4          | Smooth, non-monotonic   |
+| **Swish/SiLU** | x · σ(x)              | EfficientNet    | Smooth ReLU alternative |
+| **Leaky ReLU** | max(αx, x)            | GANs            | No dead neurons         |
+
+```
+ACTIVATION EVOLUTION
+═══════════════════════════════════════════════════════════════════════
+
+                  Range:     Smooth?  Dead neurons?  Used in:
+  Sigmoid         (0, 1)     ✓        N/A           Binary output
+  Tanh            (-1, 1)    ✓        N/A           RNN hidden
+  ReLU            [0, ∞)     ✗        YES           CNN, old default
+  GELU            (-0.17,∞)  ✓        Rare          Transformers
+  SwiGLU          varies     ✓        No            Modern LLMs
+  Mish            (-0.31,∞)  ✓        No            Vision models
+
+  GELU(x) = x · Φ(x) where Φ = standard normal CDF
+           ≈ 0.5x(1 + tanh[√(2/π)(x + 0.044715x³)])
+
+  SwiGLU(x, W, V, b, c) = Swish(xW + b) ⊙ (xV + c)
+  where Swish(x) = x · sigmoid(x)
+```
+
+#### Code Example
+
+```python
+import numpy as np
+
+def relu(x): return np.maximum(0, x)
+def gelu(x): return 0.5 * x * (1 + np.tanh(np.sqrt(2/np.pi) * (x + 0.044715*x**3)))
+def swish(x): return x * (1 / (1 + np.exp(-x)))
+def mish(x): return x * np.tanh(np.log1p(np.exp(x)))
+
+x = np.linspace(-3, 3, 7)
+print(f"{'x':>6} {'ReLU':>8} {'GELU':>8} {'Swish':>8} {'Mish':>8}")
+for xi in x:
+    print(f"{xi:6.1f} {relu(xi):8.3f} {gelu(xi):8.3f} {swish(xi):8.3f} {mish(xi):8.3f}")
+print("\nKey difference: GELU/Swish/Mish allow small negative outputs")
+print("→ prevents dead neurons, smoother optimization landscape")
 ```
 
 ### 2. Loss Landscapes & Optimization (Phase 2)
@@ -416,6 +557,87 @@ def f(x):
 # df is a new function generated by transforming f
 df = grad(f)
 print(df(2.0))  # Output: 12.0 (derivative 6x at x=2)
+```
+
+### 6. Universal Approximation Theorem (UAT)
+
+The UAT is the theoretical justification for why neural networks work:
+
+> A feedforward network with **one hidden layer** and a non-polynomial activation can **approximate any continuous function** on a compact set to arbitrary accuracy.
+
+$$\forall \epsilon > 0, \exists N, W, b: \left\| f(x) - \sum_{i=1}^{N} w_i \sigma(a_i x + b_i) \right\| < \epsilon$$
+
+```
+UNIVERSAL APPROXIMATION THEOREM
+═══════════════════════════════════════════════════════════════════════
+
+WHAT IT SAYS:
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  ANY continuous function f: [a,b]ⁿ → ℝ can be approximated by:     │
+│                                                                     │
+│  g(x) = Σᵢ wᵢ · σ(aᵢᵀx + bᵢ)                                     │
+│                                                                     │
+│  where σ is any non-polynomial activation (sigmoid, ReLU, etc.)    │
+│                                                                     │
+│  → The network just needs to be WIDE ENOUGH (large N)              │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+WHAT IT DOES NOT SAY:
+  ✗ How wide the network needs to be (could be astronomically large)
+  ✗ That gradient descent will FIND the right weights
+  ✗ That the approximation will GENERALIZE to unseen data
+  ✗ That one hidden layer is EFFICIENT (depth helps enormously)
+
+WHY DEPTH MATTERS (in practice):
+  1-layer:  Width grows EXPONENTIALLY with input dimension
+  L-layer:  Width grows POLYNOMIALLY — much more efficient
+  → This is why we use DEEP networks, not just wide ones
+  → Why composition of simple functions > one complex function
+```
+
+> **Key insight for LLMs**: Transformers approximate functions over **sequences**, not just vectors. The attention mechanism provides an adaptive, input-dependent function composition, which is more powerful than fixed architectures.
+
+### 7. Normalizing Flows and Change of Variables
+
+Normalizing flows require **bijective** functions with tractable Jacobians to model exact probability densities.
+
+$$p_X(x) = p_Z(f(x)) \cdot \left| \det \frac{\partial f}{\partial x} \right|$$
+
+```
+CHANGE OF VARIABLES — WHY BIJECTIVITY MATTERS
+═══════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  Given:  z ~ p_Z(z) (simple distribution, e.g., N(0,1))           │
+│  Want:   x ~ p_X(x) (complex distribution, e.g., images)          │
+│                                                                     │
+│  If x = g(z) where g is BIJECTIVE and differentiable:              │
+│                                                                     │
+│  p_X(x) = p_Z(g⁻¹(x)) · |det J_{g⁻¹}(x)|                        │
+│                                                                     │
+│  f = g⁻¹ (encoder)                                                 │
+│  g = f⁻¹ (decoder/generator)                                       │
+│                                                                     │
+│  KEY REQUIREMENTS for f:                                            │
+│  ✓ Bijective (for the formula to work)                              │
+│  ✓ Differentiable (for the Jacobian to exist)                      │
+│  ✓ Easy-to-compute Jacobian determinant (for efficiency)           │
+│                                                                     │
+│  ARCHITECTURES:                                                     │
+│  • Coupling layers (RealNVP): triangular Jacobian → O(n) det      │
+│  • Autoregressive (MAF/IAF): triangular by construction           │
+│  • Residual flows: f(x) = x + g(x), det via trace estimation     │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+USED IN:
+  • Image generation (Glow)
+  • Variational inference (more expressive posteriors)
+  • Density estimation (exact log-likelihood training)
+  • Anomaly detection (low-likelihood = anomaly)
 ```
 
 ---
@@ -514,9 +736,40 @@ Key Requirement: Jacobian determinant must be easy to compute.
 
 ---
 
-## 9. Common Pitfalls & Interview Questions
+## 9. Function Spaces — Where Functions Live
 
-### Common Pitfalls (Phase 19)
+Just as vectors live in vector spaces, **functions live in function spaces**. This perspective is essential for understanding generalization.
+
+```
+FUNCTION SPACES IN ML
+═══════════════════════════════════════════════════════════════════════
+
+┌───────────────────────┬──────────────────────────────────────────────┐
+│ Space                 │ ML Connection                                │
+├───────────────────────┼──────────────────────────────────────────────┤
+│ Hypothesis space H    │ Set of all functions your model CAN learn    │
+│                       │ (determined by architecture + parameters)    │
+│ Lᵖ spaces             │ L² loss = MSE, L¹ loss = MAE               │
+│ RKHS (kernel space)   │ Functions in SVM's feature space            │
+│ Sobolev spaces        │ Functions with bounded derivatives          │
+│                       │ (smoothness regularization)                  │
+│ Banach spaces         │ General framework for function analysis     │
+└───────────────────────┴──────────────────────────────────────────────┘
+
+BIAS-VARIANCE THROUGH FUNCTION SPACES:
+  • Small H (few parameters):  high bias, low variance → underfitting
+  • Large H (many parameters): low bias, high variance → overfitting
+  • Regularization restricts H to "smoother" functions
+  • A neural network's H is determined by its architecture
+```
+
+> **Key insight**: When you choose a model architecture, you're choosing a **function space**. A 2-layer MLP with 100 neurons can represent a different set of functions than a Transformer with 12 layers. Understanding this helps reason about model capacity.
+
+---
+
+## 10. Common Pitfalls & Interview Questions
+
+### Common Pitfalls
 
 1. **Domain Mismatch Errors**:
    - _Issue_: Applying `log(x)` when `x <= 0` (e.g., in Cross-Entropy loss).
@@ -524,13 +777,17 @@ Key Requirement: Jacobian determinant must be easy to compute.
 
 2. **Vanishing Gradients due to Composition**:
    - _Issue_: Deep composition $f_n \circ \dots \circ f_1$ leads to chain rule product $\prod f'_i$. If $|f'_i| < 1$, gradient vanishes.
-   - _Fix_: Use ReLU (derivative is 1) instead of Sigmoid (max derivative 0.25).
+   - _Fix_: Use ReLU/GELU (derivative near 1) instead of Sigmoid (max derivative 0.25). Use residual connections.
 
 3. **Assuming Bijectivity**:
    - _Issue_: Trying to invert a non-injective function (e.g., recovering input from a ReLU layer output).
    - _Fix_: Use Invertible Neural Networks (INNs) if perfect reconstruction is needed.
 
-### Data Science Interview Questions (Phase 20)
+4. **Ignoring Lipschitz Constant**:
+   - _Issue_: Unconstrained discriminator in GAN → mode collapse.
+   - _Fix_: Spectral normalization, gradient penalty (WGAN-GP).
+
+### Interview Questions
 
 1. **Is ReLU invertible?**
    - _Answer_: No. It is not injective (maps all negative numbers to 0). Thus, information is lost and input cannot be uniquely recovered.
@@ -541,18 +798,27 @@ Key Requirement: Jacobian determinant must be easy to compute.
 3. **What is the range of Softmax?**
    - _Answer_: The open interval $(0, 1)$ for each component, such that their sum is exactly 1. It maps $\mathbb{R}^n$ to the probability simplex $\Delta^{n-1}$.
 
+4. **Why does SwiGLU outperform ReLU in LLMs?**
+   - _Answer_: SwiGLU is a gated activation: Swish(xW) ⊙ (xV). The gating mechanism allows the network to learn which features to pass through, and Swish's smooth non-linearity avoids dead neurons. Empirically 3-5% better on language modeling.
+
+5. **What does the Universal Approximation Theorem actually guarantee?**
+   - _Answer_: That a single-hidden-layer network CAN approximate any continuous function given enough neurons. It does NOT guarantee that gradient descent will find the solution, that the required width is practical, or that the result will generalize.
+
+6. **What is a Lipschitz constraint and why is it important in GANs?**
+   - _Answer_: A function f is K-Lipschitz if |f(x)-f(y)| ≤ K|x-y|. In Wasserstein GANs, the critic must be 1-Lipschitz for the loss to be a valid distance metric. Enforced via spectral normalization or gradient penalty.
+
 ---
 
 ## Companion Notebooks
 
-| Notebook | Description |
-|----------|-------------|
-| [theory.ipynb](theory.ipynb) | Interactive examples: function properties, composition, activation functions, loss functions |
-| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+| Notebook                           | Description                                                                                  |
+| ---------------------------------- | -------------------------------------------------------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive examples: function properties, composition, activation functions, loss functions |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions                                                             |
 
 ---
 
-## 10. Summary
+## 11. Summary
 
 ### Function Properties Checklist
 
@@ -594,31 +860,30 @@ Chain Rule: (g ∘ f)'(x) = g'(f(x)) · f'(x)
 
 ---
 
-## 11. Further Reading
+## 12. Further Reading
 
 ### Famous Courses
 
 1. **Stanford CS229: Machine Learning** (Andrew Ng)
-   - _Why_: The gold standard for ML foundations. Covers functional view of ML deeply.
 2. **MIT 6.042J: Mathematics for Computer Science** (Leighton & Lehman)
-   - _Why_: Rigorous treatment of sets, functions, and logic.
 3. **Coursera: Mathematics for Machine Learning** (Imperial College London)
-   - _Why_: Great visualizations of mappings and basis transformations.
 4. **Fast.ai: Practical Deep Learning** (Jeremy Howard)
-   - _Why_: Code-first approach to functional deep learning.
 
 ### Best Books
 
-#### Mathematical Foundations
+1. **"Mathematics for Machine Learning"** (Deisenroth, Faisal, Ong) — Ch.2: functions and mappings for ML
+2. **"Analysis I"** (Terence Tao) — Build intuition for continuity, differentiability
+3. **"Deep Learning"** (Goodfellow et al.) — Ch.6: NNs as function approximation
+4. **"Pattern Recognition and Machine Learning"** (Bishop) — Probabilistic view of functions
 
-1. **"Mathematics for Machine Learning"** (Deisenroth, Faisal, Ong)
-   - _Phase 15_: Chapter 2 covers functions and mappings specifically for ML context.
-2. **"Analysis I"** (Terence Tao)
-   - _Phase 17_: Build intuition for "well-behaved" functions (continuity, differentiability).
+### Papers
 
-#### Deep Learning & AI
+- 📄 [Universal Approximation (Hornik 1991)](<https://doi.org/10.1016/0893-6080(91)90009-T>)
+- 📄 [GLU Variants Improve Transformer (Shazeer 2020)](https://arxiv.org/abs/2002.05202) — SwiGLU origin
+- 📄 [GELU (Hendrycks & Gimpel 2016)](https://arxiv.org/abs/1606.08415)
+- 📄 [Spectral Normalization for GANs (Miyato 2018)](https://arxiv.org/abs/1802.05957)
+- 📄 [Normalizing Flows (Rezende & Mohamed 2015)](https://arxiv.org/abs/1505.05770)
 
-3. **"Deep Learning"** (Goodfellow, Bengio, Courville)
-   - _Phase 16_: Chapter 6 (Deep Feedforward Networks) treats NNs purely as function approximation machines.
-4. **"Pattern Recognition and Machine Learning"** (Bishop)
-   - _Phase 18_: Probabilistic view of functions as mappings between distributions.
+---
+
+[← Sets and Logic](../02-Sets-and-Logic/notes.md) | [Home](../../README.md) | [Summation and Product Notation →](../04-Summation-and-Product-Notation/notes.md)

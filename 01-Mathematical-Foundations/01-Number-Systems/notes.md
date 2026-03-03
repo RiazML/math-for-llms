@@ -1,5 +1,7 @@
 # Number Systems
 
+[← Back to Mathematical Foundations](../README.md) | [Next: Sets and Logic →](../02-Sets-and-Logic/notes.md)
+
 ## Overview
 
 Understanding number systems is the bedrock of all mathematical concepts in machine learning. From representing data to performing computations, every ML algorithm relies on different types of numbers. This comprehensive guide explores number systems through an **ML-focused lens**, emphasizing practical applications in deep learning, neural networks, and model optimization.
@@ -12,10 +14,10 @@ Understanding number systems is the bedrock of all mathematical concepts in mach
 
 ## Companion Notebooks
 
-| Notebook | Description |
-|----------|-------------|
-| [theory.ipynb](theory.ipynb) | Interactive code examples with visualizations |
-| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+| Notebook                           | Description                                   |
+| ---------------------------------- | --------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive code examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions              |
 
 ## Learning Objectives
 
@@ -1028,6 +1030,74 @@ z = x & 0b00001111  # Mask lower 4 bits: 0
 
 ## Computer Number Representation
 
+### Two's Complement (How Integers Work)
+
+Understanding two's complement explains why `int8` ranges from -128 to 127 (not -128 to 128) and why quantization uses zero-points.
+
+```
+TWO'S COMPLEMENT — HOW COMPUTERS STORE NEGATIVE INTEGERS
+═══════════════════════════════════════════════════════════════════════
+
+CONCEPT: The most significant bit (MSB) represents the sign.
+         Positive numbers are normal binary.
+         Negative numbers: flip all bits + add 1.
+
+8-BIT TWO'S COMPLEMENT (int8):
+┌────────┬──────────┬────────────────────────────────────────────────┐
+│ Value  │  Binary  │ How it works                                   │
+├────────┼──────────┼────────────────────────────────────────────────┤
+│  127   │ 01111111 │ Maximum positive: 2⁷ - 1                      │
+│   42   │ 00101010 │ Normal binary                                  │
+│    1   │ 00000001 │                                                │
+│    0   │ 00000000 │ Zero                                           │
+│   -1   │ 11111111 │ Flip 00000001 → 11111110, add 1 → 11111111    │
+│  -42   │ 11010110 │ Flip 00101010 → 11010101, add 1 → 11010110    │
+│ -128   │ 10000000 │ Minimum negative: -2⁷ (one extra negative!)   │
+└────────┴──────────┴────────────────────────────────────────────────┘
+
+WHY -128 TO 127 (NOT -128 TO 128):
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  8 bits = 2⁸ = 256 possible values                                  │
+│  Split: 128 negative (-128 to -1) + 1 zero + 127 positive (1-127)  │
+│  Total: 128 + 1 + 127 = 256 ✓                                      │
+│                                                                     │
+│  COMMON RANGES:                                                     │
+│    int8:   -128 to 127        (256 values)                          │
+│    uint8:  0 to 255           (256 values, unsigned)                │
+│    int4:   -8 to 7            (16 values)                           │
+│    int2:   -2 to 1            (4 values)                            │
+│                                                                     │
+│  ML SIGNIFICANCE:                                                   │
+│    • int8 quantization maps float weights to [-128, 127]            │
+│    • Asymmetric quantization uses zero_point to shift this range    │
+│    • uint8 quantization maps to [0, 255] — better for ReLU output  │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### Simple Code Example
+
+```python
+import numpy as np
+
+# Two's complement in action
+print("int8 range:", np.iinfo(np.int8).min, "to", np.iinfo(np.int8).max)
+# -128 to 127
+
+# Overflow wraps around (dangerous!)
+x = np.int8(127)
+print(f"127 + 1 = {np.int8(x + 1)}")  # -128 (overflow!)
+
+# This is why quantization needs careful range management
+weights = np.array([0.5, -0.3, 1.2, -0.8], dtype=np.float32)
+scale = np.max(np.abs(weights)) / 127
+quantized = np.clip(np.round(weights / scale), -128, 127).astype(np.int8)
+print(f"Scale: {scale:.4f}, Quantized: {quantized}")
+```
+
+---
+
 ### Floating Point Numbers (IEEE 754)
 
 ```
@@ -1094,6 +1164,119 @@ PRECISION VS RANGE TRADEOFF:
 │           → Better for neural nets (gradients don't need precision) │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
+```
+
+### Modern GPU Number Formats (FP8, TF32)
+
+These formats are standard on modern NVIDIA GPUs (A100, H100, Blackwell). If you train or deploy LLMs in 2024+, your model likely uses one of these without you explicitly choosing it.
+
+```
+MODERN GPU NUMBER FORMATS
+═══════════════════════════════════════════════════════════════════════
+
+FP8 - THE NEW STANDARD FOR LLM TRAINING & INFERENCE (H100+)
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  Two variants, used together in mixed precision:                    │
+│                                                                     │
+│  E4M3 (for forward pass — weights & activations):                   │
+│  ┌───┬────────────┬─────────┐                                       │
+│  │ S │  Exponent  │Mantissa │                                       │
+│  │ 1 │   4 bits   │ 3 bits  │   Range: ±448, Precision: ~3 digits  │
+│  └───┴────────────┴─────────┘                                       │
+│  → More precision bits → better for weight representation           │
+│                                                                     │
+│  E5M2 (for backward pass — gradients):                              │
+│  ┌───┬────────────┬─────────┐                                       │
+│  │ S │  Exponent  │Mantissa │                                       │
+│  │ 1 │   5 bits   │ 2 bits  │   Range: ±57344, Precision: ~2 digits│
+│  └───┴────────────┴─────────┘                                       │
+│  → More exponent bits → wider range for gradient magnitudes         │
+│                                                                     │
+│  WHY TWO VARIANTS:                                                  │
+│  • Weights are clustered in narrow range → need precision (E4M3)    │
+│  • Gradients vary wildly in magnitude → need range (E5M2)           │
+│  • Using both → 4× speedup over FP16 with minimal accuracy loss    │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+TF32 - NVIDIA'S HIDDEN OPTIMIZATION (A100+)
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  TensorFloat-32 (TF32) — 19 bits total:                             │
+│  ┌───┬──────────────────┬───────────────────┐                       │
+│  │ S │     Exponent     │     Mantissa      │                       │
+│  │ 1 │      8 bits      │     10 bits       │                       │
+│  └───┴──────────────────┴───────────────────┘                       │
+│                                                                     │
+│  WHAT MAKES TF32 SPECIAL:                                           │
+│  • Same range as FP32 (8 exponent bits)                             │
+│  • Same precision as FP16 (10 mantissa bits)                        │
+│  • Enabled by DEFAULT on A100/H100 for matrix multiply              │
+│  • Your model might already be using TF32 without you knowing       │
+│                                                                     │
+│  HOW IT WORKS:                                                      │
+│  • Inputs stored as FP32 in memory                                  │
+│  • Tensor Cores truncate mantissa to 10 bits for multiply           │
+│  • Accumulate result in FP32                                        │
+│  • Output written as FP32                                           │
+│  • ~8× throughput vs FP32, invisible to user code                   │
+│                                                                     │
+│  To disable: torch.backends.cuda.matmul.allow_tf32 = False          │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+THE COMPLETE MODERN FORMAT LANDSCAPE:
+┌──────────┬───────┬─────┬────────┬────────────────┬─────────────────────────────┐
+│ Format   │ Bits  │Exp  │Mantissa│ Range          │ Where Used                  │
+├──────────┼───────┼─────┼────────┼────────────────┼─────────────────────────────┤
+│ FP32     │  32   │  8  │   23   │ ±3.4×10³⁸      │ Master weights, legacy      │
+│ TF32     │  19   │  8  │   10   │ ±3.4×10³⁸      │ A100+ Tensor Core multiply  │
+│ BF16     │  16   │  8  │    7   │ ±3.4×10³⁸      │ Training (TPU, GPU)         │
+│ FP16     │  16   │  5  │   10   │ ±6.5×10⁴       │ Mixed precision training    │
+│ FP8 E4M3 │   8   │  4  │    3   │ ±448           │ H100+ forward pass          │
+│ FP8 E5M2 │   8   │  5  │    2   │ ±57344         │ H100+ backward pass         │
+│ INT8     │   8   │  —  │   —    │ -128 to 127    │ Post-training quantization  │
+│ INT4     │   4   │  —  │   —    │ -8 to 7        │ LLM inference (GPTQ/AWQ)    │
+└──────────┴───────┴─────┴────────┴────────────────┴─────────────────────────────┘
+
+SPEEDUP COMPARISON (relative to FP32):
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  FP32:      █ (1× baseline)                                        │
+│  TF32:      ████████ (8× — automatic on A100+)                     │
+│  BF16/FP16: ████████████████ (16× with Tensor Cores)               │
+│  FP8:       ████████████████████████████████ (32× on H100)         │
+│  INT8:      ████████████████████████████████ (32× inference)       │
+│  INT4:      ████████████████████████████████████████ (64× infer.)  │
+│                                                                     │
+│  Note: Actual speedup depends on operation and memory bottlenecks  │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### FP8 in Practice
+
+```python
+# FP8 training with NVIDIA Transformer Engine (H100 required)
+import transformer_engine.pytorch as te
+
+# Replace standard linear layer with FP8 version
+# Inputs/weights: FP8 E4M3, Gradients: FP8 E5M2
+layer = te.Linear(1024, 1024, bias=True)
+
+# Standard forward — FP8 happens automatically inside Tensor Cores
+with te.fp8_autocast():
+    output = layer(input_tensor)
+    loss = criterion(output, target)
+    loss.backward()
+
+# Controlling TF32 in PyTorch (A100+)
+import torch
+# TF32 is ON by default on A100/H100
+print(f"TF32 matmul enabled: {torch.backends.cuda.matmul.allow_tf32}")
+# Disable for maximum FP32 precision (slower):
+# torch.backends.cuda.matmul.allow_tf32 = False
 ```
 
 ### Machine Epsilon and Precision
@@ -1220,7 +1403,178 @@ BY SCHEME:
 │               Better for ReLU (all positive)                        │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
+
+BY GRANULARITY:
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  Per-Tensor (basic):                                                │
+│    • One scale factor for the ENTIRE weight tensor                  │
+│    • Simple but inaccurate — outlier weights distort range          │
+│    • scale = max(|W|) / 127                                        │
+│                                                                     │
+│  Per-Channel (production):                                          │
+│    • Separate scale factor per OUTPUT CHANNEL                       │
+│    • Much better accuracy — each channel fitted independently      │
+│    • scale[c] = max(|W[c, :]|) / 127 for each channel c            │
+│    • Used by PyTorch, TensorRT, ONNX Runtime in production         │
+│                                                                     │
+│  Per-Group (LLM-specific):                                          │
+│    • Groups of 32-128 weights share one scale factor                │
+│    • Balance between per-tensor (too coarse) and per-channel        │
+│    • Used by GPTQ, AWQ, GGUF                                       │
+│                                                                     │
+│  Comparison (same model, int4):                                     │
+│    Per-tensor:  accuracy drops ~5-10%                               │
+│    Per-channel: accuracy drops ~1-2%                                │
+│    Per-group:   accuracy drops ~0.5-1%                              │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
+
+### Calibration for Post-Training Quantization
+
+PTQ requires a **calibration step** — running representative data through the model to find the optimal range for each tensor.
+
+```
+CALIBRATION METHODS FOR PTQ
+═══════════════════════════════════════════════════════════════════════
+
+WHY CALIBRATE?
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  Weight values: known (stored in the model)                         │
+│  Activation values: unknown until runtime!                          │
+│                                                                     │
+│  Solution: Run 100-1000 representative samples through the model    │
+│  and measure the actual activation ranges at each layer.            │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+CALIBRATION METHODS:
+┌──────────────┬────────────────────────────┬─────────────────────────┐
+│ Method       │ How it works               │ Trade-off               │
+├──────────────┼────────────────────────────┼─────────────────────────┤
+│ MinMax       │ scale = (max - min) / 255  │ Simple but sensitive    │
+│              │                            │ to outliers             │
+├──────────────┼────────────────────────────┼─────────────────────────┤
+│ Percentile   │ Clip to 99.9th percentile  │ Ignores outliers,       │
+│              │ then compute scale         │ better accuracy         │
+├──────────────┼────────────────────────────┼─────────────────────────┤
+│ MSE          │ Find scale that minimizes  │ Good general-purpose    │
+│              │ mean squared error         │                         │
+├──────────────┼────────────────────────────┼─────────────────────────┤
+│ KL Divergence│ Minimize information loss  │ Best accuracy,          │
+│ (Entropy)    │ between original and       │ used by TensorRT        │
+│              │ quantized distributions    │                         │
+└──────────────┴────────────────────────────┴─────────────────────────┘
+```
+
+#### Simple Code Example
+
+```python
+import numpy as np
+
+# Per-channel quantization (what production systems actually use)
+def quantize_per_channel(weight_matrix):
+    """Quantize with separate scale per output channel."""
+    n_channels = weight_matrix.shape[0]
+    scales = np.zeros(n_channels)
+    quantized = np.zeros_like(weight_matrix, dtype=np.int8)
+
+    for c in range(n_channels):
+        channel_weights = weight_matrix[c]
+        scales[c] = np.max(np.abs(channel_weights)) / 127
+        if scales[c] > 0:
+            quantized[c] = np.clip(
+                np.round(channel_weights / scales[c]), -128, 127
+            ).astype(np.int8)
+    return quantized, scales
+
+# Compare per-tensor vs per-channel
+np.random.seed(42)
+W = np.random.randn(4, 128).astype(np.float32)
+W[0] *= 10  # One channel has much larger weights
+
+# Per-tensor (one scale for everything)
+scale_tensor = np.max(np.abs(W)) / 127
+q_tensor = np.clip(np.round(W / scale_tensor), -128, 127).astype(np.int8)
+error_tensor = np.mean((W - q_tensor * scale_tensor) ** 2)
+
+# Per-channel (one scale per channel)
+q_channel, scales = quantize_per_channel(W)
+error_channel = np.mean((W - q_channel * scales[:, None]) ** 2)
+
+print(f"Per-tensor MSE:  {error_tensor:.6f}")
+print(f"Per-channel MSE: {error_channel:.6f}")
+print(f"Per-channel is {error_tensor/error_channel:.1f}× more accurate")
+```
+
+### Stochastic Rounding
+
+Deterministic rounding (round-to-nearest) introduces systematic bias when training in very low precision. Stochastic rounding fixes this.
+
+```
+STOCHASTIC ROUNDING — UNBIASED LOW-PRECISION TRAINING
+═══════════════════════════════════════════════════════════════════════
+
+PROBLEM WITH DETERMINISTIC ROUNDING:
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  Value: 3.2                                                         │
+│  Round to nearest integer: always 3                                 │
+│  Error: always -0.2 (biased toward zero)                            │
+│                                                                     │
+│  In low precision (FP8, INT8):                                      │
+│  Many small gradient updates round to ZERO → weight never changes!  │
+│  This is called the "stale gradient" problem.                       │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+STOCHASTIC ROUNDING SOLUTION:
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  Value: 3.2                                                         │
+│  Round UP to 4 with probability 0.2 (the fractional part)           │
+│  Round DOWN to 3 with probability 0.8                               │
+│                                                                     │
+│  Expected value: 0.8 × 3 + 0.2 × 4 = 3.2 ← UNBIASED!              │
+│                                                                     │
+│  In general: round(x) = ⌊x⌋ + Bernoulli(x - ⌊x⌋)                  │
+│                                                                     │
+│  WHY IT MATTERS FOR ML:                                             │
+│  • FP8 training uses stochastic rounding for gradient updates       │
+│  • Small gradients get a CHANCE to update weights                   │
+│  • On average, the correct update happens                           │
+│  • NVIDIA Transformer Engine uses this automatically for FP8        │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### Simple Code Example
+
+```python
+import numpy as np
+
+def stochastic_round(x):
+    """Round with probability proportional to fractional part."""
+    floor = np.floor(x)
+    frac = x - floor
+    # Round up with probability = fractional part
+    return floor + (np.random.random(x.shape) < frac).astype(x.dtype)
+
+# Demonstrate: rounding 3.2 many times
+np.random.seed(42)
+values = np.full(10000, 3.2)
+
+det_rounded = np.round(values)  # Always 3
+stoch_rounded = stochastic_round(values)  # Mix of 3 and 4
+
+print(f"Deterministic mean: {det_rounded.mean():.4f}")  # 3.0 (biased!)
+print(f"Stochastic mean:    {stoch_rounded.mean():.4f}")  # ~3.2 (unbiased)
+print(f"True value:         3.2000")
+```
+
+---
 
 ### LLM Quantization (GGUF, GPTQ, AWQ)
 
@@ -1243,19 +1597,64 @@ MODEL SIZE COMPARISON (LLaMA 7B example):
 POPULAR METHODS:
 ┌─────────────────────────────────────────────────────────────────────┐
 │                                                                     │
-│  GGUF (llama.cpp):                                                  │
-│    • CPU-friendly quantization                                      │
-│    • Various bit-widths (Q4_0, Q4_K_M, Q5_K_M, Q8_0)                │
-│    • Works without GPU                                              │
+│  GGUF (llama.cpp) — CPU-first inference:                            │
+│    • Block quantization: every 32 weights share one scale factor    │
+│    • k-quant system: different bit widths for different layers      │
+│    • Q4_0 = basic 4-bit (32 weights per block, 1 scale each)       │
+│    • Q4_K_M = mixed: 6-bit for attention + 4-bit for FFN layers    │
+│    • Q5_K_M = similar but 5-bit base + 6-bit for important layers  │
+│    • Q8_0 = 8-bit (highest quality, 2× size of Q4)                 │
+│    • Works on CPU, Apple Silicon (Metal), optional GPU offload      │
 │                                                                     │
-│  GPTQ:                                                              │
-│    • GPU-optimized 4-bit quantization                               │
-│    • Uses second-order information                                  │
-│    • Good accuracy preservation                                     │
+│  GPTQ — GPU-optimized PTQ:                                          │
+│    • Uses Hessian matrix (second-order info) for optimal rounding   │
+│    • Quantizes weights column-by-column                             │
+│    • Compensates errors: when one weight is rounded, adjust others  │
+│    • Embedding + output layers kept in FP16 for accuracy            │
+│    • Dynamic dequantization: stored as INT4, compute in FP16        │
 │                                                                     │
 │  AWQ (Activation-aware Weight Quantization):                        │
-│    • Protects important weights based on activations                │
-│    • State-of-the-art quality at 4-bit                              │
+│    • Key insight: only 0.1-1% of weights are "salient"              │
+│    • Salient = weights connected to high-magnitude activations      │
+│    • Per-channel scaling protects these critical weights             │
+│    • ~2× faster than GPTQ, similar or better accuracy               │
+│    • MLSys 2024 Best Paper                                          │
+│                                                                     │
+│  CHOOSING A METHOD:                                                 │
+│    CPU / laptop → GGUF (Q4_K_M or Q5_K_M)                          │
+│    NVIDIA GPU   → AWQ or GPTQ                                      │
+│    Apple Silicon→ GGUF with Metal acceleration                      │
+│    Maximum qual.→ Q8_0 (GGUF) or AWQ                                │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+GGUF K-QUANT BLOCK SYSTEM (how it actually works):
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  BLOCK QUANTIZATION (Q4_0 example):                                 │
+│                                                                     │
+│  32 float16 weights → 1 block:                                      │
+│  ┌────────────────────────────────────────┐                         │
+│  │ scale (float16) │ 32 × 4-bit values   │                         │
+│  │    2 bytes      │     16 bytes         │                         │
+│  └────────────────────────────────────────┘                         │
+│  Total: 18 bytes for 32 weights (vs 64 bytes in FP16)               │
+│  Compression: 64/18 ≈ 3.6×                                         │
+│                                                                     │
+│  SUPER-BLOCK (K-quant, e.g. Q4_K_M):                                │
+│  ┌──────────────────────────────────────────────────────┐           │
+│  │ super_scale │ block_1 │ block_2 │ ... │ block_8     │           │
+│  │ (float16)   │ (scale + 32 weights) × 8              │           │
+│  └──────────────────────────────────────────────────────┘           │
+│  • 8 blocks grouped into one super-block                            │
+│  • Each block has a local scale (quantized to fewer bits)           │
+│  • Super-block scale restores full precision → less overhead        │
+│                                                                     │
+│  MIXED PRECISION PER LAYER (the "M" in Q4_K_M):                    │
+│  • Attention Q,K,V projections: 6-bit quantization                  │
+│  • FFN (feed-forward) layers: 4-bit quantization                    │
+│  • Output + embedding: kept in higher precision                     │
+│  • Intuition: attention layers are more sensitive to precision       │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -1613,17 +2012,71 @@ n_batches = n_samples / batch_size   # 3.125 (float!)
 n_batches = n_samples // batch_size  # 3 (int, correct)
 ```
 
-### Accumulation Errors
+### Accumulation Errors and Kahan Summation
+
+When adding many small numbers to a large number (like accumulating gradients across a large batch), the small values can be completely lost due to floating-point precision limits.
 
 ```python
-# Adding many small numbers to a large number
+# The problem: small numbers vanish when added to large ones
 total = 1e10
 for i in range(1000000):
     total += 1e-5  # This addition might have no effect!
-
-# Solution: Kahan summation or use higher precision
-total = np.float64(1e10)  # Use float64 for accumulation
+# Expected: 1e10 + 10.0 = 10000000010.0
+# Got: total may still be 1e10 in float32!
 ```
+
+**Kahan Summation Algorithm** — tracks the rounding error and compensates:
+
+```python
+import numpy as np
+
+def kahan_sum(values):
+    """
+    Kahan compensated summation — dramatically reduces
+    floating-point accumulation error.
+
+    Used in: gradient accumulation, distributed training,
+    loss computation over large batches.
+    """
+    total = 0.0
+    compensation = 0.0  # Running compensation for lost low-order bits
+
+    for value in values:
+        y = value - compensation     # Add compensation from last round
+        temp = total + y             # total is large, y is small
+        compensation = (temp - total) - y  # Recover what was lost
+        total = temp
+
+    return total
+
+# Demonstrate the difference
+np.random.seed(42)
+small_values = np.float32(1e-5) * np.ones(1000000, dtype=np.float32)
+
+# Naive sum (accumulation error)
+naive_total = np.float32(0.0)
+for v in small_values:
+    naive_total += v
+
+# Kahan sum (compensated)
+kahan_total = kahan_sum(small_values)
+
+# NumPy uses pairwise summation (also good)
+numpy_total = np.sum(small_values)
+
+true_value = 10.0
+print(f"True value:  {true_value}")
+print(f"Naive sum:   {naive_total:.6f} (error: {abs(naive_total - true_value):.6f})")
+print(f"Kahan sum:   {kahan_total:.6f} (error: {abs(kahan_total - true_value):.6f})")
+print(f"NumPy sum:   {numpy_total:.6f} (error: {abs(numpy_total - true_value):.6f})")
+```
+
+**ML applications of Kahan summation:**
+
+- Gradient accumulation across micro-batches in distributed training
+- Loss computation over very large datasets
+- Running statistics in batch normalization
+- PyTorch uses compensated summation internally in `torch.sum()` for float16
 
 ### NaN Propagation
 
@@ -1705,21 +2158,25 @@ if torch.isnan(loss):
 
 - 📖 [IEEE 754 Standard](https://en.wikipedia.org/wiki/IEEE_754)
 - 📖 [NVIDIA Mixed Precision Training](https://developer.nvidia.com/automatic-mixed-precision)
+- 📖 [NVIDIA Transformer Engine (FP8)](https://docs.nvidia.com/deeplearning/transformer-engine/)
 - 📖 [PyTorch Quantization](https://pytorch.org/docs/stable/quantization.html)
 - 📖 [llama.cpp Quantization Types](https://github.com/ggerganov/llama.cpp)
+- 📖 [TensorRT Quantization Guide](https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/)
 
 ### Papers
 
 - 📄 [Mixed Precision Training (Micikevicius et al.)](https://arxiv.org/abs/1710.03740)
+- 📄 [FP8 Formats for Deep Learning (NVIDIA/ARM/Intel 2022)](https://arxiv.org/abs/2209.05433)
 - 📄 [GPTQ: Accurate Post-Training Quantization](https://arxiv.org/abs/2210.17323)
-- 📄 [AWQ: Activation-aware Weight Quantization](https://arxiv.org/abs/2306.00978)
+- 📄 [AWQ: Activation-aware Weight Quantization (MLSys 2024 Best Paper)](https://arxiv.org/abs/2306.00978)
+- 📄 [Stochastic Rounding and Reduced-Precision Training (Gupta et al.)](https://arxiv.org/abs/1502.02551)
 
 ---
 
 ## What's Next?
 
 After mastering number systems, proceed to:
-→ [Sets and Logic](../02-Sets-and-Logic/README.md) - Foundation for understanding data structures and boolean operations in ML
+→ [Sets and Logic](../02-Sets-and-Logic/notes.md) — Foundation for understanding data structures and boolean operations in ML
 
 ---
 

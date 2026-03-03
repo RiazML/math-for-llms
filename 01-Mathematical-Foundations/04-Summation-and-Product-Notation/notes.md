@@ -1,3 +1,7 @@
+[← Functions and Mappings](../03-Functions-and-Mappings/notes.md) | [Home](../../README.md) | [Einstein Summation →](../05-Einstein-Summation-and-Index-Notation/notes.md)
+
+---
+
 # Summation and Product Notation
 
 ## Introduction
@@ -20,14 +24,14 @@ for i in range(1, n+1):               ___
 
 **Every ML algorithm uses Σ and Π notation:**
 
-| ML Concept | Formula | What It Means |
-|------------|---------|---------------|
-| Mean | $\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$ | Sum all values, divide by count |
-| MSE Loss | $\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2$ | Sum of squared errors |
-| Cross-Entropy | $-\sum_{i=1}^{C} y_i \log(\hat{y}_i)$ | Sum over classes |
-| Softmax | $\frac{e^{z_i}}{\sum_{j=1}^{C} e^{z_j}}$ | Normalize by sum of exponentials |
-| Likelihood | $\prod_{i=1}^{n} P(x_i \mid \theta)$ | Product of individual probabilities |
-| Dot Product | $\sum_{i=1}^{n} a_i b_i$ | Element-wise multiply then sum |
+| ML Concept    | Formula                                        | What It Means                       |
+| ------------- | ---------------------------------------------- | ----------------------------------- |
+| Mean          | $\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$      | Sum all values, divide by count     |
+| MSE Loss      | $\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2$ | Sum of squared errors               |
+| Cross-Entropy | $-\sum_{i=1}^{C} y_i \log(\hat{y}_i)$          | Sum over classes                    |
+| Softmax       | $\frac{e^{z_i}}{\sum_{j=1}^{C} e^{z_j}}$       | Normalize by sum of exponentials    |
+| Likelihood    | $\prod_{i=1}^{n} P(x_i \mid \theta)$           | Product of individual probabilities |
+| Dot Product   | $\sum_{i=1}^{n} a_i b_i$                       | Element-wise multiply then sum      |
 
 ---
 
@@ -80,12 +84,12 @@ $$\sum_{i=1}^{n} a_i = a_1 + a_2 + a_3 + \cdots + a_n$$
                    i=1        ← Index = Lower limit (where to start)
 ```
 
-| Component | Description | Example Values |
-|-----------|-------------|----------------|
-| **Index variable** | The counter that changes | i, j, k, n, t |
-| **Lower limit** | Starting value of index | 0, 1, -5 |
-| **Upper limit** | Ending value of index | 10, n, ∞ |
-| **Summand** | Expression being summed | i, i², xᵢ, f(i) |
+| Component          | Description              | Example Values  |
+| ------------------ | ------------------------ | --------------- |
+| **Index variable** | The counter that changes | i, j, k, n, t   |
+| **Lower limit**    | Starting value of index  | 0, 1, -5        |
+| **Upper limit**    | Ending value of index    | 10, n, ∞        |
+| **Summand**        | Expression being summed  | i, i², xᵢ, f(i) |
 
 ### Step-by-Step Examples
 
@@ -94,6 +98,7 @@ $$\sum_{i=1}^{n} a_i = a_1 + a_2 + a_3 + \cdots + a_n$$
 $$\sum_{i=1}^{5} i = ?$$
 
 Step through each value of i:
+
 ```
 i = 1 → 1
 i = 2 → 2
@@ -144,11 +149,11 @@ $$\sum_{i=-2}^{2} i = -2 + (-1) + 0 + 1 + 2 = 0$$
 
 **Important**: The number of terms in $\sum_{i=m}^{n}$ is $(n - m + 1)$
 
-| Sum | Number of Terms |
-|-----|-----------------|
+| Sum               | Number of Terms       |
+| ----------------- | --------------------- |
 | $\sum_{i=1}^{10}$ | 10 - 1 + 1 = 10 terms |
-| $\sum_{i=0}^{5}$ | 5 - 0 + 1 = 6 terms |
-| $\sum_{i=3}^{7}$ | 7 - 3 + 1 = 5 terms |
+| $\sum_{i=0}^{5}$  | 5 - 0 + 1 = 6 terms   |
+| $\sum_{i=3}^{7}$  | 7 - 3 + 1 = 5 terms   |
 
 ---
 
@@ -290,21 +295,21 @@ print(log_sum)  # -460.5... (computable!)
 
 ### Why This Works
 
-| Operation | Before Log | After Log |
-|-----------|------------|-----------|
-| Multiply | $a \times b$ | $\log a + \log b$ |
-| Divide | $a \div b$ | $\log a - \log b$ |
-| Power | $a^n$ | $n \cdot \log a$ |
+| Operation | Before Log   | After Log         |
+| --------- | ------------ | ----------------- |
+| Multiply  | $a \times b$ | $\log a + \log b$ |
+| Divide    | $a \div b$   | $\log a - \log b$ |
+| Power     | $a^n$        | $n \cdot \log a$  |
 
 Products become sums, which are numerically stable!
 
 ### ML Applications
 
-| Concept | Problematic Form | Stable Form |
-|---------|------------------|-------------|
-| Likelihood | $L = \prod_i P(x_i)$ | $\ell = \sum_i \log P(x_i)$ |
-| Softmax | $\frac{e^{z_i}}{\sum_j e^{z_j}}$ | Use log-sum-exp trick |
-| Probability chain | $P(x_1, x_2, ..., x_n)$ | $\log P(x_1) + \log P(x_2) + ...$ |
+| Concept           | Problematic Form                 | Stable Form                       |
+| ----------------- | -------------------------------- | --------------------------------- |
+| Likelihood        | $L = \prod_i P(x_i)$             | $\ell = \sum_i \log P(x_i)$       |
+| Softmax           | $\frac{e^{z_i}}{\sum_j e^{z_j}}$ | Use log-sum-exp trick             |
+| Probability chain | $P(x_1, x_2, ..., x_n)$          | $\log P(x_1) + \log P(x_2) + ...$ |
 
 ---
 
@@ -367,12 +372,12 @@ $$\sum_i \text{row}_i = \sum_j \text{col}_j = \sum_i \sum_j a_{ij}$$
 
 ### Arithmetic Sums
 
-| Formula | Result | Proof Hint |
-|---------|--------|------------|
-| $\sum_{i=1}^{n} 1$ | $n$ | n ones |
-| $\sum_{i=1}^{n} i$ | $\frac{n(n+1)}{2}$ | Gauss's trick |
-| $\sum_{i=1}^{n} i^2$ | $\frac{n(n+1)(2n+1)}{6}$ | Induction |
-| $\sum_{i=1}^{n} i^3$ | $\left(\frac{n(n+1)}{2}\right)^2$ | = (Σi)² |
+| Formula              | Result                            | Proof Hint    |
+| -------------------- | --------------------------------- | ------------- |
+| $\sum_{i=1}^{n} 1$   | $n$                               | n ones        |
+| $\sum_{i=1}^{n} i$   | $\frac{n(n+1)}{2}$                | Gauss's trick |
+| $\sum_{i=1}^{n} i^2$ | $\frac{n(n+1)(2n+1)}{6}$          | Induction     |
+| $\sum_{i=1}^{n} i^3$ | $\left(\frac{n(n+1)}{2}\right)^2$ | = (Σi)²       |
 
 **Gauss's Trick Visualized:**
 
@@ -400,11 +405,11 @@ This means future rewards are worth at most 10× the immediate reward.
 
 ### Special Sums
 
-| Sum | Result | ML Use |
-|-----|--------|--------|
-| $\sum_{i=1}^{n} (2i-1)$ | $n^2$ | Odd numbers |
-| $\sum_{i=0}^{\infty} \frac{x^i}{i!}$ | $e^x$ | Exponential |
-| $\sum_{k=0}^{n} \binom{n}{k}$ | $2^n$ | Binomial |
+| Sum                                  | Result | ML Use      |
+| ------------------------------------ | ------ | ----------- |
+| $\sum_{i=1}^{n} (2i-1)$              | $n^2$  | Odd numbers |
+| $\sum_{i=0}^{\infty} \frac{x^i}{i!}$ | $e^x$  | Exponential |
+| $\sum_{k=0}^{n} \binom{n}{k}$        | $2^n$  | Binomial    |
 
 ---
 
@@ -454,12 +459,12 @@ Every neuron computes: $\text{output} = f\left(\sum_i w_i x_i + b\right)$
 
 Modern notation for tensor operations - **repeated indices are summed**:
 
-| Operation | Math | einsum |
-|-----------|------|--------|
-| Dot product | $\sum_i a_i b_i$ | `'i,i->'` |
+| Operation       | Math                   | einsum        |
+| --------------- | ---------------------- | ------------- |
+| Dot product     | $\sum_i a_i b_i$       | `'i,i->'`     |
 | Matrix multiply | $\sum_k A_{ik} B_{kj}$ | `'ik,kj->ij'` |
-| Outer product | $a_i b_j$ | `'i,j->ij'` |
-| Trace | $\sum_i A_{ii}$ | `'ii->'` |
+| Outer product   | $a_i b_j$              | `'i,j->ij'`   |
+| Trace           | $\sum_i A_{ii}$        | `'ii->'`      |
 
 ---
 
@@ -538,11 +543,11 @@ batch_C = np.einsum('bik,bkj->bij', batch_A, batch_B)
 
 ### 1. Off-by-One Errors
 
-| Expression | Number of Terms |
-|------------|-----------------|
-| $\sum_{i=1}^{n}$ | **n** terms |
-| $\sum_{i=0}^{n}$ | **n+1** terms |
-| $\sum_{i=0}^{n-1}$ | **n** terms |
+| Expression         | Number of Terms |
+| ------------------ | --------------- |
+| $\sum_{i=1}^{n}$   | **n** terms     |
+| $\sum_{i=0}^{n}$   | **n+1** terms   |
+| $\sum_{i=0}^{n-1}$ | **n** terms     |
 
 ```python
 # Common mistake:
@@ -607,13 +612,13 @@ Key Properties:                  Key Properties:
 
 ### Essential Formulas
 
-| What | Formula |
-|------|---------|
-| Sum of 1 to n | $\frac{n(n+1)}{2}$ |
-| Geometric series | $\frac{1-r^{n+1}}{1-r}$ |
-| Factorial | $n! = \prod_{i=1}^{n} i$ |
-| Dot product | $\sum_i a_i b_i$ |
-| Mean | $\frac{1}{n}\sum_i x_i$ |
+| What             | Formula                  |
+| ---------------- | ------------------------ |
+| Sum of 1 to n    | $\frac{n(n+1)}{2}$       |
+| Geometric series | $\frac{1-r^{n+1}}{1-r}$  |
+| Factorial        | $n! = \prod_{i=1}^{n} i$ |
+| Dot product      | $\sum_i a_i b_i$         |
+| Mean             | $\frac{1}{n}\sum_i x_i$  |
 
 ### The Golden Rule
 
@@ -624,17 +629,17 @@ Key Properties:                  Key Properties:
 
 ## Companion Notebooks
 
-| Notebook | Description |
-|----------|-------------|
-| [theory.ipynb](theory.ipynb) | Interactive examples: summations, products, log-sum trick, loss functions |
-| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+| Notebook                           | Description                                                               |
+| ---------------------------------- | ------------------------------------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive examples: summations, products, log-sum trick, loss functions |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions                                          |
 
 ---
 
 ## What's Next?
 
 After mastering summation and product notation, proceed to:
-→ [Proof Techniques](../05-Proof-Techniques/README.md) - Mathematical reasoning for algorithm correctness
+→ [Einstein Summation and Index Notation](../05-Einstein-Summation-and-Index-Notation/notes.md) - Compact tensor notation used in modern ML frameworks
 
 ---
 
@@ -646,4 +651,6 @@ After mastering summation and product notation, proceed to:
 
 ---
 
-*Last updated: February 2026*
+---
+
+[← Functions and Mappings](../03-Functions-and-Mappings/notes.md) | [Home](../../README.md) | [Einstein Summation →](../05-Einstein-Summation-and-Index-Notation/notes.md)

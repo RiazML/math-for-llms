@@ -1,6 +1,6 @@
 # Probabilistic Models: Mathematical Foundations
 
-[← Previous: Neural Networks](../02-Neural-Networks) | [Next: Reinforcement Learning →](../04-Reinforcement-Learning)
+[← Previous: Neural Networks](../02-Neural-Networks) | [Next: RNN and LSTM Math →](../04-RNN-and-LSTM-Math)
 
 ## Overview
 
@@ -8,10 +8,10 @@ Probabilistic models provide a principled framework for reasoning under uncertai
 
 ## Files in This Section
 
-| File | Description |
-|------|-------------|
-| [theory.ipynb](theory.ipynb) | Interactive examples with visualizations |
-| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+| File                               | Description                              |
+| ---------------------------------- | ---------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive examples with visualizations |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions         |
 
 ## Why This Matters for Machine Learning
 
@@ -19,7 +19,7 @@ Probabilistic models are the mathematical language of uncertainty, and uncertain
 
 Variational inference and the Evidence Lower Bound (ELBO) transform intractable Bayesian computations into optimization problems that scale to modern datasets. The ELBO decomposes into a reconstruction term (fit the data) and a KL regularization term (stay close to the prior), a structure that reappears verbatim in variational autoencoders and that conceptually mirrors the bias-variance tradeoff. Understanding the ELBO is essential for anyone working with latent variable models.
 
-Gaussian processes extend Bayesian reasoning to function spaces, providing nonparametric models with built-in uncertainty quantification. A GP posterior gives not just a point prediction but a full predictive distribution — including calibrated error bars — making GPs the backbone of Bayesian optimization, active learning, and any application where knowing *how uncertain* the model is matters as much as the prediction itself.
+Gaussian processes extend Bayesian reasoning to function spaces, providing nonparametric models with built-in uncertainty quantification. A GP posterior gives not just a point prediction but a full predictive distribution — including calibrated error bars — making GPs the backbone of Bayesian optimization, active learning, and any application where knowing _how uncertain_ the model is matters as much as the prediction itself.
 
 ## Chapter Roadmap
 
@@ -59,7 +59,7 @@ $$p(\theta | D) = \frac{p(D | \theta) p(\theta)}{p(D)}$$
 - **Prior**: $p(\theta)$
 - **Evidence**: $p(D) = \int p(D | \theta) p(\theta) d\theta$
 
-> 💡 **Insight:** Bayes’ theorem is the engine of learning. The prior captures what you believe before seeing data, the likelihood measures how well each parameter setting explains the observed data, and the evidence normalizes everything into a valid distribution. The key conceptual leap is that *parameters are random variables too* — rather than seeking a single best $\theta$, Bayesian inference maintains an entire distribution over $\theta$, and predictions integrate over this distribution. This naturally prevents overfitting because unlikely parameter values get low posterior weight.
+> 💡 **Insight:** Bayes’ theorem is the engine of learning. The prior captures what you believe before seeing data, the likelihood measures how well each parameter setting explains the observed data, and the evidence normalizes everything into a valid distribution. The key conceptual leap is that _parameters are random variables too_ — rather than seeking a single best $\theta$, Bayesian inference maintains an entire distribution over $\theta$, and predictions integrate over this distribution. This naturally prevents overfitting because unlikely parameter values get low posterior weight.
 
 ## 2. Exponential Family
 
@@ -166,7 +166,7 @@ $$\log p(x | \theta^{(t+1)}) \geq \log p(x | \theta^{(t)})$$
 $$\log p(x) \geq \mathbb{E}_{q(z)}[\log p(x, z)] - \mathbb{E}_{q(z)}[\log q(z)]$$
 $$= \mathbb{E}_{q(z)}[\log p(x|z)] - D_{KL}(q(z) \| p(z))$$
 
-> 💡 **Insight:** The ELBO has an elegant interpretation: it trades off *data fit* against *complexity*. The reconstruction term $\mathbb{E}_q[\log p(x|z)]$ rewards the model for explaining the data, while the KL term $D_{KL}(q(z)\|p(z))$ penalizes the approximate posterior for deviating from the prior. Maximizing the ELBO tightens a lower bound on the log-evidence $\log p(x)$, and the gap is exactly $D_{KL}(q(z)\|p(z|x))$ — the divergence between the approximation and the true posterior. This gap can never be negative, which is why the ELBO is a lower bound.
+> 💡 **Insight:** The ELBO has an elegant interpretation: it trades off _data fit_ against _complexity_. The reconstruction term $\mathbb{E}_q[\log p(x|z)]$ rewards the model for explaining the data, while the KL term $D_{KL}(q(z)\|p(z))$ penalizes the approximate posterior for deviating from the prior. Maximizing the ELBO tightens a lower bound on the log-evidence $\log p(x)$, and the gap is exactly $D_{KL}(q(z)\|p(z|x))$ — the divergence between the approximation and the true posterior. This gap can never be negative, which is why the ELBO is a lower bound.
 
 ### Mean-Field Approximation
 
@@ -243,7 +243,7 @@ Given observations $(X, y)$ with $y = f(X) + \epsilon$:
 
 **Matérn**: $k(x, x') = \frac{2^{1-\nu}}{\Gamma(\nu)}\left(\frac{\sqrt{2\nu}r}{\ell}\right)^\nu K_\nu\left(\frac{\sqrt{2\nu}r}{\ell}\right)$
 
-> 💡 **Insight:** A Gaussian process is a distribution over *functions*, not just parameters. The kernel function $k(x, x')$ encodes your prior beliefs about function properties — the RBF kernel assumes smooth functions, the Matérn kernel controls differentiability via $\nu$, and periodic kernels capture repeating patterns. Once you observe data, the GP posterior shrinks predictive uncertainty near observed points while remaining uncertain far away. This makes GPs uniquely suited for Bayesian optimization, where the acquisition function explicitly balances exploring uncertain regions against exploiting known good regions.
+> 💡 **Insight:** A Gaussian process is a distribution over _functions_, not just parameters. The kernel function $k(x, x')$ encodes your prior beliefs about function properties — the RBF kernel assumes smooth functions, the Matérn kernel controls differentiability via $\nu$, and periodic kernels capture repeating patterns. Once you observe data, the GP posterior shrinks predictive uncertainty near observed points while remaining uncertain far away. This makes GPs uniquely suited for Bayesian optimization, where the acquisition function explicitly balances exploring uncertain regions against exploiting known good regions.
 
 ## 10. Hidden Markov Models
 

@@ -1,5 +1,7 @@
 # Sets and Logic
 
+[← Number Systems](../01-Number-Systems/notes.md) | [Next: Functions and Mappings →](../03-Functions-and-Mappings/notes.md)
+
 ## Introduction
 
 Set theory and mathematical logic form the foundational language of mathematics and computer science. Understanding sets is essential for probability theory, while logical reasoning underpins algorithm design and formal proofs in ML theory.
@@ -85,6 +87,59 @@ The **cardinality** |A| is the number of elements in set A.
 $$|{1, 2, 3}| = 3$$
 $$|\emptyset| = 0$$
 $$|\mathbb{N}| = \aleph_0 \text{ (countably infinite)}$$
+
+### Multisets (Bags)
+
+A **multiset** (or bag) is like a set, but elements **can repeat**. This is fundamental to NLP and counting-based ML.
+
+$$\text{Set: } \{a, b, b, c\} = \{a, b, c\} \quad \text{(duplicates ignored)}$$
+$$\text{Multiset: } \{\!\{a, b, b, c\}\!\} \quad \text{(b appears twice)}$$
+
+```
+MULTISETS IN ML
+═══════════════════════════════════════════════════════════════════════
+
+SET vs MULTISET:
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  Set:      {"the", "cat", "sat"} — just unique words               │
+│  Multiset: {"the":2, "cat":1, "sat":1, "on":1, "the":→already 2}  │
+│                                                                     │
+│  "The cat sat on the mat"                                           │
+│  As set:      {the, cat, sat, on, mat} — loses count info          │
+│  As multiset: {the:2, cat:1, sat:1, on:1, mat:1} — preserves counts│
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+ML APPLICATIONS:
+  • Bag-of-Words (BoW):  document = multiset of words
+  • TF-IDF:  term frequency = count in multiset
+  • Histograms:  pixel/feature intensity multisets
+  • Pooling:      mean/sum pooling = operations on multisets
+```
+
+#### Code Example
+
+```python
+from collections import Counter
+
+# Bag-of-Words = multiset representation
+doc = "the cat sat on the mat"
+bow = Counter(doc.split())  # Counter({'the': 2, 'cat': 1, 'sat': 1, ...})
+
+# Multiset operations
+doc2 = "the dog sat on the log"
+bow2 = Counter(doc2.split())
+
+# Intersection (minimum counts) — common words with min frequency
+common = bow & bow2  # Counter({'the': 2, 'sat': 1, 'on': 1})
+
+# Union (maximum counts)
+combined = bow | bow2  # Counter({'the': 2, 'cat': 1, 'dog': 1, ...})
+
+# Sum (add counts) — concatenating documents
+total = bow + bow2  # Counter({'the': 4, 'sat': 2, 'on': 2, ...})
+```
 
 ---
 
@@ -198,6 +253,162 @@ A = {1, 2, 3}
 𝒫(A) = {∅, {1}, {2}, {3}, {1,2}, {1,3}, {2,3}, {1,2,3}}
 
 |𝒫(A)| = 2^|A|
+```
+
+### Indicator Functions (𝟙_A)
+
+The **indicator function** (or characteristic function) of a set A maps every element to 0 or 1:
+
+$$\mathbb{1}_A(x) = \begin{cases} 1 & \text{if } x \in A \\ 0 & \text{if } x \notin A \end{cases}$$
+
+This simple concept appears **everywhere** in ML:
+
+```
+INDICATOR FUNCTIONS IN ML
+═══════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────┬──────────────────────────────────────────┐
+│ ML Concept               │ Indicator Function Form                  │
+├──────────────────────────┼──────────────────────────────────────────┤
+│ One-hot encoding         │ 𝟙_{class=k}(x) for each class k         │
+│ Binary cross-entropy     │ -[y·log(p) + (1-y)·log(1-p)]            │
+│                          │  where y = 𝟙_{positive}(x)              │
+│ Attention mask           │ 𝟙_{valid_position}(i)                   │
+│ Dropout                  │ 𝟙_{keep}(neuron) with P(keep) = p       │
+│ ReLU activation          │ f(x) = x · 𝟙_{x>0}(x)                  │
+│ Loss masking             │ loss_i · 𝟙_{not_padding}(i)             │
+│ Precision/Recall         │ TP = Σ 𝟙_{predicted=1}(i)·𝟙_{actual=1}(i)│
+└──────────────────────────┴──────────────────────────────────────────┘
+```
+
+#### Code Example
+
+```python
+import numpy as np
+
+# One-hot encoding IS an indicator function
+def one_hot(label, num_classes):
+    """𝟙_{class=k}(label) for each class k."""
+    return np.array([1 if k == label else 0 for k in range(num_classes)])
+
+print(one_hot(2, 5))  # [0, 0, 1, 0, 0]
+
+# ReLU IS x · 𝟙_{x>0}(x)
+x = np.array([-2, -1, 0, 1, 2])
+relu = x * (x > 0)  # x * 𝟙_{x>0}
+print(f"ReLU({x}) = {relu}")  # [0, 0, 0, 1, 2]
+
+# Cross-entropy uses indicator function
+y_true = np.array([1, 0, 1, 0])  # 𝟙_{positive}
+y_pred = np.array([0.9, 0.1, 0.8, 0.3])
+loss = -(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+print(f"Binary CE loss: {loss.mean():.4f}")
+```
+
+### Indexed Families and Partitions
+
+In ML we often work with **families of sets** indexed by labels, layers, or batches.
+
+$$\bigcup_{i=1}^{n} A_i = A_1 \cup A_2 \cup \cdots \cup A_n$$
+$$\bigcap_{i=1}^{n} A_i = A_1 \cap A_2 \cap \cdots \cap A_n$$
+
+**Partition**: A collection of non-empty, disjoint sets whose union is the whole set.
+
+$$\{A_1, A_2, ..., A_k\} \text{ is a partition of } S \iff \begin{cases} A_i \neq \emptyset & \text{for all } i \\ A_i \cap A_j = \emptyset & \text{for } i \neq j \\ \bigcup_{i=1}^{k} A_i = S \end{cases}$$
+
+```
+PARTITIONS IN ML
+═══════════════════════════════════════════════════════════════════════
+
+Classification IS partitioning:
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  Dataset D with 3 classes:                                          │
+│                                                                     │
+│  C₀ = {samples with label 0}  ─┐                                  │
+│  C₁ = {samples with label 1}  ─┼─ C₀ ∪ C₁ ∪ C₂ = D (covers all)  │
+│  C₂ = {samples with label 2}  ─┘  Cᵢ ∩ Cⱼ = ∅ (no overlap)       │
+│                                                                     │
+│  Train/Val/Test split IS a partition of the dataset!                │
+│  K-fold cross-validation = K partitions rotated                     │
+│                                                                     │
+│  Decision tree leaves partition the feature space                   │
+│  K-means clusters partition the data points                         │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### Code Example
+
+```python
+import numpy as np
+
+# Verify a partition (useful for data pipeline validation)
+def is_valid_partition(subsets, full_set):
+    """Check that subsets form a valid partition."""
+    # 1. Non-empty
+    if any(len(s) == 0 for s in subsets):
+        return False, "Contains empty subset"
+    # 2. Pairwise disjoint
+    for i in range(len(subsets)):
+        for j in range(i + 1, len(subsets)):
+            if subsets[i] & subsets[j]:
+                return False, f"Subsets {i} and {j} overlap"
+    # 3. Union = full set
+    union = set().union(*subsets)
+    if union != full_set:
+        return False, f"Union missing {full_set - union}"
+    return True, "Valid partition"
+
+# Train/val/test split
+all_indices = set(range(100))
+train = set(range(0, 70))
+val = set(range(70, 85))
+test = set(range(85, 100))
+
+valid, msg = is_valid_partition([train, val, test], all_indices)
+print(f"Valid split: {valid} — {msg}")  # Valid partition
+```
+
+### Relations and Equivalence Classes
+
+A **relation** R on set A is a subset of A × A. Relations formalize "connectedness" which maps directly to ML concepts.
+
+```
+RELATIONS IN ML
+═══════════════════════════════════════════════════════════════════════
+
+TYPES OF RELATIONS:
+┌──────────────────┬─────────────────────┬───────────────────────────┐
+│ Property         │ Definition          │ ML Example                │
+├──────────────────┼─────────────────────┼───────────────────────────┤
+│ Reflexive        │ ∀x: xRx             │ Every point is similar    │
+│                  │                     │ to itself                 │
+│ Symmetric        │ xRy → yRx           │ Similarity metrics        │
+│                  │                     │ (cosine, Jaccard)         │
+│ Transitive       │ xRy ∧ yRz → xRz    │ If A~B and B~C then A~C   │
+│ Antisymmetric    │ xRy ∧ yRx → x=y    │ Topological sort          │
+└──────────────────┴─────────────────────┴───────────────────────────┘
+
+EQUIVALENCE RELATION (reflexive + symmetric + transitive):
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  An equivalence relation PARTITIONS a set into equivalence classes  │
+│                                                                     │
+│  CLUSTERING IS AN EQUIVALENCE RELATION:                             │
+│  • Reflexive: every point is in its own cluster ✓                   │
+│  • Symmetric: if x is in same cluster as y, then y with x ✓        │
+│  • Transitive: if x~y and y~z, all in same cluster ✓               │
+│                                                                     │
+│  Each cluster = one equivalence class                               │
+│  All clusters together = partition of the dataset                   │
+│                                                                     │
+│  PARTIAL ORDER (reflexive + antisymmetric + transitive):             │
+│  • Computation graphs (DAGs) — topological ordering                 │
+│  • Layer dependencies in neural networks                            │
+│  • Feature importance ranking                                       │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -331,7 +542,69 @@ $$\forall x \, \exists y \, P(x, y) \neq \exists y \, \forall x \, P(x, y)$$
 
 ---
 
-## 7. Applications in ML/AI
+## 7. Sigma Algebras (σ-algebra) — Foundation for Probability
+
+A σ-algebra makes probability **mathematically rigorous**. Without it, you can't properly define P(A) for continuous distributions.
+
+### Intuition
+
+When we toss a coin, the sample space Ω = {H, T} is finite, and we can assign probabilities to every subset. But for continuous distributions (like Gaussian), we can't assign a probability to **every** subset of ℝ — some subsets are too "weird" to measure.
+
+A σ-algebra F tells us **which subsets are measurable** (which events we can ask about).
+
+### Definition
+
+A **σ-algebra** F on a set Ω is a collection of subsets of Ω such that:
+
+$$1. \quad \Omega \in \mathcal{F} \quad \text{(the whole space is measurable)}$$
+$$2. \quad A \in \mathcal{F} \Rightarrow A^c \in \mathcal{F} \quad \text{(closed under complement)}$$
+$$3. \quad A_1, A_2, ... \in \mathcal{F} \Rightarrow \bigcup_{i=1}^{\infty} A_i \in \mathcal{F} \quad \text{(closed under countable union)}$$
+
+The triple (Ω, F, P) is called a **probability space**.
+
+```
+σ-ALGEBRA — WHY ML ENGINEERS SHOULD KNOW THIS
+═══════════════════════════════════════════════════════════════════════
+
+SIMPLE CASE (finite — you already use this):
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  Coin flip: Ω = {H, T}                                             │
+│  σ-algebra: F = {∅, {H}, {T}, {H,T}} = 𝒫(Ω)                       │
+│  All subsets are measurable — no problems here.                     │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+CONTINUOUS CASE (where it matters):
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  Gaussian distribution: Ω = ℝ (all real numbers)                    │
+│  σ-algebra: Borel sets B(ℝ) — generated by all open intervals      │
+│                                                                     │
+│  Can ask: P(X ∈ [0, 1]) = ?  ✓ (interval is Borel)                 │
+│  Can ask: P(X > 3)      = ?  ✓ (half-line is Borel)                │
+│  Can ask: P(X ∈ weird non-measurable set) = ?  ✗ (undefined!)       │
+│                                                                     │
+│  WHY THIS MATTERS FOR ML:                                           │
+│  • PDF f(x) is defined via P(a ≤ X ≤ b) = ∫ₐᵇ f(x)dx              │
+│  • This integral only makes sense for measurable sets [a,b]         │
+│  • Random variables are measurable functions: X: Ω → ℝ              │
+│  • KL divergence, cross-entropy rely on proper measure theory       │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+WHEN YOU ENCOUNTER σ-ALGEBRAS:
+  • Reading ML theory papers (PAC learning, convergence proofs)
+  • Conditional expectations: E[X | F] conditions on a σ-algebra
+  • Martingales in online learning / bandit algorithms
+  • Measure-theoretic probability in Bayesian inference
+```
+
+> **Practical takeaway**: You rarely construct σ-algebras in code, but understanding them lets you read ML theory papers and know why `P(X ∈ A)` isn't defined for arbitrary sets A.
+
+---
+
+## 8. Applications in ML/AI
 
 These are common places where set operations and logic directly translate into ML code.
 
@@ -635,7 +908,86 @@ RDF Triples as Logical Predicates:
 - **Question Answering**: SPARQL queries use set operations
 - **Neo4j / GraphQL**: Cypher uses logical predicates
 
-### 12. AI/ML Domain Quick Reference
+### 12. Fuzzy Sets and Soft Membership
+
+Classical sets have **hard membership**: x ∈ A or x ∉ A. **Fuzzy sets** allow **degrees of membership** μ_A(x) ∈ [0, 1].
+
+This directly maps to how neural networks work — outputs are probabilities, not binary decisions.
+
+```
+FUZZY SETS — THE MATH BEHIND SOFT PREDICTIONS
+═══════════════════════════════════════════════════════════════════════
+
+CLASSICAL SET vs FUZZY SET:
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│  Classical: Is this image a cat?                                    │
+│    μ_{cat}(x) ∈ {0, 1}        → Yes or No                         │
+│                                                                     │
+│  Fuzzy: How much is this image a cat?                               │
+│    μ_{cat}(x) ∈ [0, 1]        → 0.85 (very likely cat)            │
+│    μ_{dog}(x) ∈ [0, 1]        → 0.10 (unlikely dog)               │
+│    μ_{bird}(x) ∈ [0, 1]       → 0.05 (very unlikely bird)         │
+│                                                                     │
+│  Softmax output IS a fuzzy membership function!                     │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+FUZZY SET OPERATIONS:
+┌──────────────────┬────────────────────────┬─────────────────────────┐
+│ Operation        │ Fuzzy Version          │ ML Connection           │
+├──────────────────┼────────────────────────┼─────────────────────────┤
+│ Membership       │ μ_A(x) ∈ [0, 1]       │ Sigmoid/softmax output  │
+│ Union            │ max(μ_A, μ_B)          │ OR-like combination     │
+│ Intersection     │ min(μ_A, μ_B)          │ AND-like combination    │
+│ Complement       │ 1 - μ_A               │ 1 - probability         │
+│ Crisp (hard)     │ μ_A ∈ {0, 1}          │ argmax (hard decision)  │
+└──────────────────┴────────────────────────┴─────────────────────────┘
+
+WHERE FUZZY SETS APPEAR IN ML:
+  • Softmax outputs: fuzzy membership across classes
+  • Attention weights: fuzzy selection of which tokens to attend to
+  • Label smoothing: convert hard labels [0,1] to fuzzy [0.05, 0.95]
+  • Sigmoid: fuzzy membership for binary classification
+  • Soft masks: differentiable alternatives to hard masking
+```
+
+#### Code Example
+
+```python
+import numpy as np
+
+# Softmax IS a fuzzy membership function
+def softmax(x):
+    e = np.exp(x - np.max(x))
+    return e / e.sum()
+
+logits = np.array([2.0, 1.0, 0.1])
+fuzzy_membership = softmax(logits)
+print(f"Fuzzy membership (softmax): {fuzzy_membership}")
+# [0.659, 0.242, 0.099] — degrees of membership, sum to 1
+
+# Label smoothing: hard labels → fuzzy labels
+def label_smoothing(hard_label, num_classes, epsilon=0.1):
+    """Convert hard one-hot to fuzzy distribution."""
+    soft = np.full(num_classes, epsilon / num_classes)
+    soft[hard_label] = 1.0 - epsilon + epsilon / num_classes
+    return soft
+
+hard = np.array([0, 0, 1, 0, 0])  # Crisp set: class 2
+soft = label_smoothing(2, 5, epsilon=0.1)  # Fuzzy set
+print(f"Hard label: {hard}")
+print(f"Soft label: {soft.round(3)}")
+# [0.02, 0.02, 0.92, 0.02, 0.02] — fuzzy membership!
+
+# Attention weights are fuzzy set membership over tokens
+attention = softmax(np.array([3.0, 0.5, 0.1, 2.0]))
+print(f"\nAttention weights: {attention.round(3)}")
+print("Token 0 membership: {:.1%} (highly attended)".format(attention[0]))
+print("Token 2 membership: {:.1%} (barely attended)".format(attention[2]))
+```
+
+### 13. AI/ML Domain Quick Reference
 
 | Set/Logic Concept  | AI/ML Domain        | Specific Application |
 | ------------------ | ------------------- | -------------------- |
@@ -649,10 +1001,16 @@ RDF Triples as Logical Predicates:
 | Implication (→)    | Expert Systems      | IF-THEN rules        |
 | Predicate Logic    | Knowledge Graphs    | RDF triples, SPARQL  |
 | Quantifiers (∀,∃)  | Formal Verification | Neural net proofs    |
+| Indicator (𝟙_A)    | Loss Functions      | One-hot, masking     |
+| Multiset           | NLP                 | Bag-of-Words, TF-IDF |
+| Partition          | Classification      | Class labels, splits |
+| Equivalence class  | Clustering          | Cluster membership   |
+| σ-algebra          | Probability Theory  | Measurable events    |
+| Fuzzy membership   | Neural Networks     | Softmax, attention   |
 
 ---
 
-## 8. Common Pitfalls
+## 9. Common Pitfalls
 
 ### Pitfall 1: Confusing ⊂ and ⊆
 
@@ -746,7 +1104,7 @@ if {'age'} in features:   # Wrong! {'age'} is a set, not a string
 
 ---
 
-## 9. Interview Questions
+## 10. Interview Questions
 
 ### Basic Questions
 
@@ -793,7 +1151,7 @@ if {'age'} in features:   # Wrong! {'age'} is a set, not a string
 
 ---
 
-## 10. Summary
+## 11. Summary
 
 ### Set Operations Table
 
@@ -846,7 +1204,7 @@ $$|\mathcal{P}(A)| = 2^{|A|}$$
 
 ---
 
-## 11. Further Reading
+## 12. Further Reading
 
 ### Courses
 
@@ -859,6 +1217,12 @@ $$|\mathcal{P}(A)| = 2^{|A|}$$
 - **How to Prove It** (Velleman)
 - **Mathematics for Machine Learning** (Deisenroth et al., free): https://mml-book.github.io/
 - **Deep Learning** (Goodfellow et al., free): https://www.deeplearningbook.org/
+- **Probability and Measure** (Billingsley) — for σ-algebras and measure theory
+
+### Papers
+
+- 📄 [Fuzzy Sets (Zadeh, 1965)](<https://doi.org/10.1016/S0019-9958(65)90241-X>) — the original paper
+- 📄 [Rethinking Softmax: Label Smoothing](https://arxiv.org/abs/1906.02629) — fuzzy labels in practice
 
 ### Tools
 
@@ -870,17 +1234,17 @@ $$|\mathcal{P}(A)| = 2^{|A|}$$
 
 ## Companion Notebooks
 
-| Notebook | Description |
-|----------|-------------|
-| [theory.ipynb](theory.ipynb) | Interactive examples: set operations, De Morgan's laws, confusion matrices, Jaccard similarity |
-| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions |
+| Notebook                           | Description                                                                                    |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive examples: set operations, De Morgan's laws, confusion matrices, Jaccard similarity |
+| [exercises.ipynb](exercises.ipynb) | Practice problems with solutions                                                               |
 
 ---
 
 ## What's Next?
 
 After mastering sets and logic, proceed to:
-→ [Functions and Mappings](../03-Functions-and-Mappings/README.md) - Mathematical functions essential for ML
+→ [Functions and Mappings](../03-Functions-and-Mappings/notes.md) — Mathematical functions essential for ML
 
 ---
 
