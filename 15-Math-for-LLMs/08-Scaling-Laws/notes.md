@@ -463,9 +463,9 @@ Fitted values from Hoffmann et al.:
 
 $$L(175\text{B}, 300\text{B}) = 1.69 + \frac{406.4}{(175 \times 10^9)^{0.34}} + \frac{410.7}{(300 \times 10^9)^{0.28}}$$
 
-$$= 1.69 + \frac{406.4}{4,\!584} + \frac{410.7}{2,\!636} \approx 1.69 + 0.089 + 0.156 = 1.93$$
+$$= 1.69 + \frac{406.4}{6{,}639} + \frac{410.7}{1{,}636} \approx 1.69 + 0.061 + 0.251 = 2.00$$
 
-Data term (0.156) dominates parametric term (0.089) → model is **under-trained** on data.
+Data term (0.251) dominates parametric term (0.061) → model is **under-trained** on data.
 
 ### 4.3 Optimal Allocation
 
@@ -1005,7 +1005,7 @@ $$= 1.33 \times 5.04 \times 10^{10} \approx 6.7 \times 10^{10} = 67\text{B}$$
 
 $$D^* = \frac{C}{6N^*} = \frac{10^{24}}{6 \times 6.7 \times 10^{10}} = \frac{10^{24}}{4.02 \times 10^{11}} \approx 2.5 \times 10^{12} \approx 1.4\text{T}$$
 
-Verification: $C = 6 \times 67\text{B} \times 1.4\text{T} = 6 \times 9.38 \times 10^{22} \approx 10^{24}$ ✓
+Verification: $C = 6 \times 67\text{B} \times 1.4\text{T} = 6 \times 9.38 \times 10^{22} \approx 5.6 \times 10^{23}$ (close to $10^{24}$; gap is from rounding $N^*$ and $D^*$)
 
 $D^*/N^* = 1.4\text{T}/67\text{B} \approx 21 \approx 20$ ✓
 
@@ -1154,7 +1154,7 @@ where $p$ = probability of correct answer per sample.
 | :-: | :---------------------------: | :----------: |
 |  1  |              30%              |      1×      |
 |  4  |              76%              |      4×      |
-| 16  |             98.3%             |     16×      |
+| 16  |             99.7%             |     16×      |
 | 64  |            99.99%             |     64×      |
 
 Compute-optimal crossover: at some $N$, a **larger base model** beats more samples from a smaller model. Snell et al. found this crossover at $N \approx 8$–$32$ for typical tasks.
@@ -1482,7 +1482,7 @@ At 100× extrapolation: $N^*$ uncertain by factor ~1.5×; $L^*$ uncertain by ~±
 
 Standard problem: hyperparameters (learning rate, $\beta_2$, init scale) optimised for small proxy models **don't transfer** to large models.
 
-**μP parametrisation** (Yang et al. 2021): choose parametrisation so optimal hyperparameters transfer exactly:
+**μP parametrisation** (Yang et al. 2022): choose parametrisation so optimal hyperparameters transfer exactly:
 
 | Hyperparameter | Standard Parametrisation | μP Parametrisation     |
 | -------------- | ------------------------ | ---------------------- |

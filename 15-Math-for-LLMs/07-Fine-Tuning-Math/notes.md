@@ -107,7 +107,7 @@ Severity increases with: learning rate, number of steps, distance $\|\theta^* - 
 
 ### 2.5 Intrinsic Dimensionality
 
-Li et al. (2018) showed that most fine-tuning happens in a **low-dimensional subspace**:
+Aghajanyan et al. (2020) showed that most fine-tuning happens in a **low-dimensional subspace**:
 
 $$d_{\text{int}} = \text{smallest } d \text{ such that fine-tuning in random } d\text{-dim subspace } \approx \text{ full fine-tune}$$
 

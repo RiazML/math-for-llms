@@ -1,4 +1,4 @@
-[← Tokenization Math](../01-Tokenization-Math/notes.md) | [Home](../../README.md) | [Attention Math →](../03-Attention-Math/notes.md)
+[← Tokenization Math](../01-Tokenization-Math/notes.md) | [Home](../../README.md) | [Attention Mechanism Math →](../03-Attention-Mechanism-Math/notes.md)
 
 ---
 
@@ -524,7 +524,7 @@ This is because rotation matrices satisfy $R_m^\top R_n = R_{n-m}$ (group proper
 
 ### 5.5 ALiBi (Attention with Linear Biases)
 
-ALiBi (Press et al., 2022) takes a radically different approach: no positional vector is added to the embeddings at all. Instead, a **linear bias** is added directly to the attention logits:
+ALiBi (Press et al., 2021) takes a radically different approach: no positional vector is added to the embeddings at all. Instead, a **linear bias** is added directly to the attention logits:
 
 $$\text{score}(i, j) = \mathbf{q}_i \cdot \mathbf{k}_j - m \cdot |i - j|$$
 
@@ -892,7 +892,7 @@ Generate random Gaussian vectors in $\mathbb{R}^d$ for $d \in \{2, 10, 100, 1000
 2. Pennington et al. (2014) — "GloVe: Global Vectors for Word Representation"
 3. Vaswani et al. (2017) — "Attention Is All You Need" (sinusoidal PE)
 4. Su et al. (2021) — "RoFormer: Enhanced Transformer with Rotary Position Embedding" (RoPE)
-5. Press et al. (2022) — "Train Short, Test Long: Attention with Linear Biases" (ALiBi)
+5. Press et al. (2021) — "Train Short, Test Long: Attention with Linear Biases" (ALiBi)
 6. Ethayarajh (2019) — "How Contextual are Contextualised Word Representations?" (isotropy analysis)
 7. Kaplan et al. (2020) — "Scaling Laws for Neural Language Models"
 8. Elhage et al. (2021) — "A Mathematical Framework for Transformer Circuits" (residual stream)
@@ -906,7 +906,7 @@ Generate random Gaussian vectors in $\mathbb{R}^d$ for $d \in \{2, 10, 100, 1000
 
 ### Conceptual Bridge
 
-The embedding space is where tokens become meaning. The next section, [Attention Math](../03-Attention-Math/notes.md), covers how the model uses embedding geometry to route information across the sequence via the self-attention mechanism.
+The embedding space is where tokens become meaning. The next section, [Attention Mechanism Math](../03-Attention-Mechanism-Math/notes.md), covers how the model uses embedding geometry to route information across the sequence via the self-attention mechanism.
 
 ```
 Token IDs → [Embedding] → Vectors in ℝᵈ → [Attention] → Contextualised vectors → …
@@ -916,4 +916,4 @@ Token IDs → [Embedding] → Vectors in ℝᵈ → [Attention] → Contextualis
 
 ---
 
-[← Tokenization Math](../01-Tokenization-Math/notes.md) | [Home](../../README.md) | [Attention Math →](../03-Attention-Math/notes.md)
+[← Tokenization Math](../01-Tokenization-Math/notes.md) | [Home](../../README.md) | [Attention Mechanism Math →](../03-Attention-Mechanism-Math/notes.md)

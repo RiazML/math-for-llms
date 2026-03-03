@@ -155,7 +155,7 @@ A single 70B model in bf16 requires ~140 GB memory — more than any single GPU.
 | Wall                   | Constraint                                                                 | Root Cause                                                      |
 | ---------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | **Memory wall**        | Model + activations + gradients + optimiser states don't fit in GPU memory | GPU HBM capacity (80 GB H100) ≪ model state (840 GB for 70B)    |
-| **Compute wall**       | FLOPs required grow with $N^2 D$; hardware improvements lag demand         | Exponential scaling of compute vs linear hardware improvement   |
+| **Compute wall**       | FLOPs required grow with $6ND$; hardware improvements lag demand           | Exponential scaling of compute vs linear hardware improvement   |
 | **Communication wall** | Inter-GPU bandwidth orders of magnitude slower than compute                | NVLink ~600 GB/s vs compute ~312 TFLOPS; ratio worsens at scale |
 
 ### 1.4 Historical Scale Milestones
@@ -163,7 +163,7 @@ A single 70B model in bf16 requires ~140 GB memory — more than any single GPU.
 | Year | Model           | Parameters        | Hardware          | Key Innovation         |
 | ---- | --------------- | ----------------- | ----------------- | ---------------------- |
 | 2018 | BERT-Large      | 340M              | 64 TPUv2          | MLM pretraining        |
-| 2019 | GPT-2           | 1.5B              | 32 TPUv3          | Autoregressive scaling |
+| 2019 | GPT-2           | 1.5B              | V100 GPUs         | Autoregressive scaling |
 | 2020 | GPT-3           | 175B              | ~10K V100         | Few-shot emergence     |
 | 2021 | Megatron-Turing | 530B              | 4480 A100         | 3D parallelism         |
 | 2022 | PaLM            | 540B              | 6144 TPUv4        | Pathways system        |
@@ -350,11 +350,11 @@ Scales linearly in throughput. Does **not** reduce per-GPU memory (full model on
 
 **ZeRO** (Rajbhandari et al. 2020) — Zero Redundancy Optimiser. Three stages of sharding:
 
-| Stage         | What's Sharded   | Memory per GPU              | Communication |
-| ------------- | ---------------- | --------------------------- | ------------- | --- | ---------- |
-| ZeRO-1        | Optimiser states | $\frac{4N+4N}{K} + 2N + 2N$ | Same as DP    |
-| ZeRO-2        | + Gradients      | $\frac{4N+4N+2N}{K} + 2N$   | Same as DP    |
-| ZeRO-3 / FSDP | + Parameters     | $\frac{12N}{K}$             | $3\times      | W   | $ per step |
+| Stage         | What's Sharded   | Memory per GPU                 | Communication                      |
+| ------------- | ---------------- | ------------------------------ | ---------------------------------- |
+| ZeRO-1        | Optimiser states | $\frac{4N+4N+4N}{K} + 2N + 2N$ | Same as DP                         |
+| ZeRO-2        | + Gradients      | $\frac{4N+4N+4N+2N}{K} + 2N$   | Same as DP                         |
+| ZeRO-3 / FSDP | + Parameters     | $\frac{16N}{K}$                | $3\times \lvert W \rvert$ per step |
 
 All-gather parameters before each layer's forward/backward; re-shard after. Trade: more communication for much less memory.
 
@@ -433,16 +433,17 @@ Ring algorithm for all-reduce: $O\!\left(\frac{2(K-1)}{K} \times \text{size}\rig
 | --------------------------- | ----------------- | --------------------------------- |
 | Model weights               | $2N$ bytes (bf16) | $N$ = parameter count             |
 | Gradient buffer             | $2N$ bytes (bf16) | Same size as weights              |
+| FP32 master weights         | $4N$ bytes (fp32) | Required for mixed-precision      |
 | Adam $m$ (momentum)         | $4N$ bytes (fp32) | First moment; fp32 for stability  |
 | Adam $v$ (variance)         | $4N$ bytes (fp32) | Second moment; fp32               |
-| **Total (mixed precision)** | **$12N$ bytes**   | **Rule of thumb**                 |
+| **Total (mixed precision)** | **$16N$ bytes**   | **Rule of thumb**                 |
 | Activations                 | Variable          | $O(B \times n \times d \times L)$ |
 | Peak: forward + backward    | +$2$–$3N$         | Temporary buffers                 |
 
 **Examples:**
 
-- LLaMA-3 8B: $12 \times 8\text{B} = 96$ GB minimum (before activations)
-- LLaMA-3 70B: $12 \times 70\text{B} = 840$ GB
+- LLaMA-3 8B: $16 \times 8\text{B} = 128$ GB minimum (before activations)
+- LLaMA-3 70B: $16 \times 70\text{B} = 1{,}120$ GB
 
 ### 5.2 Activation Memory
 
@@ -545,13 +546,13 @@ Gradient all-reduce can overlap with backward pass computation:
 
 $N$ parameters, $K$ GPUs, ZeRO-3:
 
-$$\text{Memory per GPU} = \frac{(2 + 2 + 4 + 4) \times N}{K} = \frac{12N}{K}$$
+$$\text{Memory per GPU} = \frac{(2 + 2 + 4 + 4 + 4) \times N}{K} = \frac{16N}{K}$$
 
-| Metric                      | Standard DP | ZeRO-3  |
-| --------------------------- | ----------- | ------- | --- | --------- | --- | --- |
-| Memory per GPU              | $12N$       | $12N/K$ |
-| Communication per step      | $2 \times   | W       | $   | $3 \times | W   | $   |
-| Memory reduction ($K=1000$) | 1×          | 1000×   |
+| Metric                      | Standard DP                | ZeRO-3                     |
+| --------------------------- | -------------------------- | -------------------------- |
+| Memory per GPU              | $16N$                      | $16N/K$                    |
+| Communication per step      | $2 \times \lvert W \rvert$ | $3 \times \lvert W \rvert$ |
+| Memory reduction ($K=1000$) | 1×                         | 1000×                      |
 
 ---
 
@@ -673,14 +674,14 @@ LLaMA-3 405B: ~90 days training; thousands of GPUs. GPU failure rate: ~0.1–1% 
 
 ### 9.2 Checkpoint Contents
 
-| Component         | Size                | Purpose                           |
-| ----------------- | ------------------- | --------------------------------- |
-| Model weights     | $2N$ bytes          | All shards                        |
-| Optimiser states  | $8N$ bytes          | Adam $m$, $v$ (largest component) |
-| LR schedule state | Tiny                | Current step, warmup phase        |
-| RNG states        | Tiny                | For reproducibility               |
-| Data loader state | Small               | Which samples seen                |
-| **Total**         | **$\sim12N$ bytes** | Per checkpoint                    |
+| Component         | Size                 | Purpose                           |
+| ----------------- | -------------------- | --------------------------------- |
+| Model weights     | $2N$ bytes           | All shards                        |
+| Optimiser states  | $8N$ bytes           | Adam $m$, $v$ (largest component) |
+| LR schedule state | Tiny                 | Current step, warmup phase        |
+| RNG states        | Tiny                 | For reproducibility               |
+| Data loader state | Small                | Which samples seen                |
+| **Total**         | **$\\sim10N$ bytes** | Per checkpoint (weights + Adam)   |
 
 ### 9.3 Checkpoint Frequency
 

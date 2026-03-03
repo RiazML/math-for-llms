@@ -1,4 +1,4 @@
-[← Embedding Space Math](../02-Embedding-Space-Math/notes.md) | [Home](../../README.md) | [Feed-Forward Network Math →](../04-FFN-Math/notes.md)
+[← Embedding Space Math](../02-Embedding-Space-Math/notes.md) | [Home](../../README.md) | [Positional Encodings →](../04-Positional-Encodings/notes.md)
 
 ---
 
@@ -178,7 +178,7 @@ Think of attention as a **soft database query**:
 | 2023 | Dao (FlashAttention-2)         | Better parallelism, 2× faster than v1                            |
 | 2023 | Gu & Dao (Mamba)               | Selective state-space model; O(n) compute; attention alternative |
 | 2024 | Shah et al. (FlashAttention-3) | Hopper GPU optimised, FP8 support, ~3× FA2                       |
-| 2024 | DeepSeek-V2 (MLA)              | Multi-head latent attention; 5.75× KV cache reduction            |
+| 2024 | DeepSeek-V2 (MLA)              | Multi-head latent attention; ~10× KV cache reduction (d/d_c)     |
 | 2025 | Hybrid SSM-attention           | Mamba-2, Jamba, Hymba at production scale                        |
 | 2026 | Multi-million token contexts   | 1M–10M contexts becoming practical; native long-context training |
 
@@ -506,6 +506,8 @@ $$\text{KV Cache (bytes)} = 2 \times n \times d \times L \times \text{bytes\_per
 
 The KV cache is often the **primary memory bottleneck** at inference — frequently exceeding the model weights themselves for long sequences.
 
+> **Note on GQA**: LLaMA-3 models use Grouped-Query Attention (GQA) with fewer KV heads than query heads (e.g., 8 KV vs 64 query heads for 70B). With GQA, replace $d$ with $d_{\text{kv}} = n_{\text{kv\_heads}} \times d_{\text{head}}$ in the formula above. For LLaMA-3 70B with GQA, actual KV cache at $n{=}8192$ is ~2.5 GB (8× reduction). The table above shows MHA-equivalent values using $d = d_{\text{model}}$.
+
 ### 6.4 KV Cache Compression (2024–2026)
 
 | Method                      | Year | Approach                                              | Reduction |
@@ -517,7 +519,7 @@ The KV cache is often the **primary memory bottleneck** at inference — frequen
 | SnapKV                      | 2024 | Observation-based KV pruning; keep representative K,V | 3–6×      |
 | KVSharer                    | 2024 | Share K, V across nearby layers                       | 2×        |
 | Cross-Layer Attention (CLA) | 2024 | Adjacent layers share same KV cache entirely          | 2×        |
-| MLA (DeepSeek)              | 2024 | Low-rank latent compression of K, V                   | 5.75×     |
+| MLA (DeepSeek)              | 2024 | Low-rank latent compression of K, V                   | ~10×      |
 
 ---
 
@@ -567,7 +569,7 @@ At attention time, upproject back:
 
 $$K = cW^{KU}, \quad V = cW^{VU}$$
 
-Only c is cached instead of full K, V — massive memory savings. DeepSeek-V2/V3 reported **5.75× KV cache reduction** vs MHA. This was the key innovation enabling DeepSeek's cost-efficient inference at scale.
+Only c is cached instead of full K, V — massive memory savings. DeepSeek-V2/V3 achieve **~10× KV cache reduction** vs MHA ($d/d_c = 5120/512$; accounting for RoPE dimensions the full reduction is even larger). This was the key innovation enabling DeepSeek's cost-efficient inference at scale.
 
 ### 7.5 Sliding Window Attention (SWA)
 
@@ -686,7 +688,7 @@ $$R_m^{(i)} = \begin{pmatrix} \cos(m\theta_i) & -\sin(m\theta_i) \\ \sin(m\theta
 
 | Method               | Year | Approach                                   | Context extension |
 | -------------------- | ---- | ------------------------------------------ | ----------------- |
-| Linear scaling       | 2022 | Divide position by factor s                | Moderate          |
+| Linear scaling (PI)  | 2023 | Divide position by factor s                | Moderate          |
 | NTK-aware scaling    | 2023 | Scale base frequency; preserve high-freq   | Good              |
 | YaRN                 | 2023 | Non-uniform scaling + magnitude correction | Strong            |
 | LongRoPE (Microsoft) | 2024 | Non-uniform per-dimension scaling          | 2M tokens         |
@@ -875,15 +877,15 @@ The residual stream is the central communication channel (Elhage et al. 2021). A
 
 $$\text{Total params} \approx 12Ld^2 + 2Nd$$
 
-where L = number of layers, d = model dimension, N = vocabulary size.
+where L = number of layers, d = model dimension, N = vocabulary size. With **weight tying** (shared embedding and LM head), the $2Nd$ term reduces to $Nd$.
 
 This formula is accurate to ~10% for most Transformer LLMs:
 
-| Model       | L   | d    | N       | Formula estimate | Actual |
-| ----------- | --- | ---- | ------- | ---------------- | ------ |
-| GPT-2 Small | 12  | 768  | 50,257  | 85M              | 124M   |
-| LLaMA-3 8B  | 32  | 4096 | 128,000 | 6.7B             | 8.0B   |
-| LLaMA-3 70B | 80  | 8192 | 128,000 | 64.7B            | 70.6B  |
+| Model       | L   | d    | N       | Formula estimate   | Actual |
+| ----------- | --- | ---- | ------- | ------------------ | ------ |
+| GPT-2 Small | 12  | 768  | 50,257  | 124M (weight-tied) | 124M   |
+| LLaMA-3 8B  | 32  | 4096 | 128,000 | 6.7B               | 8.0B   |
+| LLaMA-3 70B | 80  | 8192 | 128,000 | 64.7B              | 70.6B  |
 
 Discrepancy comes from: bias terms, gate projections in SwiGLU FFN, GQA adjustments, and LM head.
 
@@ -1022,7 +1024,7 @@ Sketch why tiling avoids materialising the full A ∈ ℝⁿˣⁿ matrix. Implem
 
 Attention transforms positionally-encoded token embeddings into **context-aware representations**. Each token now "knows about" the full sequence via weighted aggregation. The attention output X' has the same shape as the input X, but encodes rich inter-token relationships.
 
-**Next**: [Feed-Forward Network Math](../04-FFN-Math/notes.md) — the second sublayer in each Transformer block. The FFN is where most parameters live and where factual knowledge is believed to be stored. Together, attention + FFN form the complete Transformer block.
+**Next**: [Positional Encodings](../04-Positional-Encodings/notes.md) — how Transformers encode token order. Without positional information, attention is permutation-invariant and has no sense of sequence structure. We cover sinusoidal, learned, RoPE, and ALiBi approaches.
 
 ```
 X ∈ ℝⁿˣᵈ → [MHA] → X' ∈ ℝⁿˣᵈ → [FFN] → X'' ∈ ℝⁿˣᵈ → … → logits
@@ -1032,4 +1034,4 @@ X ∈ ℝⁿˣᵈ → [MHA] → X' ∈ ℝⁿˣᵈ → [FFN] → X'' ∈ ℝⁿ�
 
 ---
 
-[← Embedding Space Math](../02-Embedding-Space-Math/notes.md) | [Home](../../README.md) | [Feed-Forward Network Math →](../04-FFN-Math/notes.md)
+[← Embedding Space Math](../02-Embedding-Space-Math/notes.md) | [Home](../../README.md) | [Positional Encodings →](../04-Positional-Encodings/notes.md)

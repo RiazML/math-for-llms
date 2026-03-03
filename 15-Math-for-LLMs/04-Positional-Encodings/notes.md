@@ -101,7 +101,7 @@ After completing this section, you will:
   - [9. Other Modern Positional Schemes](#9-other-modern-positional-schemes)
     - [9.1 xPos (Sun et al. 2022)](#91-xpos-sun-et-al-2022)
     - [9.2 FIRE — Functional Interpolation for Relative Encodings (Li et al. 2023)](#92-fire--functional-interpolation-for-relative-encodings-li-et-al-2023)
-    - [9.3 CoPE — Contextualised Positional Encoding (Olsson et al. 2024)](#93-cope--contextualised-positional-encoding-olsson-et-al-2024)
+    - [9.3 CoPE — Contextualised Positional Encoding (Golovneva et al. 2024)](#93-cope--contextualised-positional-encoding-golovneva-et-al-2024)
     - [9.4 NoPE — No Positional Encoding (Kazemnejad et al. 2023)](#94-nope--no-positional-encoding-kazemnejad-et-al-2023)
     - [9.5 Continuous / Learned Frequency PE](#95-continuous--learned-frequency-pe)
     - [9.6 3D / Multi-Dimensional PE](#96-3d--multi-dimensional-pe)
@@ -780,7 +780,7 @@ Extends RoPE with an **exponential decay** factor on attention scores:
 - Very few parameters (small MLP); strong extrapolation
 - Shows that even a tiny network can capture complex distance patterns
 
-### 9.3 CoPE — Contextualised Positional Encoding (Olsson et al. 2024)
+### 9.3 CoPE — Contextualised Positional Encoding (Golovneva et al. 2024)
 
 Position is computed **from context**, not just the integer index:
 
@@ -1036,7 +1036,7 @@ def alibi_bias(n, slopes):
 
 Positional encoding solves the fundamental **permutation-invariance problem** of attention. Without it, a Transformer is a bag-of-words model with an expensive matrix-multiply budget — it knows what words are present but has no idea where they are. We covered the full spectrum from the original sinusoidal encoding through today's dominant RoPE and its scaling variants for million-token contexts.
 
-**Next**: [Feed-Forward Network Math](../05-Language-Model-Probability/notes.md) — the second sublayer in each transformer block, where approximately two-thirds of all parameters live and where factual knowledge is stored.
+**Next**: [Language Model Probability](../05-Language-Model-Probability/notes.md) — how autoregressive LLMs define probability distributions over token sequences, training objectives (cross-entropy, MLE), decoding strategies, and evaluation metrics like perplexity.
 
 ---
 

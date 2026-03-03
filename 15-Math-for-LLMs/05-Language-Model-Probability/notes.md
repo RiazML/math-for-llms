@@ -40,92 +40,6 @@ After completing this section, you will:
 - Explain GRPO and its advantage over PPO for reasoning model training
 - Evaluate language models using perplexity, BLEU, ROUGE, and LLM-as-judge frameworks
 
-## Table of Contents
-
-- [Language Model Probability Math](#language-model-probability-math)
-  - [Overview](#overview)
-  - [Prerequisites](#prerequisites)
-  - [Companion Notebooks](#companion-notebooks)
-  - [Learning Objectives](#learning-objectives)
-  - [Table of Contents](#table-of-contents)
-  - [1. Intuition](#1-intuition)
-    - [1.1 What Is a Language Model?](#11-what-is-a-language-model)
-    - [1.2 The Prediction Game](#12-the-prediction-game)
-    - [1.3 Why Probability?](#13-why-probability)
-    - [1.4 Historical Timeline](#14-historical-timeline)
-    - [1.5 Pipeline Position](#15-pipeline-position)
-  - [2. Formal Definitions](#2-formal-definitions)
-    - [2.1 Probability Over Sequences](#21-probability-over-sequences)
-    - [2.2 Chain Rule Decomposition](#22-chain-rule-decomposition)
-    - [2.3 Conditional Distribution](#23-conditional-distribution)
-    - [2.4 The LM Head](#24-the-lm-head)
-    - [2.5 Autoregressive Generation](#25-autoregressive-generation)
-  - [3. Information Theory Foundations](#3-information-theory-foundations)
-    - [3.1 Self-Information](#31-self-information)
-    - [3.2 Entropy](#32-entropy)
-    - [3.3 Cross-Entropy](#33-cross-entropy)
-    - [3.4 KL Divergence](#34-kl-divergence)
-    - [3.5 Perplexity](#35-perplexity)
-    - [3.6 Bits Per Character / Bits Per Byte](#36-bits-per-character--bits-per-byte)
-  - [4. Training Objective — Maximum Likelihood](#4-training-objective--maximum-likelihood)
-    - [4.1 Log-Likelihood](#41-log-likelihood)
-    - [4.2 Maximum Likelihood Estimation (MLE)](#42-maximum-likelihood-estimation-mle)
-    - [4.3 Cross-Entropy Loss in Practice](#43-cross-entropy-loss-in-practice)
-    - [4.4 Gradient of Cross-Entropy Loss](#44-gradient-of-cross-entropy-loss)
-    - [4.5 Label Smoothing](#45-label-smoothing)
-    - [4.6 Next-Token Prediction vs Masked LM](#46-next-token-prediction-vs-masked-lm)
-  - [5. Decoding Strategies](#5-decoding-strategies)
-    - [5.1 Greedy Decoding](#51-greedy-decoding)
-    - [5.2 Beam Search](#52-beam-search)
-    - [5.3 Temperature Sampling](#53-temperature-sampling)
-    - [5.4 Top-k Sampling](#54-top-k-sampling)
-    - [5.5 Top-p (Nucleus) Sampling](#55-top-p-nucleus-sampling)
-    - [5.6 Min-p Sampling](#56-min-p-sampling)
-    - [5.7 Typical Sampling](#57-typical-sampling)
-    - [5.8 Contrastive / Speculative Methods](#58-contrastive--speculative-methods)
-    - [5.9 Repetition and Frequency Penalties](#59-repetition-and-frequency-penalties)
-  - [6. Scaling Laws](#6-scaling-laws)
-    - [6.1 Neural Scaling Laws (Kaplan et al. 2020)](#61-neural-scaling-laws-kaplan-et-al-2020)
-    - [6.2 Chinchilla Scaling Laws (Hoffmann et al. 2022)](#62-chinchilla-scaling-laws-hoffmann-et-al-2022)
-    - [6.3 Inference-Optimal Scaling](#63-inference-optimal-scaling)
-    - [6.4 Emergent Abilities and Phase Transitions](#64-emergent-abilities-and-phase-transitions)
-    - [6.5 Test-Time Compute Scaling (2024–2026)](#65-test-time-compute-scaling-20242026)
-  - [7. Calibration and Uncertainty](#7-calibration-and-uncertainty)
-    - [7.1 What Is Calibration?](#71-what-is-calibration)
-    - [7.2 Expected Calibration Error (ECE)](#72-expected-calibration-error-ece)
-    - [7.3 Temperature Scaling for Calibration](#73-temperature-scaling-for-calibration)
-    - [7.4 Overconfidence in LLMs](#74-overconfidence-in-llms)
-    - [7.5 Epistemic vs Aleatoric Uncertainty](#75-epistemic-vs-aleatoric-uncertainty)
-  - [8. Conditional Language Models](#8-conditional-language-models)
-    - [8.1 Conditional vs Unconditional LM](#81-conditional-vs-unconditional-lm)
-    - [8.2 Prompt as Conditioning](#82-prompt-as-conditioning)
-    - [8.3 Bayes' Theorem in Decoding](#83-bayes-theorem-in-decoding)
-    - [8.4 Classifier-Free Guidance (CFG)](#84-classifier-free-guidance-cfg)
-    - [8.5 Retrieval-Augmented Generation (RAG)](#85-retrieval-augmented-generation-rag)
-  - [9. RLHF and Reward-Based Probability](#9-rlhf-and-reward-based-probability)
-    - [9.1 From Pretraining to Alignment](#91-from-pretraining-to-alignment)
-    - [9.2 Reward Model](#92-reward-model)
-    - [9.3 PPO Objective (RLHF)](#93-ppo-objective-rlhf)
-    - [9.4 DPO — Direct Preference Optimisation](#94-dpo--direct-preference-optimisation)
-    - [9.5 GRPO — Group Relative Policy Optimisation](#95-grpo--group-relative-policy-optimisation)
-    - [9.6 The Alignment Tax](#96-the-alignment-tax)
-  - [10. Evaluation Metrics](#10-evaluation-metrics)
-    - [10.1 Perplexity (Revisited)](#101-perplexity-revisited)
-    - [10.2 BLEU Score](#102-bleu-score)
-    - [10.3 ROUGE](#103-rouge)
-    - [10.4 BERTScore](#104-bertscore)
-    - [10.5 LLM-as-Judge](#105-llm-as-judge)
-    - [10.6 Benchmark Suites](#106-benchmark-suites)
-  - [11. Numerical Stability and Implementation](#11-numerical-stability-and-implementation)
-    - [11.1 Log-Sum-Exp Trick](#111-log-sum-exp-trick)
-    - [11.2 Numerical Loss of Cross-Entropy](#112-numerical-loss-of-cross-entropy)
-    - [11.3 Mixed Precision Training](#113-mixed-precision-training)
-    - [11.4 Vocabulary Parallelism](#114-vocabulary-parallelism)
-  - [12. Common Mistakes](#12-common-mistakes)
-  - [13. Exercises](#13-exercises)
-  - [14. Why This Matters for AI (2026 Perspective)](#14-why-this-matters-for-ai-2026-perspective)
-  - [Conceptual Bridge](#conceptual-bridge)
-
 ---
 
 ## 1. Intuition
@@ -240,13 +154,13 @@ where $\Delta^{|V|-1}$ is the $(|V|-1)$-dimensional probability simplex.
 
 The LM head converts hidden states to token probabilities:
 
-| Component          | Shape          | Description                               |
-| ------------------ | -------------- | ----------------------------------------- | ---------- | --------------------------------------------------------------------------------------------- |
-| Hidden state $h_n$ | $\mathbb{R}^d$ | Final transformer output for position $n$ |
-| Weight matrix $W$  | $\mathbb{R}^{  | V                                         | \times d}$ | Projection to vocabulary space (often tied to embedding matrix $E$)                           |
-| Bias $b$           | $\mathbb{R}^{  | V                                         | }$         | Optional; often omitted in modern models                                                      |
-| Logits $z$         | $\mathbb{R}^{  | V                                         | }$         | Raw unnormalised scores: $z = Wh_n + b$                                                       |
-| Probabilities $p$  | $\Delta^{      | V                                         | -1}$       | $P(t \mid \text{context}) = \text{softmax}(z)_t = \frac{\exp(z_t)}{\sum_{v \in V} \exp(z_v)}$ |
+| Component          | Shape                                   | Description                                                                                   |
+| ------------------ | --------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Hidden state $h_n$ | $\mathbb{R}^d$                          | Final transformer output for position $n$                                                     |
+| Weight matrix $W$  | $\mathbb{R}^{\lvert V \rvert \times d}$ | Projection to vocabulary space (often tied to embedding matrix $E$)                           |
+| Bias $b$           | $\mathbb{R}^{\lvert V \rvert}$          | Optional; often omitted in modern models                                                      |
+| Logits $z$         | $\mathbb{R}^{\lvert V \rvert}$          | Raw unnormalised scores: $z = Wh_n + b$                                                       |
+| Probabilities $p$  | $\Delta^{\lvert V \rvert - 1}$          | $P(t \mid \text{context}) = \text{softmax}(z)_t = \frac{\exp(z_t)}{\sum_{v \in V} \exp(z_v)}$ |
 
 **Weight tying**: In most modern LLMs, $W = E^\top$ — the LM head weight is the transpose of the token embedding matrix. This halves the parameter count of the vocabulary projection and provides a geometric interpretation: the probability of token $t$ is proportional to $\exp(h_n \cdot e_t)$, the exponentiated cosine-like similarity between the hidden state and the token embedding.
 
@@ -272,14 +186,14 @@ The **surprise** (self-information) of observing token $t$ with probability $P(t
 
 $$I(t) = -\log_2 P(t) \quad \text{(bits)}$$
 
-| $P(t)$ | $I(t)$ (bits) | Interpretation                       |
-| ------ | ------------- | ------------------------------------ | ------- | --- | --- | ----------------------------------------- |
-| 1.0    | 0             | Certain event: no surprise           |
-| 0.5    | 1             | Fair coin flip: 1 bit of information |
-| 0.25   | 2             | Two coin flips worth of surprise     |
-| 0.01   | 6.64          | Rare event: high surprise            |
-| 0.001  | 9.97          | Very rare: ~10 bits                  |
-| $1/    | V             | $                                    | $\log_2 | V   | $   | Maximum surprise for uniform distribution |
+| $P(t)$              | $I(t)$ (bits)            | Interpretation                            |
+| ------------------- | ------------------------ | ----------------------------------------- |
+| 1.0                 | 0                        | Certain event: no surprise                |
+| 0.5                 | 1                        | Fair coin flip: 1 bit of information      |
+| 0.25                | 2                        | Two coin flips worth of surprise          |
+| 0.01                | 6.64                     | Rare event: high surprise                 |
+| 0.001               | 9.97                     | Very rare: ~10 bits                       |
+| $1/\lvert V \rvert$ | $\log_2 \lvert V \rvert$ | Maximum surprise for uniform distribution |
 
 **Key property**: Self-information is additive for independent events: $I(A \cap B) = I(A) + I(B)$.
 
@@ -289,12 +203,12 @@ The **expected surprise** (average self-information) over a distribution:
 
 $$\boxed{H(P) = -\sum_{t \in V} P(t) \log_2 P(t) = \mathbb{E}_{t \sim P}[I(t)]}$$
 
-| Distribution                     | Entropy      | Interpretation                               |
-| -------------------------------- | ------------ | -------------------------------------------- | ------- | --- | ------ | ------------------- |
-| Point mass (one token has $P=1$) | 0 bits       | No uncertainty                               |
-| Uniform over $                   | V            | $ tokens                                     | $\log_2 | V   | $ bits | Maximum uncertainty |
-| English text (Shannon 1951)      | ≈1.0–1.5 BPC | Natural language has structure               |
-| Typical LLM next-token           | ≈2–4 bits    | Model exploits context to reduce uncertainty |
+| Distribution                          | Entropy                       | Interpretation                               |
+| ------------------------------------- | ----------------------------- | -------------------------------------------- |
+| Point mass (one token has $P=1$)      | 0 bits                        | No uncertainty                               |
+| Uniform over $\lvert V \rvert$ tokens | $\log_2 \lvert V \rvert$ bits | Maximum uncertainty                          |
+| English text (Shannon 1951)           | ≈1.0–1.5 BPC                  | Natural language has structure               |
+| Typical LLM next-token                | ≈2–4 bits                     | Model exploits context to reduce uncertainty |
 
 **Shannon's source coding theorem**: Entropy is the minimum average number of bits needed to encode samples from $P$. No lossless compression can beat $H(P)$ bits per symbol on average.
 
@@ -507,14 +421,14 @@ Divide logits by temperature $\tau$ before softmax:
 
 $$\boxed{P_\tau(t \mid t_{<i}) = \frac{\exp(z_t / \tau)}{\sum_v \exp(z_v / \tau)}}$$
 
-| Temperature $\tau$ | Effect                     | Entropy     | Use case                    |
-| ------------------ | -------------------------- | ----------- | --------------------------- | --- | --------------- |
-| $\tau \to 0$       | Approaches greedy (argmax) | $\to 0$     | Maximum confidence          |
-| $\tau = 0.3$       | Sharp, focused             | Low         | Factual QA, code completion |
-| $\tau = 1.0$       | Standard (no change)       | Original    | General purpose             |
-| $\tau = 0.7$       | Slightly sharpened         | Moderate    | Creative writing, dialogue  |
-| $\tau = 1.5$       | Flattened, more random     | High        | Brainstorming, exploration  |
-| $\tau \to \infty$  | Approaches uniform random  | $\to \log_2 | V                           | $   | Pure randomness |
+| Temperature $\tau$ | Effect                     | Entropy                      | Use case                    |
+| ------------------ | -------------------------- | ---------------------------- | --------------------------- |
+| $\tau \to 0$       | Approaches greedy (argmax) | $\to 0$                      | Maximum confidence          |
+| $\tau = 0.3$       | Sharp, focused             | Low                          | Factual QA, code completion |
+| $\tau = 0.7$       | Slightly sharpened         | Moderate                     | Creative writing, dialogue  |
+| $\tau = 1.0$       | Standard (no change)       | Original                     | General purpose             |
+| $\tau = 1.5$       | Flattened, more random     | High                         | Brainstorming, exploration  |
+| $\tau \to \infty$  | Approaches uniform random  | $\to \log_2 \lvert V \rvert$ | Pure randomness             |
 
 **Mathematical insight**: Temperature scales the entropy of the output distribution. If $H_1$ is the entropy at $\tau = 1$, then $H_\tau \approx H_1 / \tau$ for small perturbations.
 

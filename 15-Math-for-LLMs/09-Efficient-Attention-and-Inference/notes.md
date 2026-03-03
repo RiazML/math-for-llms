@@ -534,7 +534,7 @@ Adjacent transformer layers often have similar attention patterns.
 - Cache only compressed latent instead of full K, V ∈ ℝ^d
 - d_c ≪ d; at attention time: K = W_K^U · c, V = W_V^U · c (upproject from latent)
 
-DeepSeek-V2: d_c = 512 vs d = 5120 → **5.75× KV cache reduction vs MHA**
+DeepSeek-V2: d_c = 512 vs d = 5120 → **10× KV cache reduction** (d/d_c). With RoPE dimensions (d_rope = 64), MLA caches d_c + d_rope = 576 per token vs MHA’s 2 × 128 × 128 = 32,768 → **~57× reduction vs full MHA**.
 
 Key trick: absorb the up-projection into W^Q so no extra compute at inference time:
 
@@ -714,10 +714,10 @@ where α = expected acceptance rate per token (α close to 1 → nearly K tokens
 | α    | K=4  | K=8  | K=16  |
 | ---- | ---- | ---- | ----- |
 | 0.5  | 1.94 | 2.00 | 2.00  |
-| 0.7  | 2.83 | 3.20 | 3.33  |
-| 0.8  | 3.36 | 4.16 | 4.76  |
-| 0.9  | 3.81 | 5.70 | 8.23  |
-| 0.95 | 4.15 | 6.63 | 11.50 |
+| 0.7  | 2.77 | 3.20 | 3.33  |
+| 0.8  | 3.36 | 4.33 | 4.89  |
+| 0.9  | 4.10 | 6.13 | 8.33  |
+| 0.95 | 4.52 | 7.40 | 11.64 |
 
 ### 6.4 Speedup Analysis
 
