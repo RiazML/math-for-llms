@@ -34,7 +34,7 @@ math_for_ai/
 │   ├── 01-Partial-Derivatives-and-Gradients/
 │   ├── 02-Jacobians-and-Hessians/
 │   ├── 03-Chain-Rule-and-Backpropagation/
-│   ├── 04-Optimization-Theory/
+│   ├── 04-Optimality-Conditions/
 │   └── 05-Automatic-Differentiation/
 ├── 06-Probability-Theory/
 │   ├── 01-Introduction-and-Random-Variables/
@@ -42,12 +42,15 @@ math_for_ai/
 │   ├── 03-Joint-Distributions/
 │   ├── 04-Expectation-and-Moments/
 │   ├── 05-Concentration-Inequalities/
-│   └── 06-Stochastic-Processes/
+│   ├── 06-Stochastic-Processes/
+│   └── 07-Markov-Chains/
 ├── 07-Statistics/
 │   ├── 01-Descriptive-Statistics/
 │   ├── 02-Estimation-Theory/
 │   ├── 03-Hypothesis-Testing/
-│   └── 04-Bayesian-Inference/
+│   ├── 04-Bayesian-Inference/
+│   ├── 05-Time-Series/
+│   └── 06-Regression-Analysis/
 ├── 08-Optimization/
 │   ├── 01-Convex-Optimization/
 │   ├── 02-Gradient-Descent/
@@ -76,18 +79,17 @@ math_for_ai/
 │   ├── 02-Graph-Representations/
 │   ├── 03-Graph-Algorithms/
 │   ├── 04-Spectral-Graph-Theory/
-│   └── 05-Graph-Neural-Networks/
+│   ├── 05-Graph-Neural-Networks/
+│   └── 06-Random-Graphs/
 ├── 12-Functional-Analysis/
-│   ├── 01-Vector-Spaces/
-│   ├── 02-Normed-Spaces/
-│   ├── 03-Hilbert-Spaces/
-│   └── 04-Kernel-Methods/
+│   ├── 01-Normed-Spaces/
+│   ├── 02-Hilbert-Spaces/
+│   └── 03-Kernel-Methods/
 ├── 13-ML-Specific-Math/
 │   ├── 01-Loss-Functions/
 │   ├── 02-Activation-Functions/
-│   ├── 03-Attention-Mechanisms/
-│   ├── 04-Normalization-Techniques/
-│   └── 05-Sampling-Methods/
+│   ├── 03-Normalization-Techniques/
+│   └── 04-Sampling-Methods/
 ├── 14-Math-for-Specific-Models/
 │   ├── 01-Linear-Models/
 │   ├── 02-Neural-Networks/
@@ -138,5 +140,37 @@ math_for_ai/
 │   ├── 04-Model-Serving-and-Inference-Optimization/
 │   ├── 05-Monitoring-Drift-and-Retraining/
 │   └── 06-LLM-Evaluation-Observability-and-Guardrails/
+├── 20-Fourier-Analysis-and-Signal-Processing/
+│   ├── 01-Fourier-Series/
+│   ├── 02-Fourier-Transform/
+│   ├── 03-Discrete-Fourier-Transform-and-FFT/
+│   ├── 04-Convolution-Theorem/
+│   └── 05-Wavelets/
+├── 21-Statistical-Learning-Theory/
+│   ├── 01-PAC-Learning/
+│   ├── 02-VC-Dimension/
+│   ├── 03-Bias-Variance-Tradeoff/
+│   ├── 04-Generalization-Bounds/
+│   └── 05-Rademacher-Complexity/
+├── 22-Causal-Inference/
+│   ├── 01-Structural-Causal-Models/
+│   ├── 02-Do-Calculus/
+│   ├── 03-Counterfactuals/
+│   └── 04-Causal-Discovery/
+├── 23-Game-Theory/
+│   ├── 01-Nash-Equilibria/
+│   ├── 02-Minimax-Theorem/
+│   ├── 03-Multi-Agent-Systems/
+│   └── 04-Adversarial-Game-Theory/
+├── 24-Measure-Theory/
+│   ├── 01-Sigma-Algebras/
+│   ├── 02-Lebesgue-Integration/
+│   ├── 03-Probability-Measure-Spaces/
+│   └── 04-Radon-Nikodym-Theorem/
+├── 25-Differential-Geometry/
+│   ├── 01-Manifolds/
+│   ├── 02-Riemannian-Geometry/
+│   ├── 03-Geodesics/
+│   └── 04-Optimization-on-Manifolds/
 └── docs/
 ```
