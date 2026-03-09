@@ -1,1359 +1,2227 @@
+[Previous: Systems of Equations](../03-Systems-of-Equations/notes.md) | [Home](../../README.md) | [Next: Matrix Rank](../05-Matrix-Rank/notes.md)
+
+---
+
 # Determinants
+
+> _"A determinant turns an entire linear transformation into one number without throwing away its most important geometry: invertibility, orientation, and volume change."_
 
 ## Overview
 
-The determinant is a scalar value that encodes important properties of a square matrix. It tells us about linear independence, invertibility, and how transformations affect volume. This fundamental concept appears throughout machine learning—from covariance matrix analysis to normalizing flows.
+Among all the quantities attached to a square matrix, the determinant is the most compressed and the most deceptive. It is only one scalar, but it simultaneously encodes whether a matrix is invertible, whether it preserves or reverses orientation, how it scales area or volume, and how its eigenvalues multiply together. That is why determinants feel both elementary and deep: the formulas look concrete, but the ideas connect linear algebra, multivariable calculus, probability, geometry, and modern machine learning.
 
-## Learning Objectives
+At a geometric level, the determinant answers a simple question:
 
-- Understand the geometric meaning of determinants as signed volumes
-- Compute determinants using multiple methods (cofactor, LU, Cholesky)
-- Connect determinants to matrix properties (rank, eigenvalues, invertibility)
-- Apply determinants in ML contexts (Gaussian PDFs, Jacobians, PCA)
-- Handle numerical stability issues with log-determinants
+$$
+\text{What happens to volume when the linear map } x \mapsto Ax \text{ acts on space?}
+$$
+
+If $A$ maps the unit square, unit cube, or unit hypercube to a parallelogram, parallelepiped, or higher-dimensional analogue, the signed volume of that image is exactly $\det(A)$. The absolute value tells you the volume scaling factor. The sign tells you whether the transformation preserves or flips orientation.
+
+At an algebraic level, the same number answers equally fundamental questions:
+
+- Is the matrix invertible?
+- Are its columns linearly independent?
+- What is the constant term of its characteristic polynomial?
+- What is the product of its eigenvalues?
+
+For machine learning, determinants are not decorative theory. They appear operationally in:
+
+- normalising flows through $\log|\det J|$
+- multivariate Gaussian likelihoods through $\log\det(\Sigma)$
+- Gaussian process marginal likelihoods through covariance log-determinants
+- information geometry through Fisher-metric volume terms
+- stability analysis through eigenvalue products and Jacobian determinants
+- structured matrix updates through determinant identities such as the matrix determinant lemma
+
+This chapter therefore treats determinants in four intertwined ways:
+
+- geometric meaning
+- formal definitions
+- efficient computation
+- AI-relevant applications
+
+The goal is not to memorize formulas in isolation. It is to understand why all determinant formulas are really statements about the same object seen from different angles.
 
 ## Prerequisites
 
-- Matrix multiplication and transpose
-- Systems of linear equations
-- Understanding of linear independence
-- Basic understanding of eigenvalues (helpful but not required)
+- Matrix multiplication, transpose, and inverse
+- Systems of linear equations and row reduction
+- Rank, linear dependence, and eigenvalue basics
+- Comfort with basic multivariable calculus notation
+
+## Companion Notebooks
+
+| Notebook | Description |
+| --- | --- |
+| [theory.ipynb](theory.ipynb) | Interactive determinant computation, geometric volume intuition, log-det examples, and AI-motivated demos |
+| [exercises.ipynb](exercises.ipynb) | Guided practice on cofactor expansion, characteristic polynomials, determinant identities, log-determinants, and applications |
+
+## Learning Objectives
+
+After completing this chapter, you should be able to:
+
+- Explain the determinant as signed volume scaling and orientation change
+- Compute determinants using the Leibniz formula, cofactor expansion, and LU-based elimination
+- Use determinant properties correctly under row operations, products, transpose, similarity, and scaling
+- Connect determinants to invertibility, rank, eigenvalues, and characteristic polynomials
+- Derive and use the adjugate identity and Cramer's rule
+- Compute stable log-determinants for SPD matrices and general square matrices
+- Explain why triangular Jacobians make normalising flows tractable
+- Use determinant identities such as the matrix determinant lemma, Sylvester's theorem, and Schur complements
+- Interpret determinant-based quantities in Gaussian models, GPs, DPPs, and information geometry
 
 ---
 
-## 1. What is a Determinant?
+## Table of Contents
 
-### 1.1 Definition
-
-The **determinant** of a square matrix $A$ is a scalar, denoted $\det(A)$ or $|A|$.
-
-**Formal Definition:**
-The determinant is the unique function $\det: M_{n \times n} \to \mathbb{R}$ satisfying:
-1. $\det(I) = 1$ (identity)
-2. Multilinear in rows/columns
-3. Alternating (swapping two rows negates the determinant)
-
-**2×2 Matrix:**
-$$\det\begin{bmatrix} a & b \\ c & d \end{bmatrix} = ad - bc$$
-
-**3×3 Matrix (Sarrus' Rule):**
-$$\det\begin{bmatrix} a & b & c \\ d & e & f \\ g & h & i \end{bmatrix} = aei + bfg + cdh - ceg - bdi - afh$$
-
-### 1.2 Intuitive Understanding
-
-The determinant answers the question: **"How much does this matrix stretch or compress space?"**
-
-```
-Think of it as:
-┌──────────────────────────────────────────────────────────────┐
-│                                                              │
-│  det(A) = "Size change factor" × "Orientation indicator"    │
-│                                                              │
-│  • |det(A)| = how much volumes get scaled                   │
-│  • sign(det(A)) = whether orientation flips                 │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
-```
-
-### 1.3 Geometric Interpretation
-
-```
-The determinant measures SIGNED VOLUME:
-
-2D: Area of parallelogram formed by column vectors
-3D: Volume of parallelepiped formed by column vectors
-nD: n-dimensional hypervolume
-
-Original unit square:        After transformation A:
-┌─────────────┐              ╱╲
-│             │              ╱  ╲
-│      1      │  →  A  →    ╱    ╲    Area = |det(A)|
-│             │            ╱      ╲
-└─────────────┘            ────────
-
-If det(A) > 0: Orientation preserved (counterclockwise stays counterclockwise)
-If det(A) < 0: Orientation flipped (reflection included)
-If det(A) = 0: Collapsed to lower dimension (singular matrix)
-```
-
-**Visual Example - 2D Transformation:**
-```
-Column vectors of A:         Parallelogram formed:
-                              
-A = [a₁ a₂]                        a₂ = (a₁₂, a₂₂)
-    [b₁ b₂]                       ↗
-                              ╱    
-                             ╱      ╲
-                            ╱        ╲
-                    Origin ●──────────→ a₁ = (a₁₁, a₂₁)
-                              
-Area = |det(A)| = |a₁₁·a₂₂ - a₁₂·a₂₁|
-```
-
-### 1.4 Key Property: Invertibility
-
-$$\text{A is invertible} \iff \det(A) \neq 0$$
-
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                      INVERTIBILITY CRITERION                         │
-├──────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  det(A) ≠ 0:                         det(A) = 0:                    │
-│  ─────────────                       ──────────────                  │
-│  • Columns are linearly              • Columns are linearly          │
-│    independent                         dependent                     │
-│  • Full rank (rank = n)              • Rank deficient (rank < n)    │
-│  • A⁻¹ exists                        • A⁻¹ does NOT exist           │
-│  • Unique solution to Ax=b           • No unique solution           │
-│  • Eigenvalues all non-zero          • At least one eigenvalue = 0  │
-│  • Null space = {0}                  • Non-trivial null space       │
-│                                                                      │
-└──────────────────────────────────────────────────────────────────────┘
-```
-
-### 1.5 Why Determinants Matter in ML
-
-| Application | Role of Determinant |
-|-------------|---------------------|
-| Gaussian PDF | Normalization constant includes $\|\Sigma\|^{-1/2}$ |
-| Covariance Analysis | Generalized variance = $\det(\Sigma)$ |
-| Normalizing Flows | Jacobian determinant for density transformation |
-| Feature Selection | Detect redundant/collinear features |
-| Optimization | Hessian determinant indicates saddle points |
-| Change of Variables | Volume element transformation in integrals |
+- [Determinants](#determinants)
+  - [Overview](#overview)
+  - [Prerequisites](#prerequisites)
+  - [Companion Notebooks](#companion-notebooks)
+  - [Learning Objectives](#learning-objectives)
+  - [Table of Contents](#table-of-contents)
+  - [1. Intuition](#1-intuition)
+    - [1.1 What Is a Determinant?](#11-what-is-a-determinant)
+    - [1.2 The Geometric Picture - Volume and Orientation](#12-the-geometric-picture---volume-and-orientation)
+    - [1.3 Why Determinants Matter for AI](#13-why-determinants-matter-for-ai)
+    - [1.4 The Determinant as a Function](#14-the-determinant-as-a-function)
+    - [1.5 Historical Timeline](#15-historical-timeline)
+  - [2. Formal Definitions](#2-formal-definitions)
+    - [2.1 The Leibniz Formula](#21-the-leibniz-formula)
+    - [2.2 The Permutation Group and Signs](#22-the-permutation-group-and-signs)
+    - [2.3 The Axiomatic Definition](#23-the-axiomatic-definition)
+    - [2.4 Equivalent Characterisations](#24-equivalent-characterisations)
+    - [2.5 Cofactor Definition (Recursive)](#25-cofactor-definition-recursive)
+  - [3. Computing Determinants](#3-computing-determinants)
+    - [3.1 The 2x2 Determinant](#31-the-2x2-determinant)
+    - [3.2 The 3x3 Determinant - Sarrus' Rule](#32-the-3x3-determinant---sarrus-rule)
+    - [3.3 Cofactor Expansion - Worked Example (4x4)](#33-cofactor-expansion---worked-example-4x4)
+    - [3.4 Gaussian Elimination Method (Practical)](#34-gaussian-elimination-method-practical)
+    - [3.5 Determinant of Triangular Matrices](#35-determinant-of-triangular-matrices)
+    - [3.6 Special Formulas](#36-special-formulas)
+  - [4. Properties of Determinants](#4-properties-of-determinants)
+    - [4.1 Multiplicativity](#41-multiplicativity)
+    - [4.2 Transpose Invariance](#42-transpose-invariance)
+    - [4.3 Row and Column Operations](#43-row-and-column-operations)
+    - [4.4 Determinant of Products of Special Matrices](#44-determinant-of-products-of-special-matrices)
+    - [4.5 Linear Dependence Test](#45-linear-dependence-test)
+    - [4.6 Determinant and Eigenvalues](#46-determinant-and-eigenvalues)
+  - [5. The Characteristic Polynomial and Eigenvalues](#5-the-characteristic-polynomial-and-eigenvalues)
+    - [5.1 Definition of the Characteristic Polynomial](#51-definition-of-the-characteristic-polynomial)
+    - [5.2 Finding Eigenvalues via the Characteristic Polynomial](#52-finding-eigenvalues-via-the-characteristic-polynomial)
+    - [5.3 The Cayley-Hamilton Theorem](#53-the-cayley-hamilton-theorem)
+    - [5.4 Characteristic Polynomial Examples](#54-characteristic-polynomial-examples)
+    - [5.5 Resolvent and Green's Function](#55-resolvent-and-greens-function)
+  - [6. Cofactor Matrix and Adjugate](#6-cofactor-matrix-and-adjugate)
+    - [6.1 The Cofactor Matrix](#61-the-cofactor-matrix)
+    - [6.2 The Adjugate (Classical Adjoint)](#62-the-adjugate-classical-adjoint)
+    - [6.3 Cramer's Rule](#63-cramers-rule)
+    - [6.4 Derivative of the Determinant](#64-derivative-of-the-determinant)
+  - [7. Determinants and Geometric Transformations](#7-determinants-and-geometric-transformations)
+    - [7.1 Area and Volume](#71-area-and-volume)
+    - [7.2 Orientation](#72-orientation)
+    - [7.3 Specific Transformations and Their Determinants](#73-specific-transformations-and-their-determinants)
+    - [7.4 The Cross Product via Determinants](#74-the-cross-product-via-determinants)
+    - [7.5 Gram Determinant](#75-gram-determinant)
+  - [8. Determinants in Special Matrix Classes](#8-determinants-in-special-matrix-classes)
+    - [8.1 Diagonal and Triangular Matrices](#81-diagonal-and-triangular-matrices)
+    - [8.2 Orthogonal Matrices](#82-orthogonal-matrices)
+    - [8.3 Symmetric Positive Definite Matrices](#83-symmetric-positive-definite-matrices)
+    - [8.4 Vandermonde Matrix](#84-vandermonde-matrix)
+    - [8.5 Circulant Matrices](#85-circulant-matrices)
+    - [8.6 Tridiagonal Matrices](#86-tridiagonal-matrices)
+  - [9. Determinantal Identities](#9-determinantal-identities)
+    - [9.1 The Matrix Determinant Lemma](#91-the-matrix-determinant-lemma)
+    - [9.2 Sylvester's Determinant Theorem](#92-sylvesters-determinant-theorem)
+    - [9.3 Weinstein-Aronszajn Identity](#93-weinstein-aronszajn-identity)
+    - [9.4 Schur Complement and Block Determinants](#94-schur-complement-and-block-determinants)
+    - [9.5 Cauchy-Binet Formula](#95-cauchy-binet-formula)
+  - [10. Log-Determinants in Machine Learning](#10-log-determinants-in-machine-learning)
+    - [10.1 Why Log-Determinant?](#101-why-log-determinant)
+    - [10.2 Normalising Flows](#102-normalising-flows)
+    - [10.3 Architectures Enabling Efficient Log-Det](#103-architectures-enabling-efficient-log-det)
+    - [10.4 Multivariate Gaussian Log-Likelihood](#104-multivariate-gaussian-log-likelihood)
+    - [10.5 Gaussian Process Marginal Likelihood](#105-gaussian-process-marginal-likelihood)
+    - [10.6 Information-Theoretic Role of Log-Det](#106-information-theoretic-role-of-log-det)
+  - [11. Determinants in Advanced Topics](#11-determinants-in-advanced-topics)
+    - [11.1 Jacobian Determinant in Calculus](#111-jacobian-determinant-in-calculus)
+    - [11.2 Functional Determinants](#112-functional-determinants)
+    - [11.3 Determinantal Point Processes](#113-determinantal-point-processes)
+    - [11.4 Random Matrix Theory and Determinants](#114-random-matrix-theory-and-determinants)
+    - [11.5 Determinants in Stability Analysis](#115-determinants-in-stability-analysis)
+  - [12. Computational Considerations](#12-computational-considerations)
+    - [12.1 Algorithms Comparison](#121-algorithms-comparison)
+    - [12.2 Log-Determinant Computation](#122-log-determinant-computation)
+    - [12.3 Gradient of Log-Determinant in Autograd](#123-gradient-of-log-determinant-in-autograd)
+    - [12.4 Stochastic Log-Det Estimation](#124-stochastic-log-det-estimation)
+    - [12.5 Determinants with Low-Rank Structure](#125-determinants-with-low-rank-structure)
+  - [13. Determinants and Linear System Theory](#13-determinants-and-linear-system-theory)
+    - [13.1 Invertibility and the Determinant](#131-invertibility-and-the-determinant)
+    - [13.2 Cramer's Rule and Explicit Formulas](#132-cramers-rule-and-explicit-formulas)
+    - [13.3 Determinant Conditions for Solution Uniqueness](#133-determinant-conditions-for-solution-uniqueness)
+    - [13.4 Characteristic Polynomial and Eigenvalue Systems](#134-characteristic-polynomial-and-eigenvalue-systems)
+  - [14. Common Mistakes](#14-common-mistakes)
+  - [15. Exercises](#15-exercises)
+  - [16. Why This Matters for AI (2026 Edition)](#16-why-this-matters-for-ai-2026-edition)
+  - [17. Conceptual Bridge](#17-conceptual-bridge)
+  - [References](#references)
 
 ---
 
-## 2. Computing Determinants
+## 1. Intuition
 
-### 2.1 2×2 Determinant
+### 1.1 What Is a Determinant?
 
-$$\det\begin{bmatrix} a & b \\ c & d \end{bmatrix} = ad - bc$$
+The determinant is a function
 
-```
-Visual Mnemonic:
-┌───────────┐
-│  a    b   │
-│   ╲  ╱    │  Main diagonal - Anti-diagonal
-│    ╳      │  = (a × d) - (b × c)
-│   ╱  ╲    │
-│  c    d   │
-└───────────┘
-```
+$$
+\det : \mathbb{R}^{n \times n} \to \mathbb{R}
+$$
 
-**Example 1 - Invertible Matrix:**
-$$\det\begin{bmatrix} 3 & 2 \\ 1 & 4 \end{bmatrix} = (3)(4) - (2)(1) = 12 - 2 = 10 \neq 0 \quad \text{✓ Invertible}$$
+that assigns a single scalar to every square matrix. The remarkable fact is not that such a function exists. The remarkable fact is how much it knows.
 
-**Example 2 - Singular Matrix:**
-$$\det\begin{bmatrix} 2 & 4 \\ 1 & 2 \end{bmatrix} = (2)(2) - (4)(1) = 4 - 4 = 0 \quad \text{✗ Singular}$$
+From one number, we can tell:
 
-Notice: The second row is half the first row (linearly dependent).
+- whether the matrix is invertible
+- whether its columns are linearly independent
+- how it scales $n$-dimensional volume
+- whether it preserves or flips orientation
+- what the product of its eigenvalues is
 
-### 2.2 3×3 Determinant (Sarrus' Rule)
+So while a matrix has $n^2$ entries, the determinant distills its most global linear effect into one scalar.
 
-For 3×3 matrices only, use Sarrus' diagonal trick:
+The determinant should be thought of as answering this geometric question:
 
-```
-Copy first two columns to the right:
+```text
+Take a unit box in n dimensions.
+Apply the linear map A.
 
-│ a  b  c │ a  b
-│ d  e  f │ d  e
-│ g  h  i │ g  h
-
-Add diagonals going down-right:      Subtract diagonals going down-left:
-    ↘   ↘   ↘                            ↙   ↙   ↙
-    aei + bfg + cdh               -      ceg + afh + bdi
-
-det = (aei + bfg + cdh) - (ceg + afh + bdi)
+How much does its signed volume change?
 ```
 
-**Example:**
-$$A = \begin{bmatrix} 1 & 2 & 3 \\ 0 & 1 & 4 \\ 5 & 6 & 0 \end{bmatrix}$$
+If the answer is zero, the transformation crushes space into a lower-dimensional object. If the answer is non-zero, the transformation preserves dimension and therefore remains invertible.
 
-$$\det(A) = (1 \cdot 1 \cdot 0 + 2 \cdot 4 \cdot 5 + 3 \cdot 0 \cdot 6) - (3 \cdot 1 \cdot 5 + 1 \cdot 4 \cdot 6 + 2 \cdot 0 \cdot 0)$$
-$$= (0 + 40 + 0) - (15 + 24 + 0) = 40 - 39 = 1$$
+This is why
 
-### 2.3 Cofactor Expansion (Laplace Expansion)
+$$
+\det(A) = 0 \iff A \text{ is singular}
+$$
 
-For any n×n matrix, expand along any row $i$ or column $j$:
+is not an isolated theorem. It is a geometric inevitability.
 
-**Row Expansion:**
-$$\det(A) = \sum_{j=1}^{n} (-1)^{i+j} a_{ij} M_{ij}$$
+### 1.2 The Geometric Picture - Volume and Orientation
 
-**Column Expansion:**
-$$\det(A) = \sum_{i=1}^{n} (-1)^{i+j} a_{ij} M_{ij}$$
+In two dimensions, the determinant of
 
-Where:
-- $M_{ij}$ is the **minor**: determinant of $(n-1) \times (n-1)$ submatrix with row $i$ and column $j$ removed
-- $C_{ij} = (-1)^{i+j} M_{ij}$ is the **cofactor**
+$$
+A =
+\begin{pmatrix}
+a & b \\
+c & d
+\end{pmatrix}
+$$
 
-```
-Sign pattern (checkerboard):
+is
 
-│  +   -   +   -  │
-│  -   +   -   +  │
-│  +   -   +   -  │
-│  -   +   -   +  │
+$$
+\det(A) = ad - bc.
+$$
 
-Position (i,j) has sign (-1)^(i+j)
-```
+If the columns of $A$ are the vectors
 
-**Example - Expansion along First Row:**
-$$A = \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9 \end{bmatrix}$$
+$$
+u =
+\begin{pmatrix}
+a \\
+c
+\end{pmatrix},
+\qquad
+v =
+\begin{pmatrix}
+b \\
+d
+\end{pmatrix},
+$$
 
-$$\det(A) = (+1) \cdot 1 \cdot \det\begin{bmatrix} 5 & 6 \\ 8 & 9 \end{bmatrix} + (-1) \cdot 2 \cdot \det\begin{bmatrix} 4 & 6 \\ 7 & 9 \end{bmatrix} + (+1) \cdot 3 \cdot \det\begin{bmatrix} 4 & 5 \\ 7 & 8 \end{bmatrix}$$
+then $|\det(A)|$ is exactly the area of the parallelogram spanned by $u$ and $v$.
 
-$$= 1(45-48) - 2(36-42) + 3(32-35)$$
-$$= 1(-3) - 2(-6) + 3(-3)$$
-$$= -3 + 12 - 9 = 0$$
+```text
+2D picture
 
-**Strategy:** Expand along the row/column with the most zeros to minimize computation!
-
-### 2.4 Row Reduction Method (Gaussian Elimination)
-
-Reduce matrix to upper triangular form, then multiply diagonal:
-
-$$\det(A) = (\text{sign from swaps}) \times \prod_{i} u_{ii}$$
-
-```
-Algorithm:
-1. Apply row operations to get upper triangular form
-2. Track sign changes from row swaps
-3. det = (±1) × product of diagonal entries
-
-A → U (upper triangular)
-    ┌─────────────┐
-    │ u₁₁  *   *  │
-    │  0  u₂₂  *  │  det(U) = u₁₁ × u₂₂ × u₃₃
-    │  0   0  u₃₃ │
-    └─────────────┘
+v
+^
+|      / 
+|     / 
+|    /    parallelogram area = |det([u v])|
+|   /___
+|  /   /
+| /   /
+|/___/------> u
 ```
 
-**Row Operation Effects:**
-| Operation | Effect on det |
-|-----------|---------------|
-| $R_i \leftrightarrow R_j$ (swap) | $\det \to -\det$ |
-| $R_i \to c \cdot R_i$ (scale) | $\det \to c \cdot \det$ |
-| $R_i \to R_i + c \cdot R_j$ (add) | $\det \to \det$ (unchanged) |
+The sign matters too.
 
-**Example:**
-$$A = \begin{bmatrix} 2 & 1 \\ 4 & 3 \end{bmatrix}$$
+- $\det(A) > 0$: orientation is preserved
+- $\det(A) < 0$: orientation is reversed
+- $\det(A) = 0$: the two column vectors are parallel, so the parallelogram collapses to a line
 
-Step 1: $R_2 \to R_2 - 2R_1$
-$$\begin{bmatrix} 2 & 1 \\ 0 & 1 \end{bmatrix}$$
+In three dimensions, the same idea becomes the signed volume of the parallelepiped spanned by the three columns.
 
-$\det(A) = 2 \times 1 = 2$ ✓
+In $n$ dimensions, nothing conceptually changes. The determinant is the signed $n$-dimensional volume scaling factor of the linear map.
 
-Verification: $ad - bc = 2(3) - 1(4) = 2$ ✓
+This is one of the most important cases where geometric intuition scales cleanly from low dimension to high dimension.
 
-### 2.5 LU Decomposition
+### 1.3 Why Determinants Matter for AI
 
-For large matrices, use LU factorization:
+Determinants are not just a classical linear algebra topic that happens to show up occasionally in machine learning. They sit inside several major AI computations.
 
-$$A = LU \implies \det(A) = \det(L) \cdot \det(U) = 1 \cdot \prod_{i} u_{ii}$$
+**Normalising flows**
 
+The change-of-variables formula uses the Jacobian determinant:
+
+$$
+\log p_X(x)
+=
+\log p_Z(f^{-1}(x))
++
+\log \left| \det \frac{\partial f^{-1}}{\partial x} \right|.
+$$
+
+The entire architecture design of coupling flows, autoregressive flows, Glow-style invertible convolutions, and CNFs is about making this determinant or log-determinant tractable.
+
+**Multivariate Gaussian models**
+
+For
+
+$$
+x \sim \mathcal{N}(\mu, \Sigma),
+$$
+
+the density contains the factor
+
+$$
+\det(\Sigma)^{-1/2}.
+$$
+
+This is the normalisation term that makes the density integrate to one. Gaussian processes, Bayesian linear regression, Kalman filtering, and many variational models depend on this.
+
+**Spectral structure**
+
+Eigenvalues are defined by the equation
+
+$$
+\det(\lambda I - A) = 0.
+$$
+
+So the entry point to eigenvalue theory is itself determinant theory.
+
+**Optimization and stability**
+
+The Hessian determinant appears in second-derivative tests. Jacobian determinants help diagnose local invertibility, singularity, and stability in implicit or dynamical models.
+
+### 1.4 The Determinant as a Function
+
+The determinant is best understood not just by formulas, but by its defining properties.
+
+It is the unique function satisfying:
+
+1. **Multilinearity in the columns**
+2. **Alternating behaviour under column swaps**
+3. **Normalization on the identity**
+
+That is:
+
+- linear in each column separately
+- zero if two columns coincide
+- sign flips when two columns are swapped
+- $\det(I)=1$
+
+These properties are so strong that they determine the determinant uniquely.
+
+This perspective is powerful because it explains why so many facts about determinants are inevitable:
+
+- swapping rows changes sign
+- triangular determinants are products of diagonal entries
+- equal or dependent columns force determinant zero
+- elimination operations preserve or track determinant in predictable ways
+
+So instead of thinking "the determinant is a complicated formula," it is better to think:
+
+```text
+The determinant is the unique alternating multilinear volume form
+normalised to be 1 on the identity basis.
 ```
-L (lower triangular, 1s on diagonal):    U (upper triangular):
-┌─────────────┐                          ┌─────────────┐
-│  1          │                          │ u₁₁  *   *  │
-│  *   1      │  det(L) = 1              │      u₂₂ *  │  det(U) = ∏ uᵢᵢ
-│  *   *   1  │                          │          u₃₃│
-└─────────────┘                          └─────────────┘
-```
 
-**With Partial Pivoting (PA = LU):**
-$$\det(A) = \det(P^{-1}) \cdot \det(L) \cdot \det(U) = (-1)^s \cdot \prod_{i} u_{ii}$$
+### 1.5 Historical Timeline
 
-Where $s$ = number of row swaps in $P$.
+- Seki Takakazu and Leibniz both developed determinant-like expressions in the late 17th century.
+- Cramer gave the first widely recognised determinant-based explicit rule for solving linear systems.
+- Vandermonde and Laplace developed systematic formulas and expansions.
+- Cauchy established crucial algebraic properties such as multiplicativity.
+- Jacobi connected determinants to calculus through the Jacobian.
+- The modern matrix viewpoint then made determinants part of a broader algebraic theory of linear transformations.
+- In the 20th and 21st centuries, determinants moved into operator theory, probability, random matrix theory, and computational ML through log-determinants and Jacobian-based likelihood models.
 
-### 2.6 Complexity Comparison
-
-| Method | Complexity | When to Use |
-|--------|------------|-------------|
-| 2×2 formula | $O(1)$ | 2×2 matrices |
-| 3×3 Sarrus | $O(1)$ | 3×3 matrices only |
-| Cofactor expansion | $O(n!)$ | Small matrices (n ≤ 4) |
-| Row reduction | $O(n^3)$ | General case |
-| LU decomposition | $O(n^3)$ | When you also need LU |
-| Triangular matrix | $O(n)$ | Already triangular |
-
-```python
-import numpy as np
-
-# NumPy uses LAPACK's LU decomposition
-A = np.array([[1, 2], [3, 4]])
-det_A = np.linalg.det(A)  # Returns -2.0
-```
+Historically, determinants were first used to solve systems. Only later did their true geometric meaning become central. In modern ML, both roles are alive at once.
 
 ---
 
-## 3. Properties of Determinants
+## 2. Formal Definitions
 
-### 3.1 Fundamental Properties
+### 2.1 The Leibniz Formula
 
-| Property | Formula | Proof Sketch |
-|----------|---------|--------------|
-| Identity | $\det(I) = 1$ | Product of 1s on diagonal |
-| Transpose | $\det(A^T) = \det(A)$ | Rows and columns are symmetric |
-| Product | $\det(AB) = \det(A)\det(B)$ | Composition of volume scaling |
-| Inverse | $\det(A^{-1}) = 1/\det(A)$ | From $AA^{-1}=I$ and product rule |
-| Scalar | $\det(cA) = c^n \det(A)$ | Each of $n$ rows scaled by $c$ |
-| Power | $\det(A^k) = (\det(A))^k$ | Repeated product rule |
+For a square matrix $A \in \mathbb{R}^{n \times n}$, the determinant can be defined by the Leibniz formula:
 
-### 3.2 Proof: Product Rule
+$$
+\det(A)
+=
+\sum_{\sigma \in S_n}
+\operatorname{sgn}(\sigma)
+\prod_{i=1}^n a_{i,\sigma(i)}.
+$$
 
-**Claim:** $\det(AB) = \det(A)\det(B)$
+This looks intimidating at first, but the pattern is precise:
 
-**Intuitive Proof:**
-- $\det(A)$ = volume scaling factor of transformation $A$
-- $\det(B)$ = volume scaling factor of transformation $B$
-- $AB$ = first apply $B$, then apply $A$
-- Total volume scaling = product of scaling factors
+- choose one entry from each row
+- choose one entry from each column
+- multiply them
+- assign a sign based on the parity of the corresponding permutation
+- sum over all permutations
 
-**Formal Proof Outline:**
-1. Both $\det(AB)$ and $\det(A)\det(B)$ are multilinear, alternating functions in the columns of $B$
-2. Both equal $\det(A)$ when $B = I$
-3. By uniqueness of determinant, they're equal
+For $n=2$, there are only two permutations, so we recover
 
-### 3.3 Row and Column Operations
+$$
+\det
+\begin{pmatrix}
+a & b \\
+c & d
+\end{pmatrix}
+=
+ad - bc.
+$$
 
+For $n=3$, there are six permutations, producing the usual six-term formula.
+
+The Leibniz formula is exact and conceptually complete, but computationally terrible for large $n$, since it has $n!$ terms.
+
+### 2.2 The Permutation Group and Signs
+
+The sign in the Leibniz formula comes from permutation parity.
+
+The symmetric group $S_n$ contains all permutations of $\{1,\dots,n\}$. Each permutation can be written as a product of transpositions, and its sign is
+
+$$
+\operatorname{sgn}(\sigma) = (-1)^k,
+$$
+
+where $k$ is the number of transpositions in such a decomposition.
+
+What matters is not the decomposition itself but its parity. Even permutations always have sign $+1$, odd permutations always have sign $-1$.
+
+For $n=3$, the six permutations split into:
+
+- three even permutations
+- three odd permutations
+
+This is why the $3 \times 3$ determinant formula has three positive and three negative terms.
+
+The determinant therefore depends not only on which row-column products are chosen, but on the parity structure of those choices.
+
+### 2.3 The Axiomatic Definition
+
+The cleanest abstract definition is:
+
+The determinant is the unique function
+
+$$
+\det : \mathbb{R}^{n \times n} \to \mathbb{R}
+$$
+
+such that:
+
+1. **Multilinearity**  
+   For each column separately,
+   $$
+   \det(\dots, \alpha u + \beta v, \dots)
+   =
+   \alpha \det(\dots, u, \dots)
+   +
+   \beta \det(\dots, v, \dots)
+   $$
+
+2. **Alternating property**  
+   Swapping any two columns changes the sign:
+   $$
+   \det(\dots, c_i, \dots, c_j, \dots)
+   =
+   -\det(\dots, c_j, \dots, c_i, \dots)
+   $$
+
+3. **Normalization**  
+   $$
+   \det(I) = 1
+   $$
+
+This definition is mathematically elegant because all the familiar determinant formulas follow from it.
+
+It also makes uniqueness believable: expand every column in the standard basis, apply multilinearity, observe that alternating kills every term with repeated basis vectors, and only permutation terms survive.
+
+### 2.4 Equivalent Characterisations
+
+The determinant can be described in several equivalent ways:
+
+- $\det(A)=0$ iff the columns of $A$ are linearly dependent
+- $\det(A)\neq 0$ iff $A$ is invertible
+- $\det(A)$ is the signed volume scaling of the linear map
+- $\det(A)$ is the product of the eigenvalues, counting algebraic multiplicity
+- for triangular matrices, $\det(A)$ is the product of diagonal entries
+
+These are not unrelated facts. They are different manifestations of the same underlying object.
+
+### 2.5 Cofactor Definition (Recursive)
+
+Another exact definition is recursive.
+
+Delete row $i$ and column $j$ from $A$ to obtain the minor matrix $M_{ij}$. Its determinant is the minor associated with $(i,j)$. The cofactor is
+
+$$
+C_{ij} = (-1)^{i+j}\det(M_{ij}).
+$$
+
+Then expansion along row $i$ gives
+
+$$
+\det(A) = \sum_{j=1}^n a_{ij} C_{ij},
+$$
+
+and expansion along column $j$ gives
+
+$$
+\det(A) = \sum_{i=1}^n a_{ij} C_{ij}.
+$$
+
+The sign pattern is the familiar checkerboard:
+
+```text
++  -  +  -  ...
+-  +  -  +  ...
++  -  +  -  ...
+-  +  -  +  ...
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                 ROW OPERATION EFFECTS ON DETERMINANT                │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  Operation                        Effect on det(A)                  │
-│  ─────────────────────────────────────────────────────────────────  │
-│                                                                     │
-│  Swap two rows:                   det → -det (sign flip)            │
-│      R_i ↔ R_j                    Odd permutation                   │
-│                                                                     │
-│  Multiply row by scalar c:        det → c × det                     │
-│      R_i → c·R_i                  Scales one dimension              │
-│                                                                     │
-│  Add multiple of one row          det → det (unchanged)             │
-│  to another:                      Shear transformation              │
-│      R_i → R_i + c·R_j            doesn't change volume             │
-│                                                                     │
-│  Same rules apply to columns!                                       │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+
+This definition is theoretically useful and perfect for symbolic manipulation or small matrices, but again computationally poor for large $n$.
+
+---
+
+## 3. Computing Determinants
+
+### 3.1 The 2x2 Determinant
+
+For
+
+$$
+A =
+\begin{pmatrix}
+a & b \\
+c & d
+\end{pmatrix},
+$$
+
+the determinant is
+
+$$
+\det(A)=ad-bc.
+$$
+
+This is the simplest nontrivial determinant and already captures all the core geometry:
+
+- if $ad-bc=0$, the columns are parallel
+- if $ad-bc>0$, orientation is preserved
+- if $ad-bc<0$, orientation is reversed
+
+Geometrically, this is the signed area of the parallelogram spanned by the two columns.
+
+### 3.2 The 3x3 Determinant - Sarrus' Rule
+
+For a $3 \times 3$ matrix,
+
+$$
+A =
+\begin{pmatrix}
+a & b & c \\
+d & e & f \\
+g & h & i
+\end{pmatrix},
+$$
+
+the determinant is
+
+$$
+\det(A)=aei+bfg+cdh-ceg-bdi-afh.
+$$
+
+Sarrus' rule is a mnemonic for this formula:
+
+```text
+a b c | a b
+d e f | d e
+g h i | g h
+
+positive diagonals:  aei + bfg + cdh
+negative diagonals:  ceg + afh + bdi
 ```
 
-**Why a Row Swap Changes Sign:**
-- Swapping rows is a reflection
-- Reflections flip orientation
-- Therefore $\det \to -\det$
+Important warning:
 
-**Why Adding Rows Preserves Determinant:**
-$$\begin{vmatrix} a + cb & b \\ c + cd & d \end{vmatrix} = (a+cb)d - b(c+cd) = ad + cbd - bc - bcd = ad - bc$$
+```text
+Sarrus' rule works only for 3x3 matrices.
+It does not generalise.
+```
 
-### 3.4 Special Matrix Determinants
+### 3.3 Cofactor Expansion - Worked Example (4x4)
 
-| Matrix Type | Determinant | Why |
-|-------------|-------------|-----|
-| **Diagonal** | $\prod_i d_{ii}$ | Only diagonal contributes |
-| **Upper/Lower Triangular** | $\prod_i a_{ii}$ | Cofactor expansion along row/column of zeros |
-| **Orthogonal** ($Q^TQ = I$) | $\det(Q) = \pm 1$ | From $\det(Q^TQ) = \det(Q)^2 = 1$ |
-| **Rotation** | $\det(R) = +1$ | Preserves orientation |
-| **Reflection** | $\det(R) = -1$ | Flips orientation |
-| **Symmetric** | Real eigenvalues → real det | — |
-| **Skew-symmetric** (odd $n$) | $\det(A) = 0$ | $\det(A) = \det(-A^T) = (-1)^n\det(A)$ |
-| **Nilpotent** ($A^k = 0$) | $\det(A) = 0$ | All eigenvalues are 0 |
-| **Idempotent** ($A^2 = A$) | $\det(A) = 0$ or $1$ | Eigenvalues are 0 or 1 |
+For larger symbolic determinants, cofactor expansion is practical only when the matrix has a good row or column with many zeros.
 
-**Example - Triangular Matrix:**
-$$\det\begin{bmatrix} 3 & 1 & 4 \\ 0 & 2 & 7 \\ 0 & 0 & 5 \end{bmatrix} = 3 \times 2 \times 5 = 30$$
+Suppose
 
-### 3.5 Block Matrix Determinants
+$$
+A =
+\begin{pmatrix}
+1 & 2 & 0 & 1 \\
+0 & 3 & 0 & 2 \\
+0 & 0 & 4 & 1 \\
+0 & 0 & 0 & 5
+\end{pmatrix}.
+$$
 
-**Block Diagonal:**
-$$\det\begin{bmatrix} A & 0 \\ 0 & B \end{bmatrix} = \det(A) \cdot \det(B)$$
+This matrix is already upper triangular, so we should not expand at all; we should use the triangular rule. But if we did cofactor-expand along the first column, only one term would survive.
 
-**Block Triangular:**
-$$\det\begin{bmatrix} A & C \\ 0 & B \end{bmatrix} = \det(A) \cdot \det(B)$$
+This example teaches the real lesson:
 
-**General 2×2 Block (Schur Complement):**
-If $A$ is invertible:
-$$\det\begin{bmatrix} A & B \\ C & D \end{bmatrix} = \det(A) \cdot \det(D - CA^{-1}B)$$
+```text
+The best determinant method depends on structure.
+Zeros are opportunities.
+Triangular form is the goal.
+```
 
-Where $D - CA^{-1}B$ is the **Schur complement** of $A$.
+### 3.4 Gaussian Elimination Method (Practical)
 
-**Example:**
-$$\det\begin{bmatrix} 2 & 0 & 1 \\ 0 & 3 & 0 \\ 0 & 0 & 4 \end{bmatrix} = 2 \times 3 \times 4 = 24 \quad \text{(diagonal)}$$
+For numerical work, the practical determinant algorithm is elimination.
 
-### 3.6 Determinant and Eigenvalues
+If Gaussian elimination with partial pivoting gives
 
-**Fundamental Relationship:**
-$$\det(A) = \prod_{i=1}^n \lambda_i$$
+$$
+PA = LU,
+$$
 
-The determinant equals the product of all eigenvalues (counting multiplicities).
+then
 
-**Proof:**
-- Characteristic polynomial: $p(\lambda) = \det(A - \lambda I)$
-- Roots are eigenvalues: $p(\lambda) = (-1)^n(\lambda - \lambda_1)(\lambda - \lambda_2)\cdots(\lambda - \lambda_n)$
-- Setting $\lambda = 0$: $\det(A) = (-1)^n(-\lambda_1)(-\lambda_2)\cdots(-\lambda_n) = \lambda_1\lambda_2\cdots\lambda_n$
+$$
+\det(A)
+=
+\det(P^{-1})\det(L)\det(U).
+$$
 
-**Corollary:** Matrix is singular $\iff$ at least one eigenvalue is zero.
+Now:
 
-### 3.7 Trace-Determinant Relationship
+- $\det(L)=1$ for unit lower triangular $L$
+- $\det(U)=\prod_i U_{ii}$
+- $\det(P)=(-1)^k$, where $k$ is the number of row swaps
 
-For a 2×2 matrix:
-$$A = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$$
+Therefore
 
-The characteristic polynomial is:
-$$\lambda^2 - \text{tr}(A)\lambda + \det(A) = 0$$
+$$
+\det(A) = (-1)^k \prod_i U_{ii}.
+$$
+
+This reduces determinant computation from factorial cost to cubic cost:
+
+$$
+O(n!) \quad \longrightarrow \quad O(n^3).
+$$
+
+This is why every serious determinant routine for moderate or large dense matrices is LU-based.
+
+### 3.5 Determinant of Triangular Matrices
+
+If $A$ is triangular, then
+
+$$
+\det(A)=\prod_{i=1}^n a_{ii}.
+$$
+
+The reason is simple. In the Leibniz formula, any non-identity permutation must pick at least one entry above or below the diagonal where the triangular matrix has a zero. So only the identity permutation survives.
+
+This makes diagonal, upper triangular, lower triangular, and block triangular matrices especially nice.
+
+### 3.6 Special Formulas
+
+Several determinant formulas recur constantly in applications.
+
+**Block triangular**
+
+$$
+\det
+\begin{pmatrix}
+A & B \\
+0 & D
+\end{pmatrix}
+=
+\det(A)\det(D).
+$$
+
+**Block diagonal**
+
+$$
+\det(\operatorname{diag}(A_1,\dots,A_k))
+=
+\prod_{j=1}^k \det(A_j).
+$$
+
+**Matrix determinant lemma**
+
+For invertible $A$ and vectors $u,v$,
+
+$$
+\det(A+uv^\top)
+=
+(1+v^\top A^{-1}u)\det(A).
+$$
+
+**Schur complement formula**
+
+If $A$ is invertible, then
+
+$$
+\det
+\begin{pmatrix}
+A & B \\
+C & D
+\end{pmatrix}
+=
+\det(A)\det(D-CA^{-1}B).
+$$
+
+These formulas matter because they turn large determinants into smaller ones and are central in GP updates, low-rank corrections, block systems, and structured models.
+
+---
+
+## 4. Properties of Determinants
+
+### 4.1 Multiplicativity
+
+The defining algebraic property is
+
+$$
+\det(AB)=\det(A)\det(B).
+$$
+
+This is one of the most powerful identities in linear algebra.
+
+Immediate consequences:
+
+$$
+\det(A^{-1}) = \frac{1}{\det(A)},
+$$
+
+$$
+\det(A^k) = \det(A)^k,
+$$
+
+and for scalar $\alpha$,
+
+$$
+\det(\alpha A)=\alpha^n \det(A).
+$$
+
+The last formula is often misremembered. The exponent $n$ appears because scaling the entire matrix by $\alpha$ scales each of the $n$ columns by $\alpha$.
+
+### 4.2 Transpose Invariance
+
+Determinant is unchanged by transpose:
+
+$$
+\det(A^\top)=\det(A).
+$$
+
+This means every row-based statement has a corresponding column-based statement and vice versa.
 
 So:
-- $\lambda_1 + \lambda_2 = \text{tr}(A) = a + d$
-- $\lambda_1 \cdot \lambda_2 = \det(A) = ad - bc$
 
-This generalizes: trace = sum of eigenvalues, det = product of eigenvalues.
+- multilinearity holds in the rows as well as the columns
+- swapping two rows also changes sign
+- cofactor expansion works along any row or any column
 
-### 3.8 Determinant Inequalities
+### 4.3 Row and Column Operations
 
-**Hadamard's Inequality:**
-For a matrix with column vectors $\mathbf{a}_1, \ldots, \mathbf{a}_n$:
-$$|\det(A)| \leq \prod_{j=1}^n \|\mathbf{a}_j\|$$
+Determinants respond to elementary operations in a very controlled way.
 
-Geometric meaning: The parallelepiped volume is at most the product of edge lengths (equality when columns are orthogonal).
+**Swap two rows**
 
-**For Positive Definite Matrices:**
-$$\det(A) \leq \prod_{i=1}^n a_{ii}$$
+- determinant changes sign
 
-The determinant is bounded by the product of diagonal elements.
+**Scale one row by $\alpha$**
 
----
+- determinant is multiplied by $\alpha$
 
-## 4. Geometric Applications
+**Add a multiple of one row to another**
 
-### 4.1 Area of a Parallelogram (2D)
+- determinant is unchanged
 
-Two vectors $\vec{u} = (u_1, u_2)$ and $\vec{v} = (v_1, v_2)$ form a parallelogram.
+The last fact is what makes elimination so useful for determinant computation. Row replacement simplifies the matrix without altering the determinant.
 
-$$\text{Area} = \left| \det\begin{bmatrix} u_1 & v_1 \\ u_2 & v_2 \end{bmatrix} \right| = |u_1 v_2 - u_2 v_1|$$
+The same statements hold for column operations by transpose invariance.
 
-```
-              v = (v₁, v₂)
-             ↗
-            ╱╲
-           ╱  ╲
-          ╱    ╲
-         ╱      ╲
-        ●────────→ u = (u₁, u₂)
-      Origin
-      
-Area = |u₁v₂ - u₂v₁|
-     = |det([u|v])|
-```
+### 4.4 Determinant of Products of Special Matrices
 
-**Example:**
-$$\vec{u} = (3, 0), \quad \vec{v} = (1, 2)$$
-$$\text{Area} = |3 \cdot 2 - 0 \cdot 1| = |6| = 6$$
+If $Q$ is orthogonal, then
 
-**Special Cases:**
-- If $\vec{u}$ and $\vec{v}$ are parallel: Area = 0 (degenerate parallelogram)
-- If $\vec{u}$ and $\vec{v}$ are perpendicular: Area = $\|\vec{u}\| \cdot \|\vec{v}\|$
+$$
+\det(Q)=\pm 1.
+$$
 
-### 4.2 Area of a Triangle
+So orthogonal matrices preserve volume magnitude, though not necessarily orientation.
 
-For a triangle with vertices at $(x_1, y_1)$, $(x_2, y_2)$, $(x_3, y_3)$:
+If $P$ is invertible, then
 
-$$\text{Area} = \frac{1}{2} \left| \det\begin{bmatrix} x_1 & y_1 & 1 \\ x_2 & y_2 & 1 \\ x_3 & y_3 & 1 \end{bmatrix} \right|$$
+$$
+\det(P^{-1}AP)=\det(A).
+$$
 
-Or equivalently:
-$$\text{Area} = \frac{1}{2} |x_1(y_2 - y_3) + x_2(y_3 - y_1) + x_3(y_1 - y_2)|$$
+So determinant is similarity-invariant. It depends on the linear map itself, not on the particular basis representation.
 
-**Example:**
-Triangle with vertices $(0, 0)$, $(4, 0)$, $(2, 3)$:
-$$\text{Area} = \frac{1}{2} |0(0-3) + 4(3-0) + 2(0-0)| = \frac{1}{2} |12| = 6$$
+This matters conceptually for ML: changing basis in representation space does not change the determinant of the underlying linear operator.
 
-### 4.3 Volume of a Parallelepiped (3D)
+### 4.5 Linear Dependence Test
 
-Three vectors $\vec{u}$, $\vec{v}$, $\vec{w}$ form a parallelepiped:
+The determinant detects full-rank failure:
 
-$$\text{Volume} = \left| \det\begin{bmatrix} u_1 & v_1 & w_1 \\ u_2 & v_2 & w_2 \\ u_3 & v_3 & w_3 \end{bmatrix} \right|$$
+$$
+\det(A)=0
+\iff
+\text{columns of } A \text{ are linearly dependent}
+\iff
+\operatorname{rank}(A)<n.
+$$
 
-This equals the **scalar triple product**: $|\vec{u} \cdot (\vec{v} \times \vec{w})|$
+This is one reason determinants became historically tied to system solving. A zero determinant means the square system cannot have a unique solution.
 
-```
-         w
-        ↗╲
-       ╱  ╲
-      ╱    ╲────────╲
-     ╱      ╲        ╲
-    ●────────→ u      ╲
-     ╲        v       ╱
-      ╲      ↗       ╱
-       ╲    ╱       ╱
-        ╲  ╱───────╱
-         ╲╱
+But there is also a numerical warning:
 
-Volume = |det([u|v|w])|
-       = |u · (v × w)|
+```text
+det(A) close to 0 does not reliably mean "numerically close to singular."
 ```
 
-**Example:**
-$$\vec{u} = (1, 0, 0), \quad \vec{v} = (0, 2, 0), \quad \vec{w} = (0, 0, 3)$$
-$$\text{Volume} = \left| \det\begin{bmatrix} 1 & 0 & 0 \\ 0 & 2 & 0 \\ 0 & 0 & 3 \end{bmatrix} \right| = |1 \cdot 2 \cdot 3| = 6$$
+A tiny determinant may simply come from global scaling or large dimension. Condition number, not determinant magnitude, is the correct practical test for near-singularity.
 
-### 4.4 Volume of a Tetrahedron
+### 4.6 Determinant and Eigenvalues
 
-For a tetrahedron with vertices $\mathbf{p}_0, \mathbf{p}_1, \mathbf{p}_2, \mathbf{p}_3$:
+For any square matrix,
 
-$$\text{Volume} = \frac{1}{6} \left| \det\begin{bmatrix} \mathbf{p}_1 - \mathbf{p}_0 \\ \mathbf{p}_2 - \mathbf{p}_0 \\ \mathbf{p}_3 - \mathbf{p}_0 \end{bmatrix} \right|$$
+$$
+\det(A)=\prod_{i=1}^n \lambda_i,
+$$
 
-### 4.5 Cross Product via Determinant
+where the eigenvalues are counted with algebraic multiplicity over $\mathbb{C}$.
 
-The cross product in 3D can be computed symbolically:
+This is one of the deepest bridges in the subject:
 
-$$\vec{u} \times \vec{v} = \det\begin{bmatrix} \hat{i} & \hat{j} & \hat{k} \\ u_1 & u_2 & u_3 \\ v_1 & v_2 & v_3 \end{bmatrix}$$
+- determinant is defined from entries
+- eigenvalues are defined spectrally
+- the product formula connects the two exactly
 
-Expanding:
-$$= \hat{i}(u_2 v_3 - u_3 v_2) - \hat{j}(u_1 v_3 - u_3 v_1) + \hat{k}(u_1 v_2 - u_2 v_1)$$
+For symmetric positive definite matrices, all eigenvalues are positive, so the determinant is positive. For orthogonal matrices, the eigenvalues lie on the unit circle, so the determinant has absolute value $1$.
 
-**Example:**
-$$\vec{u} = (1, 2, 3), \quad \vec{v} = (4, 5, 6)$$
-$$\vec{u} \times \vec{v} = \det\begin{bmatrix} \hat{i} & \hat{j} & \hat{k} \\ 1 & 2 & 3 \\ 4 & 5 & 6 \end{bmatrix}$$
-$$= \hat{i}(12-15) - \hat{j}(6-12) + \hat{k}(5-8) = (-3, 6, -3)$$
+## 5. The Characteristic Polynomial and Eigenvalues
 
-### 4.6 Collinearity and Coplanarity Tests
+### 5.1 Definition of the Characteristic Polynomial
 
-**Three Points Collinear (2D):**
-Points $(x_1, y_1)$, $(x_2, y_2)$, $(x_3, y_3)$ are collinear iff:
-$$\det\begin{bmatrix} x_1 & y_1 & 1 \\ x_2 & y_2 & 1 \\ x_3 & y_3 & 1 \end{bmatrix} = 0$$
+Given a square matrix $A \in \mathbb{R}^{n \times n}$, its characteristic polynomial is
 
-**Four Points Coplanar (3D):**
-Points $\mathbf{p}_1, \mathbf{p}_2, \mathbf{p}_3, \mathbf{p}_4$ are coplanar iff:
-$$\det\begin{bmatrix} x_1 & y_1 & z_1 & 1 \\ x_2 & y_2 & z_2 & 1 \\ x_3 & y_3 & z_3 & 1 \\ x_4 & y_4 & z_4 & 1 \end{bmatrix} = 0$$
+$$
+p_A(\lambda)=\det(\lambda I-A).
+$$
 
-### 4.7 Signed Area and Orientation
+This is a degree-$n$ polynomial in the scalar variable $\lambda$. It is monic, meaning the coefficient of $\lambda^n$ is $1$.
 
-The **signed** determinant (not absolute value) tells us about orientation:
+Expanding it gives
 
-```
-Signed Area/Volume:
+$$
+p_A(\lambda)
+=
+\lambda^n - \operatorname{tr}(A)\lambda^{n-1} + \cdots + (-1)^n \det(A).
+$$
 
-det > 0: Vectors form right-handed system
-         (counterclockwise in 2D)
-         
-det < 0: Vectors form left-handed system
-         (clockwise in 2D)
-         
-det = 0: Vectors are linearly dependent
-         (collinear in 2D, coplanar in 3D)
-```
+Several facts are packed into that one line:
 
-**Application - Point Inside Triangle:**
-Point $P$ is inside triangle $ABC$ iff signs of three signed areas are all the same:
-- sign(Area($PAB$)) = sign(Area($PBC$)) = sign(Area($PCA$))
+- the trace is the sum of eigenvalues
+- the determinant is the product of eigenvalues
+- the intermediate coefficients are symmetric polynomials in the eigenvalues
 
----
+So determinants do not merely help with eigenvalues. They define the polynomial whose roots are the eigenvalues.
 
-## 5. Determinants and Linear Transformations
+### 5.2 Finding Eigenvalues via the Characteristic Polynomial
 
-### 5.1 Transformation Scaling Factor
+A scalar $\lambda$ is an eigenvalue of $A$ exactly when there exists a nonzero vector $v$ such that
 
-The **absolute value** of the determinant gives the scaling factor for areas/volumes:
+$$
+Av=\lambda v.
+$$
 
-$$\text{Area}(T(S)) = |\det(T)| \cdot \text{Area}(S)$$
+Rearranging,
 
-```
-Example: Scaling transformation
+$$
+(A-\lambda I)v=0.
+$$
 
-T = [2  0]  →  det(T) = 4
-    [0  2]
+This homogeneous system has a nontrivial solution exactly when $A-\lambda I$ is singular, so
 
-Original unit square:           After transformation:
-┌─────┐                        ┌───────────┐
-│     │  Area = 1              │           │
-│     │                        │           │  Area = 4
-└─────┘                        │           │
-                               └───────────┘
-```
+$$
+\lambda \text{ is an eigenvalue}
+\iff
+\det(A-\lambda I)=0.
+$$
 
-### 5.2 Common Transformations
+That determinant equation is called the **characteristic equation**.
 
-| Transformation | Matrix | Determinant | Effect |
-|----------------|--------|-------------|--------|
-| Identity | $I$ | 1 | No change |
-| Scaling by $k$ | $kI$ | $k^n$ | Volume × $k^n$ |
-| Rotation by $\theta$ | $\begin{bmatrix}\cos\theta & -\sin\theta \\ \sin\theta & \cos\theta\end{bmatrix}$ | 1 | Preserves area |
-| Reflection | $\begin{bmatrix}1 & 0 \\ 0 & -1\end{bmatrix}$ | -1 | Flips orientation |
-| Shear | $\begin{bmatrix}1 & k \\ 0 & 1\end{bmatrix}$ | 1 | Preserves area |
-| Projection | Rank < n | 0 | Collapses dimension |
-
-### 5.3 Orientation
-
-$$\det(A) > 0 \implies \text{preserves orientation (no reflection)}$$
-$$\det(A) < 0 \implies \text{reverses orientation (includes reflection)}$$
-
-```
-det > 0 (preserves):             det < 0 (flips):
-
-  ↑ y                              ↑ y
-  │    2                           │  1
-  │   ↗                            │   ↖
-  │  1                             │     2
-  ├────→ x                         ├────→ x
-
-Counterclockwise                 Clockwise
-order preserved                  order reversed
-
-Like rotating paper              Like flipping paper
+```text
+Matrix entries
+    ->
+det(lambda I - A)
+    ->
+characteristic polynomial
+    ->
+roots = eigenvalues
 ```
 
-### 5.4 Composition of Transformations
+For $2 \times 2$ matrices, this leads to a quadratic. For $3 \times 3$, a cubic. Beyond that, the polynomial remains theoretically central, but direct symbolic root-finding quickly becomes the wrong computational tool.
 
-When composing transformations:
-$$\det(AB) = \det(A) \cdot \det(B)$$
+In practical numerical linear algebra, one does not compute eigenvalues by first expanding the characteristic polynomial. One uses QR-like iterative algorithms. The determinant remains conceptually foundational, even when it is not computationally front-and-center.
 
-**Interpretation:**
-- If $A$ scales by factor 2 and $B$ scales by factor 3
-- Then $AB$ scales by factor $2 \times 3 = 6$
+### 5.3 The Cayley-Hamilton Theorem
 
-**Example:**
-```
-Rotate 90° then scale by 2:
+One of the most beautiful consequences of the characteristic polynomial is the Cayley-Hamilton theorem:
 
-R = [0 -1]  det(R) = 1 (rotation preserves area)
-    [1  0]
+> Every square matrix satisfies its own characteristic polynomial.
 
-S = [2  0]  det(S) = 4 (scales area by 4)
-    [0  2]
+If
 
-SR = [0 -2]  det(SR) = 4 (combined effect)
-     [2  0]
-```
+$$
+p_A(\lambda)=\lambda^n + c_{n-1}\lambda^{n-1}+\cdots + c_1\lambda + c_0,
+$$
 
-### 5.5 Inverse Transformation
+then
 
-$$\det(A^{-1}) = \frac{1}{\det(A)}$$
+$$
+p_A(A)=A^n + c_{n-1}A^{n-1}+\cdots + c_1A + c_0I = 0.
+$$
 
-If $A$ expands volumes by factor $k$, then $A^{-1}$ compresses by factor $1/k$.
+For a $2 \times 2$ matrix,
 
----
+$$
+p_A(\lambda)=\lambda^2-\operatorname{tr}(A)\lambda+\det(A),
+$$
 
-## 6. Cramer's Rule
+so Cayley-Hamilton becomes
 
-### 6.1 Statement
+$$
+A^2-\operatorname{tr}(A)A+\det(A)I=0.
+$$
 
-For a system $Ax = b$ with $\det(A) \neq 0$ (unique solution exists):
+If $\det(A)\neq 0$, this can be rearranged to express the inverse:
 
-$$x_i = \frac{\det(A_i)}{\det(A)}$$
+$$
+A^{-1}=\frac{\operatorname{tr}(A)I-A}{\det(A)}.
+$$
 
-Where $A_i$ is matrix $A$ with column $i$ replaced by vector $b$.
+That formula is rarely the best numerical method, but it is conceptually revealing. It says the determinant is not merely a scalar summary. It also enters explicit polynomial identities satisfied by the matrix itself.
 
-```
-For Ax = b:
+### 5.4 Characteristic Polynomial Examples
 
-        ┌─────────────────────┐
-        │                     │
-x₁ =    │ det(A with col 1    │  ∕  det(A)
-        │ replaced by b)      │
-        │                     │
-        └─────────────────────┘
-```
+Some standard examples are worth memorising because they calibrate intuition.
 
-### 6.2 Detailed Example
+**Identity matrix**
 
-$$\begin{cases} 2x + y = 5 \\ x + 3y = 6 \end{cases}$$
+$$
+p_I(\lambda)=\det(\lambda I-I)=(\lambda-1)^n.
+$$
 
-**Step 1:** Write in matrix form
-$$A = \begin{bmatrix} 2 & 1 \\ 1 & 3 \end{bmatrix}, \quad b = \begin{bmatrix} 5 \\ 6 \end{bmatrix}$$
+All eigenvalues are $1$, so $\det(I)=1$.
 
-**Step 2:** Compute $\det(A)$
-$$\det(A) = 2(3) - 1(1) = 6 - 1 = 5$$
+**Zero matrix**
 
-**Step 3:** Form $A_1$ (replace column 1 with $b$)
-$$A_1 = \begin{bmatrix} 5 & 1 \\ 6 & 3 \end{bmatrix}, \quad \det(A_1) = 15 - 6 = 9$$
+$$
+p_0(\lambda)=\lambda^n.
+$$
 
-**Step 4:** Form $A_2$ (replace column 2 with $b$)
-$$A_2 = \begin{bmatrix} 2 & 5 \\ 1 & 6 \end{bmatrix}, \quad \det(A_2) = 12 - 5 = 7$$
+All eigenvalues are $0$, so $\det(0)=0$.
 
-**Step 5:** Apply Cramer's Rule
-$$x = \frac{\det(A_1)}{\det(A)} = \frac{9}{5} = 1.8$$
-$$y = \frac{\det(A_2)}{\det(A)} = \frac{7}{5} = 1.4$$
+**Projection matrix**
 
-**Verification:** $2(1.8) + 1.4 = 3.6 + 1.4 = 5$ ✓
+If $P^2=P$ and $\operatorname{rank}(P)=r$, the eigenvalues are $0$ and $1$, so
 
-### 6.3 3×3 Example
+$$
+p_P(\lambda)=\lambda^{n-r}(\lambda-1)^r
+$$
 
-$$\begin{cases} x + 2y + 3z = 6 \\ 2x + 5y + 2z = 4 \\ 6x - 3y + z = 2 \end{cases}$$
+and
 
-$$A = \begin{bmatrix} 1 & 2 & 3 \\ 2 & 5 & 2 \\ 6 & -3 & 1 \end{bmatrix}, \quad b = \begin{bmatrix} 6 \\ 4 \\ 2 \end{bmatrix}$$
+$$
+\det(P)=0
+$$
 
-Compute: $\det(A) = -45$ (using cofactor expansion or LU)
+unless $P=I$.
 
-Then:
-$$x = \frac{\det(A_1)}{\det(A)}, \quad y = \frac{\det(A_2)}{\det(A)}, \quad z = \frac{\det(A_3)}{\det(A)}$$
+**Rotation matrix in 2D**
 
-### 6.4 When to Use Cramer's Rule
+For
 
-| Situation | Recommendation |
-|-----------|---------------|
-| 2×2 or 3×3 systems | Cramer's rule is fine |
-| Symbolic solutions | Cramer's rule gives closed-form |
-| Large systems (n > 4) | Use LU decomposition instead |
-| Multiple right-hand sides | Use LU with forward/back substitution |
-| Numerical computation | Cramer's is O(n!) vs O(n³) for LU |
+$$
+R_\theta=
+\begin{pmatrix}
+\cos\theta & -\sin\theta \\
+\sin\theta & \cos\theta
+\end{pmatrix},
+$$
 
-**Complexity:**
-- Cramer's Rule: $O(n! \cdot n)$ determinants
-- LU Decomposition: $O(n^3)$
+the determinant is
 
-For $n = 10$: Cramer's needs millions of operations, LU needs ~1000.
+$$
+\cos^2\theta+\sin^2\theta=1.
+$$
 
-### 6.5 Theoretical Importance
+So rotations preserve area and orientation.
 
-Despite computational inefficiency, Cramer's Rule proves:
-1. If $\det(A) \neq 0$, a unique solution exists
-2. The solution varies continuously with the entries of $A$ and $b$
-3. **Adjugate formula for inverse:**
-$$A^{-1} = \frac{1}{\det(A)} \text{adj}(A)$$
+### 5.5 Resolvent and Green's Function
 
-Where $\text{adj}(A)$ is the **adjugate** (transpose of cofactor matrix).
+The **resolvent** of a matrix is
 
----
+$$
+R(\lambda)=(\lambda I-A)^{-1},
+$$
 
-## 7. Machine Learning Applications
+defined whenever $\lambda I-A$ is invertible.
 
-### 7.1 Covariance Matrix Determinant (Generalized Variance)
+That means
 
-The determinant of a covariance matrix $\Sigma$ is called the **generalized variance**:
+$$
+R(\lambda) \text{ exists }
+\iff
+\det(\lambda I-A)\neq 0
+\iff
+\lambda \text{ is not an eigenvalue of } A.
+$$
 
-$$\text{Generalized Variance} = \det(\Sigma)$$
+So the determinant detects exactly where the resolvent breaks down.
 
-**Interpretation:**
-- Measures the "total spread" of multivariate data
-- Proportional to the volume of the uncertainty ellipsoid
-- Higher determinant = more overall variability
+This matters in spectral analysis because the poles of the resolvent occur at eigenvalues. In PDEs and operator theory, resolvents lead to Green's functions. In matrix analysis, they give a clean way to think about spectral separation: if $\lambda$ is close to an eigenvalue, the resolvent norm tends to become large.
 
-```
-Large det(Σ):                    Small det(Σ):
-High overall variance            Low overall variance
-Data spread out broadly          Data concentrated
+In machine learning, this viewpoint appears indirectly in:
 
-    ╭─────────────╮                    ╭───╮
-   ╱               ╲                  │   │
-  │                 │                 │   │
-   ╲               ╱                  │   │
-    ╰─────────────╯                    ╰───╯
+- stability of recurrent and iterative models
+- spectral filtering methods
+- graph diffusion operators
+- continuous-time linear systems
 
-det(Σ) = λ₁ × λ₂ × ... × λₙ
-       = Product of eigenvalues (principal variances)
-```
+The determinant is the scalar object that tells you when the resolvent is allowed to exist.
 
-**Example:**
-$$\Sigma = \begin{bmatrix} 4 & 2 \\ 2 & 3 \end{bmatrix}$$
-$$\det(\Sigma) = 4 \cdot 3 - 2 \cdot 2 = 8$$
+## 6. Cofactor Matrix and Adjugate
 
-Eigenvalues: $\lambda_1 \approx 5.236$, $\lambda_2 \approx 1.528$
-Check: $5.236 \times 1.528 \approx 8$ ✓
+### 6.1 The Cofactor Matrix
 
-### 7.2 Multivariate Gaussian PDF
+For each entry $a_{ij}$ of an $n \times n$ matrix $A$, delete row $i$ and column $j$. The determinant of what remains is the **minor** $M_{ij}$.
 
-The probability density function of a multivariate Gaussian:
+The corresponding **cofactor** is
 
-$$p(\mathbf{x}) = \frac{1}{(2\pi)^{d/2} |\Sigma|^{1/2}} \exp\left(-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu})^T \Sigma^{-1}(\mathbf{x}-\boldsymbol{\mu})\right)$$
+$$
+C_{ij}=(-1)^{i+j}M_{ij}.
+$$
 
-**Role of Determinant:**
-- $|\Sigma|^{1/2}$ in denominator normalizes the PDF
-- Larger $\det(\Sigma)$ → flatter, more spread distribution
-- Smaller $\det(\Sigma)$ → peaked, concentrated distribution
+The alternating sign pattern is the familiar checkerboard:
 
-```
-Normalization factor breakdown:
-
-1/[(2π)^(d/2) × |Σ|^(1/2)]
-
-• (2π)^(d/2): scales with dimension
-• |Σ|^(1/2): scales with covariance "volume"
-
-Together they ensure: ∫ p(x) dx = 1
+```text
++  -  +  -  ...
+-  +  -  +  ...
++  -  +  -  ...
+-  +  -  +  ...
 ```
 
-**Log-Likelihood:**
-$$\log p(\mathbf{x}) = -\frac{d}{2}\log(2\pi) - \frac{1}{2}\log|\Sigma| - \frac{1}{2}(\mathbf{x}-\boldsymbol{\mu})^T \Sigma^{-1}(\mathbf{x}-\boldsymbol{\mu})$$
+The matrix of these cofactors is the **cofactor matrix**.
 
-### 7.3 Maximum Likelihood Estimation
+Why does this matter? Because cofactors package every cofactor expansion at once. They are not just bookkeeping devices. They are the entries of the gradient of the determinant and the building blocks of the inverse formula.
 
-When fitting a Gaussian to data, we maximize the log-likelihood:
+### 6.2 The Adjugate (Classical Adjoint)
 
-$$\mathcal{L} = -\frac{n}{2}\log(2\pi) - \frac{n}{2}\log|\Sigma| - \frac{1}{2}\sum_{i=1}^n (\mathbf{x}_i - \boldsymbol{\mu})^T\Sigma^{-1}(\mathbf{x}_i - \boldsymbol{\mu})$$
+The **adjugate** of $A$, written $\operatorname{adj}(A)$, is the transpose of the cofactor matrix:
 
-The $\log|\Sigma|$ term penalizes large variances (prevents overfitting).
+$$
+\operatorname{adj}(A)_{ij}=C_{ji}.
+$$
 
-### 7.4 Model Selection and Information Criteria
+Its key identity is
 
-**Bayesian Information Criterion (BIC):**
-$$\text{BIC} = -2\log L + k\log n$$
+$$
+A \operatorname{adj}(A)=\operatorname{adj}(A)A=\det(A)I.
+$$
 
-Where log-likelihood $L$ includes determinant terms.
+This is one of the most important identities in the chapter.
 
-**Akaike Information Criterion (AIC):**
-$$\text{AIC} = -2\log L + 2k$$
+Why does it work?
 
-For Gaussian models, the determinant affects model comparison.
+- on the diagonal, you recover the cofactor expansion of the determinant
+- off the diagonal, you get the determinant of a matrix with two equal rows, which vanishes
 
-### 7.5 Linear Discriminant Analysis (LDA)
+So when $\det(A)\neq 0$,
 
-LDA uses determinants to compare within-class and between-class scatter:
+$$
+A^{-1}=\frac{\operatorname{adj}(A)}{\det(A)}.
+$$
 
-$$J = \frac{|\mathbf{S}_B|}{|\mathbf{S}_W|}$$
+For a $2 \times 2$ matrix,
 
-- $\mathbf{S}_B$: Between-class scatter matrix
-- $\mathbf{S}_W$: Within-class scatter matrix
-- Maximize $J$ for best class separation
+$$
+\operatorname{adj}
+\begin{pmatrix}
+a & b \\
+c & d
+\end{pmatrix}
+=
+\begin{pmatrix}
+d & -b \\
+-c & a
+\end{pmatrix},
+$$
 
-### 7.6 PCA and Total Variance
+which reproduces the standard inverse formula.
 
-In Principal Component Analysis:
+### 6.3 Cramer's Rule
 
-$$\det(\Sigma) = \prod_{i=1}^d \lambda_i = \text{Product of eigenvalues}$$
+Suppose $Ax=b$ and $\det(A)\neq 0$. Let $A_i$ be the matrix obtained by replacing column $i$ of $A$ with the right-hand side vector $b$. Then
 
-**Interpretation:**
-- Each $\lambda_i$ is variance along principal component $i$
-- $\det(\Sigma)$ = "volume" of variance in all directions
-- If any $\lambda_i = 0$: data lies in lower-dimensional subspace
+$$
+x_i=\frac{\det(A_i)}{\det(A)}.
+$$
 
-**Proportion of Variance:**
-$$\frac{\lambda_1 + \cdots + \lambda_k}{\lambda_1 + \cdots + \lambda_d} = \text{Variance explained by first k PCs}$$
+This is **Cramer's rule**.
 
-### 7.7 Jacobian Determinant (Change of Variables)
+Its computational value is low for large systems, but its theoretical value is high:
 
-**Fundamental Theorem:** When transforming a random variable through a function $g$:
+- it gives an explicit formula for each coordinate of the solution
+- it proves uniqueness immediately when $\det(A)\neq 0$
+- it shows solutions depend rationally on the data
 
-$$p_Y(y) = p_X(g^{-1}(y)) \left| \det\left(\frac{\partial g^{-1}}{\partial y}\right) \right|$$
+In modern numerical work, Cramer's rule is almost never used for solving systems. LU or QR is the right tool. But Cramer's rule remains important in theory, symbolic algebra, and derivations involving parameter dependence.
 
-```
-X ~ p_X                    Y = g(X) ~ p_Y
+### 6.4 Derivative of the Determinant
 
-    p_X(x)                     p_Y(y)
-       ↑                          ↑
-       │  ╭──╮                    │    ╭─╮
-       │ ╱    ╲                   │   ╱   ╲
-       │╱      ╲                  │  ╱     ╲
-       └────────→ x               └────────→ y
-       
-       ↓     g     ↓
-       
-       |det(J)|: Accounts for how g stretches/compresses space
-```
+A major reason determinants matter in machine learning is that they differentiate cleanly.
 
-**Applications in Deep Learning:**
+For each entry,
 
-1. **Normalizing Flows:**
-   Transform simple distributions (Gaussian) to complex ones while tracking probability:
-   $$\log p_K(z_K) = \log p_0(z_0) - \sum_{k=1}^K \log|\det J_{f_k}|$$
+$$
+\frac{\partial \det(A)}{\partial A_{ij}}=C_{ij}.
+$$
 
-2. **Variational Autoencoders (VAEs):**
-   The reparameterization trick involves Jacobian determinants.
+In matrix form,
 
-3. **Generative Models:**
-   Flow-based models (RealNVP, Glow) use efficient Jacobian determinants.
+$$
+\nabla_A \det(A)=\operatorname{adj}(A)^T.
+$$
 
-### 7.8 Efficient Jacobian Computation in Flows
+If $A$ is invertible, using $\operatorname{adj}(A)=\det(A)A^{-1}$ gives
 
-For tractable normalizing flows, we need efficient $\log|\det J|$ computation:
+$$
+\nabla_A \det(A)=\det(A)A^{-T}.
+$$
 
-**Triangular Jacobian:**
-$$\log|\det J| = \sum_i \log|J_{ii}|$$
+The log-determinant is even cleaner:
 
-This is why flows use:
-- Coupling layers (block triangular)
-- Autoregressive flows (triangular)
+$$
+\nabla_A \log|\det(A)|=A^{-T}.
+$$
 
-**Example - Affine Coupling Layer:**
-```
-Split: x = [x_a, x_b]
-Transform: y_b = x_b ⊙ exp(s(x_a)) + t(x_a)
+This formula appears constantly in:
 
-Jacobian is triangular:
-J = [I  0]
-    [*  diag(exp(s(x_a)))]
+- normalising flow training
+- Gaussian process hyperparameter optimisation
+- covariance learning
+- information geometry
 
-log|det J| = sum(s(x_a))  ← Very efficient!
-```
+There is also a useful scalar derivative identity with respect to parameters:
 
-### 7.9 Regularization and Determinant
+$$
+\frac{d}{d\theta}\log\det A(\theta)
+=
+\operatorname{tr}\!\left(A(\theta)^{-1}\frac{dA(\theta)}{d\theta}\right),
+$$
 
-In some regularization schemes:
+assuming $A(\theta)$ stays invertible.
 
-**Log-Determinant Regularization:**
-$$\mathcal{L} = \text{loss} - \lambda \log\det(\Sigma)$$
+This converts a difficult-looking derivative of a determinant into a trace of a matrix product, which is much easier to manipulate analytically and computationally.
 
-Encourages non-degenerate covariance estimates.
+## 7. Determinants and Geometric Transformations
 
-**Relationship to Trace:**
-For covariance regularization:
-- $\text{tr}(\Sigma)$ = sum of variances
-- $\det(\Sigma)$ = product of variances
-- These provide different regularization effects
+### 7.1 Area and Volume
 
-### 7.10 Condition Number and Numerical Stability
+The cleanest geometric interpretation of the determinant is volume scaling.
 
-**Condition Number:**
-$$\kappa(A) = \|A\| \cdot \|A^{-1}\| = \frac{\sigma_{\max}}{\sigma_{\min}} = \frac{|\lambda_{\max}|}{|\lambda_{\min}|}$$
+If the columns of $A$ are the vectors $v_1,\dots,v_n$, then
 
-**Relationship to Determinant:**
-- Small $\det(A)$ doesn't always mean ill-conditioned
-- If $\det(A)$ is tiny relative to matrix size: likely ill-conditioned
-- Use condition number for numerical stability checks, not determinant
+$$
+|\det(A)|
+$$
 
-```
-Example of misleading determinant:
+is the volume of the parallelepiped spanned by those columns.
 
-A = [10^10    0  ]  det(A) = 10^10  (large, but...)
-    [  0   10^-10]
-    
-Condition number κ(A) = 10^20  (extremely ill-conditioned!)
-```
+```text
+In 2D:
+columns -> parallelogram
+|det|   -> area
 
----
+In 3D:
+columns -> parallelepiped
+|det|   -> volume
 
-## 8. Computational Considerations
-
-### 8.1 Complexity Comparison
-
-| Method | Complexity | Memory | Best For |
-|--------|------------|--------|----------|
-| 2×2 formula | $O(1)$ | $O(1)$ | 2×2 matrices |
-| Sarrus' rule | $O(1)$ | $O(1)$ | 3×3 matrices only |
-| Cofactor expansion | $O(n!)$ | $O(n^2)$ | Symbolic, small matrices |
-| Row reduction | $O(n^3)$ | $O(n^2)$ | General numerical |
-| LU decomposition | $O(n^3)$ | $O(n^2)$ | When you also need LU |
-| Cholesky (SPD) | $O(n^3/3)$ | $O(n^2)$ | Symmetric positive definite |
-| Triangular | $O(n)$ | $O(1)$ | Already triangular |
-
-### 8.2 Numerical Issues
-
-**Problem 1: Overflow**
-Determinants can be astronomically large.
-
-```python
-import numpy as np
-
-# 100×100 matrix with entries ~1
-A = np.random.randn(100, 100) + 2
-det_A = np.linalg.det(A)  # Could be 10^50 or higher!
+In nD:
+columns -> n-dimensional parallelotope
+|det|   -> n-volume
 ```
 
-**Problem 2: Underflow**
-Determinants can be incredibly small.
+This interpretation is not just intuition. It is the reason the determinant appears in the change-of-variables theorem from multivariable calculus.
 
-```python
-# 100×100 matrix with small diagonal
-A = np.diag(np.full(100, 0.1))
-det_A = np.linalg.det(A)  # = 0.1^100 ≈ 10^-100 (underflows!)
+### 7.2 Orientation
+
+Absolute value gives size change. The sign gives orientation.
+
+Two ordered bases of $\mathbb{R}^n$ have the same orientation if the change-of-basis matrix between them has positive determinant, and opposite orientation if the determinant is negative.
+
+So:
+
+- $\det(A)>0$: orientation preserved
+- $\det(A)<0$: orientation reversed
+- $\det(A)=0$: orientation is no longer meaningful because the map collapses dimension
+
+```text
+det > 0   preserve handedness
+det < 0   flip handedness
+det = 0   flatten space
 ```
 
-**Problem 3: Near-Singular Matrices**
-```python
-# Nearly singular: det ≈ 0 but not exactly
-A = np.array([[1, 1], [1, 1.00000001]])
-det_A = np.linalg.det(A)  # ≈ 10^-8, very sensitive to perturbations
+This is why reflections have determinant $-1$ while rotations have determinant $+1$.
+
+### 7.3 Specific Transformations and Their Determinants
+
+Some standard transformations are worth learning as templates.
+
+**Uniform scaling**
+
+For $\alpha I$ in $\mathbb{R}^{n \times n}$,
+
+$$
+\det(\alpha I)=\alpha^n.
+$$
+
+Scaling each axis by $\alpha$ scales volume by $\alpha^n$.
+
+**Rotation**
+
+Any proper rotation has determinant $+1$. It preserves both volume and orientation.
+
+**Reflection**
+
+A reflection has determinant $-1$. It preserves volume magnitude but flips orientation.
+
+**Shear**
+
+A shear matrix typically has determinant $1$. It distorts shape but preserves volume.
+
+**Projection**
+
+A nontrivial projection has determinant $0$, since it collapses at least one dimension.
+
+These examples are operationally useful because they let you interpret determinants before calculating them.
+
+### 7.4 The Cross Product via Determinants
+
+In $\mathbb{R}^3$, the cross product can be written formally as a determinant:
+
+$$
+u \times v
+=
+\begin{vmatrix}
+e_1 & e_2 & e_3 \\
+u_1 & u_2 & u_3 \\
+v_1 & v_2 & v_3
+\end{vmatrix}.
+$$
+
+Expanding along the first row yields
+
+$$
+u \times v
+=
+(u_2v_3-u_3v_2)e_1
+-
+(u_1v_3-u_3v_1)e_2
++
+(u_1v_2-u_2v_1)e_3.
+$$
+
+The magnitude satisfies
+
+$$
+\|u \times v\| = \|u\|\,\|v\|\sin\theta,
+$$
+
+which is the area of the parallelogram spanned by $u$ and $v$.
+
+So determinant structure is hiding inside the cross product too. In three dimensions, oriented area and determinant algebra become the same story told in two different languages.
+
+### 7.5 Gram Determinant
+
+If $v_1,\dots,v_k \in \mathbb{R}^n$, their Gram matrix is
+
+$$
+G_{ij}=\langle v_i,v_j\rangle.
+$$
+
+If $V=[v_1 \ \cdots \ v_k]$, then
+
+$$
+G=V^TV.
+$$
+
+The determinant of $G$ satisfies:
+
+- $\det(G)\geq 0$
+- $\det(G)=0$ iff the vectors are linearly dependent
+- $\sqrt{\det(G)}$ is the $k$-dimensional volume of the parallelepiped spanned by the vectors
+
+This is a subtle but important extension:
+
+- ordinary determinant measures volume when the spanning vectors live in the same dimension as the space
+- Gram determinant measures the intrinsic volume of $k$ vectors inside a possibly larger ambient space
+
+That distinction matters in high-dimensional ML, where one often studies a small set of vectors inside a very large representation space.
+
+## 8. Determinants in Special Matrix Classes
+
+### 8.1 Diagonal and Triangular Matrices
+
+For diagonal and triangular matrices, determinant computation collapses to the simplest possible formula:
+
+$$
+\det(A)=\prod_{i=1}^n a_{ii}.
+$$
+
+For diagonal matrices this is obvious from the Leibniz formula: only the identity permutation contributes.
+
+For triangular matrices the same reasoning applies. Any non-identity permutation must select at least one off-diagonal zero, so every non-identity term vanishes.
+
+This fact is why LU factorisation is so powerful. Once a matrix has been reduced to triangular form, determinant computation becomes just a signed product of pivots.
+
+```text
+A --elimination--> U
+
+det(A) = sign_from_swaps * product(diagonal of U)
 ```
 
-### 8.3 Log-Determinant: The Solution
+### 8.2 Orthogonal Matrices
 
-For positive definite matrices, use the **log-determinant**:
+If $Q$ is orthogonal, then
 
-$$\log\det(\Sigma) = \sum_{i=1}^n \log(\lambda_i) = 2\sum_{i=1}^n \log(L_{ii})$$
+$$
+Q^TQ=I.
+$$
 
-Where $L$ is the Cholesky factor ($\Sigma = LL^T$).
+Taking determinants gives
 
-**Benefits:**
-1. Avoids overflow/underflow
-2. Products become sums
-3. More numerically stable
+$$
+\det(Q)^2=\det(I)=1,
+$$
 
-```python
-import numpy as np
+so
 
-def log_det_cholesky(Sigma):
-    """Stable log-determinant via Cholesky decomposition."""
-    L = np.linalg.cholesky(Sigma)
-    return 2 * np.sum(np.log(np.diag(L)))
+$$
+\det(Q)\in\{+1,-1\}.
+$$
 
-# Example
-Sigma = np.array([[4.0, 2.0], [2.0, 3.0]])
-log_det = log_det_cholesky(Sigma)  # = log(8) ≈ 2.079
+This means orthogonal matrices preserve volume magnitude exactly.
+
+- $\det(Q)=+1$: rotation-type behaviour
+- $\det(Q)=-1$: reflection-type behaviour
+
+This is one reason orthogonal initialisation is so useful in deep learning. A matrix with singular values near $1$ avoids exploding or vanishing signal magnitude, and the determinant provides the most global version of that statement: no overall volume collapse or explosion occurs when $|\det(Q)|=1$.
+
+### 8.3 Symmetric Positive Definite Matrices
+
+If $A$ is symmetric positive definite (SPD), then all eigenvalues are positive, so
+
+$$
+\det(A)=\prod_{i=1}^n \lambda_i > 0.
+$$
+
+This ensures the log-determinant is real:
+
+$$
+\log\det(A)=\sum_{i=1}^n \log\lambda_i.
+$$
+
+If $A=LL^T$ is the Cholesky factorisation, then
+
+$$
+\det(A)=\det(L)^2=\left(\prod_{i=1}^n L_{ii}\right)^2
+$$
+
+and therefore
+
+$$
+\log\det(A)=2\sum_{i=1}^n \log L_{ii}.
+$$
+
+This identity is central in:
+
+- Gaussian likelihoods
+- Gaussian process marginal likelihoods
+- kernel methods
+- covariance estimation
+
+It is numerically far better than computing the determinant directly and then taking a logarithm.
+
+### 8.4 Vandermonde Matrix
+
+The Vandermonde matrix associated with numbers $x_1,\dots,x_n$ is
+
+$$
+V=
+\begin{pmatrix}
+1 & 1 & \cdots & 1 \\
+x_1 & x_2 & \cdots & x_n \\
+x_1^2 & x_2^2 & \cdots & x_n^2 \\
+\vdots & \vdots & \ddots & \vdots \\
+x_1^{n-1} & x_2^{n-1} & \cdots & x_n^{n-1}
+\end{pmatrix}.
+$$
+
+Its determinant is
+
+$$
+\det(V)=\prod_{1\leq i<j\leq n}(x_j-x_i).
+$$
+
+So:
+
+- it is zero exactly when two nodes coincide
+- it is nonzero exactly when polynomial interpolation on distinct nodes is unique
+
+This is one of the great closed-form determinant formulas in classical linear algebra.
+
+### 8.5 Circulant Matrices
+
+A circulant matrix is determined entirely by its first row, and each later row is a cyclic shift of the previous one.
+
+These matrices are diagonalised by the discrete Fourier transform (DFT) matrix, so their eigenvalues are given by the Fourier transform of the first row. Therefore
+
+$$
+\det(C)=\prod_{k=1}^n \lambda_k,
+$$
+
+where those $\lambda_k$ are Fourier-domain quantities.
+
+This is a useful example because it shows how structure converts determinant computation from generic $O(n^3)$ work into something closer to FFT cost.
+
+In ML, circulant and convolution-like structure appears in:
+
+- convolutional kernels
+- FFT-based linear layers
+- structured state-space models
+- fast kernel methods
+
+### 8.6 Tridiagonal Matrices
+
+For a tridiagonal matrix, determinants satisfy a recurrence relation rather than requiring full elimination.
+
+If the diagonal entries are $a_i$, upper diagonal entries $b_i$, and lower diagonal entries $c_i$, then the determinant $d_n$ of the leading $n \times n$ block satisfies
+
+$$
+d_n = a_n d_{n-1} - b_{n-1}c_{n-1} d_{n-2},
+$$
+
+with appropriate initial conditions.
+
+This reduces the cost from cubic to linear time for that special structure.
+
+That matters in PDE discretisations, Kalman-style banded systems, and any structured model where nearest-neighbour interactions dominate.
+
+## 9. Determinantal Identities
+
+### 9.1 The Matrix Determinant Lemma
+
+For invertible $A$ and vectors $u,v$,
+
+$$
+\det(A+uv^T)=\left(1+v^TA^{-1}u\right)\det(A).
+$$
+
+This is the **matrix determinant lemma**.
+
+It says a rank-1 perturbation of a matrix changes the determinant by a scalar correction factor rather than requiring a full recomputation.
+
+That is already useful on its own, but the deeper lesson is structural:
+
+```text
+full n x n determinant
+    +
+low-rank update
+        ->
+small correction problem
 ```
 
-**Using scipy:**
-```python
-from scipy.linalg import cho_factor, cho_solve
+For low-rank updates $UV^T$ with $U,V \in \mathbb{R}^{n \times k}$, the identity generalises to
 
-c, lower = cho_factor(Sigma)
-log_det = 2 * np.sum(np.log(np.diag(c)))
+$$
+\det(A+UV^T)=\det(A)\det(I_k+V^TA^{-1}U).
+$$
+
+Now an $n \times n$ determinant becomes a $k \times k$ determinant, which is a massive computational win when $k \ll n$.
+
+### 9.2 Sylvester's Determinant Theorem
+
+If $A \in \mathbb{R}^{m \times n}$ and $B \in \mathbb{R}^{n \times m}$, then
+
+$$
+\det(I_m+AB)=\det(I_n+BA).
+$$
+
+The matrices on the two sides do not even have the same size, yet the determinants agree.
+
+This is a profoundly useful identity because it allows you to move the determinant to the smaller side.
+
+If $m \ll n$, compute the left side. If $n \ll m$, compute the right side.
+
+In ML this matters whenever a covariance, Hessian approximation, or low-rank adapter can be written as "identity plus low-rank product".
+
+### 9.3 Weinstein-Aronszajn Identity
+
+Closely related identities let us factor determinant changes under perturbation:
+
+$$
+\det(A-B)=\det(A)\det(I-A^{-1}B),
+$$
+
+whenever $A$ is invertible.
+
+This is conceptually the same move:
+
+- pull out the large, known matrix
+- reduce the new determinant to a perturbation around identity
+
+The identity is especially useful when $A^{-1}B$ is low-rank, small in norm, or has special structure.
+
+### 9.4 Schur Complement and Block Determinants
+
+For a block matrix
+
+$$
+M=
+\begin{pmatrix}
+A & B \\
+C & D
+\end{pmatrix},
+$$
+
+if $A$ is invertible, then
+
+$$
+\det(M)=\det(A)\det(D-CA^{-1}B).
+$$
+
+The matrix
+
+$$
+D-CA^{-1}B
+$$
+
+is the **Schur complement** of $A$ in $M$.
+
+This identity is everywhere in applied mathematics because it converts a large determinant into:
+
+- determinant of a block
+- determinant of a smaller corrected block
+
+It underlies block Gaussian elimination, conditional Gaussians, saddle-point systems, and many structured probabilistic models.
+
+### 9.5 Cauchy-Binet Formula
+
+The Cauchy-Binet formula generalises $\det(AB)=\det(A)\det(B)$ to rectangular matrices.
+
+If $A \in \mathbb{R}^{m \times n}$ and $B \in \mathbb{R}^{n \times m}$ with $m \leq n$, then
+
+$$
+\det(AB)
+=
+\sum_{S \subseteq \{1,\dots,n\}, |S|=m}
+\det(A_{:,S})\det(B_{S,:}).
+$$
+
+This looks technical, but its meaning is geometric: the determinant of the composed map can be decomposed into contributions from all $m$-dimensional coordinate selections.
+
+It appears naturally in:
+
+- volume identities
+- exterior algebra
+- determinantal point process theory
+- low-rank approximation arguments
+
+## 10. Log-Determinants in Machine Learning
+
+### 10.1 Why Log-Determinant?
+
+Determinants grow or shrink exponentially in dimension. That makes raw determinant values numerically fragile.
+
+For example,
+
+$$
+\det(2I_{1000})=2^{1000},
+\qquad
+\det(0.5I_{1000})=0.5^{1000}.
+$$
+
+One overflows; the other underflows.
+
+The log-determinant fixes this:
+
+$$
+\log|\det(2I_{1000})| = 1000\log 2,
+$$
+
+which is perfectly manageable.
+
+This is why modern probabilistic ML almost always uses $\log\det$ rather than $\det$ directly.
+
+There is also an optimization reason:
+
+$$
+\nabla_A \log|\det(A)|=A^{-T}
+$$
+
+is much cleaner than differentiating the determinant itself.
+
+### 10.2 Normalising Flows
+
+Normalising flows define an invertible map
+
+$$
+x=f(z)
+$$
+
+that transforms a simple base distribution into a more complex one.
+
+The change-of-variables formula says
+
+$$
+\log p_X(x)=\log p_Z(z)-\log\left|\det\frac{\partial f}{\partial z}\right|.
+$$
+
+So every flow model lives or dies by the cost of computing
+
+$$
+\log|\det J_f(z)|.
+$$
+
+This is not an implementation detail. It is the central architectural constraint.
+
+If the Jacobian is dense and unstructured, the cost is generically cubic in dimension. That is too expensive for large models. Therefore flow architectures are designed so the Jacobian is:
+
+- triangular
+- block triangular
+- diagonal plus structured corrections
+- tractable via traces in continuous-time settings
+
+### 10.3 Architectures Enabling Efficient Log-Det
+
+There are several standard design patterns.
+
+**Autoregressive flows**
+
+Each output depends only on earlier inputs, so the Jacobian is triangular. For triangular matrices,
+
+$$
+\log|\det J| = \sum_i \log|J_{ii}|.
+$$
+
+This turns an $O(n^3)$ problem into an $O(n)$ one.
+
+**Coupling layers**
+
+Part of the input is copied, while the rest is scaled and shifted using functions of the copied part. The Jacobian becomes block triangular, so again the log-determinant is just a sum over easy diagonal terms.
+
+**Invertible 1x1 convolutions**
+
+Glow-style models use learned invertible channel mixing. If $W$ is parameterised with LU structure, then
+
+$$
+\log|\det W|
+$$
+
+can be computed from the diagonal of the triangular factor.
+
+**Continuous normalising flows**
+
+Instead of computing a full determinant of a Jacobian, one uses the instantaneous identity
+
+$$
+\frac{d}{dt}\log p(z(t)) = -\operatorname{tr}\left(\frac{\partial v}{\partial z}\right),
+$$
+
+and estimates traces stochastically.
+
+The pattern is always the same:
+
+```text
+generic Jacobian -> too expensive
+structured Jacobian -> cheap log-det
 ```
 
-### 8.4 Sign and Log-Determinant
+### 10.4 Multivariate Gaussian Log-Likelihood
 
-For general matrices (not necessarily positive definite), use `slogdet`:
+For
 
-```python
-import numpy as np
+$$
+x \sim \mathcal{N}(\mu,\Sigma),
+$$
 
-A = np.array([[1, 2], [3, 4]])
-sign, logdet = np.linalg.slogdet(A)
-# sign = -1.0 (negative determinant)
-# logdet = log(2) ≈ 0.693
+the log-density is
 
-# Reconstruct: det(A) = sign * exp(logdet)
-det_A = sign * np.exp(logdet)  # = -2.0
+$$
+\log p(x)
+=
+-\frac{n}{2}\log(2\pi)
+-\frac{1}{2}\log\det(\Sigma)
+-\frac{1}{2}(x-\mu)^T\Sigma^{-1}(x-\mu).
+$$
+
+The determinant term is the normalization factor. Geometrically, it measures how spread out the Gaussian ellipsoid is.
+
+Large determinant:
+
+- covariance ellipsoid has large volume
+- density is more diffuse
+
+Small determinant:
+
+- covariance ellipsoid is narrow or nearly degenerate
+- density is more concentrated
+
+For SPD covariance matrices, Cholesky gives
+
+$$
+\log\det(\Sigma)=2\sum_i \log L_{ii}.
+$$
+
+That is the standard numerically stable implementation.
+
+### 10.5 Gaussian Process Marginal Likelihood
+
+Gaussian processes require the log marginal likelihood
+
+$$
+\log p(y|X,\theta)
+=
+-\frac{1}{2}y^TK_\theta^{-1}y
+-\frac{1}{2}\log\det(K_\theta)
+-\frac{n}{2}\log(2\pi),
+$$
+
+where $K_\theta$ is the kernel matrix plus observation noise.
+
+This creates two hard matrix tasks:
+
+- solve a linear system with $K_\theta$
+- compute $\log\det(K_\theta)$
+
+For exact GP inference, Cholesky is the classical answer. For large-scale approximate GP methods, stochastic trace and Lanczos-style log-det estimators become essential.
+
+This is one of the cleanest places in modern ML where determinant theory, numerical linear algebra, and probabilistic modelling meet directly.
+
+### 10.6 Information-Theoretic Role of Log-Det
+
+For a Gaussian random vector,
+
+$$
+H(X)=\frac{1}{2}\log\det(2\pi e\,\Sigma).
+$$
+
+So differential entropy is directly controlled by the log-determinant of the covariance.
+
+This gives log-det a genuine information-theoretic meaning:
+
+- larger log-det -> more spread -> larger entropy
+- smaller log-det -> less spread -> lower entropy
+
+Related quantities also appear in:
+
+- mutual information formulas for Gaussians
+- Bayesian experimental design
+- feature diversity regularisation
+- Fisher information geometry
+
+So when ML objectives contain a log-determinant, they are often measuring some combination of volume, uncertainty, diversity, or information content.
+
+## 11. Determinants in Advanced Topics
+
+### 11.1 Jacobian Determinant in Calculus
+
+For a differentiable map
+
+$$
+f:\mathbb{R}^n \to \mathbb{R}^n,
+$$
+
+the Jacobian matrix is
+
+$$
+J_f(x)=\left[\frac{\partial f_i}{\partial x_j}\right].
+$$
+
+Its determinant measures the local volume scaling of the map near the point $x$.
+
+- $|\det J_f(x)| > 1$: local expansion
+- $|\det J_f(x)| < 1$: local contraction
+- $\det J_f(x)=0$: local singularity
+
+The inverse function theorem says:
+
+$$
+\det J_f(x)\neq 0
+\implies
+f \text{ is locally invertible near } x.
+$$
+
+That theorem is the nonlinear analogue of the fact that a square matrix is invertible exactly when its determinant is nonzero.
+
+### 11.2 Functional Determinants
+
+In infinite-dimensional analysis, determinants generalise to operators.
+
+One important example is the **Fredholm determinant**, written formally as
+
+$$
+\det(I+K)=\prod_i (1+\lambda_i),
+$$
+
+for suitable trace-class operators $K$.
+
+This idea appears in:
+
+- PDE and operator theory
+- statistical physics
+- quantum field theory
+- continuous-time probabilistic models
+
+In ML, the finite-dimensional determinant story survives in approximate form through Jacobian traces, spectral sums, and operator-inspired kernels.
+
+### 11.3 Determinantal Point Processes
+
+A determinantal point process (DPP) is a probability distribution over subsets where
+
+$$
+P(Y=S)\propto \det(K_S)
+$$
+
+for a positive semidefinite kernel matrix $K$ and principal submatrix $K_S$.
+
+Why determinant? Because $\det(K_S)$ measures the volume spanned by the feature embeddings of the selected items. Large determinant means the selected items are both high-quality and diverse.
+
+This creates **repulsion**:
+
+- redundant items have similar feature vectors
+- similar vectors reduce the determinant
+- diverse sets get higher probability
+
+That makes DPPs natural for:
+
+- diverse retrieval
+- extractive summarisation
+- representative subset selection
+- active learning
+
+### 11.4 Random Matrix Theory and Determinants
+
+Random matrix theory studies eigenvalue distributions of random matrices, and determinants appear all over the subject because the joint eigenvalue density often contains Vandermonde-type determinant factors.
+
+This matters for modern ML because spectra of trained weight matrices often show structured deviations from classical random baselines. Those deviations are informative about:
+
+- effective rank
+- heavy-tailed structure
+- noise versus signal
+- generalisation-related geometry
+
+Even when one is not computing determinants directly, determinant identities live in the background of spectral density theory.
+
+### 11.5 Determinants in Stability Analysis
+
+For linear dynamics
+
+$$
+\dot{x}=Ax
+$$
+
+or discrete dynamics
+
+$$
+x_{t+1}=Ax_t,
+$$
+
+the eigenvalues of $A$ control stability, and the determinant gives their product.
+
+That makes determinant a coarse but meaningful summary of total expansion or contraction.
+
+In recurrent models, one often cares more directly about singular values than determinants, but the determinant still carries interpretable global information:
+
+- $|\det(A)| \gg 1$: strong global volume expansion
+- $|\det(A)| \ll 1$: strong global contraction
+- $|\det(A)| = 1$: overall volume preserved
+
+This is why orthogonal and unitary constructions are associated with stable signal propagation.
+
+## 12. Computational Considerations
+
+### 12.1 Algorithms Comparison
+
+In practice, determinant computation is not about formulas first. It is about choosing the right factorisation for the matrix class.
+
+| Method | Cost | Stability | Best use |
+| --- | --- | --- | --- |
+| Leibniz formula | $O(n!)$ | Exact but combinatorial | Only tiny symbolic cases |
+| Cofactor expansion | Exponential in general | Fine for hand work | Small matrices, many zeros |
+| LU factorisation | $O(n^3)$ | Good with pivoting | General dense square matrices |
+| Cholesky | $O(n^3)$ setup, cheap log-det after | Excellent for SPD | Covariance and kernel matrices |
+| Eigenvalue product | $O(n^3)$ | Fine if spectrum already needed | Spectral analysis |
+
+The practical rule is simple:
+
+- hand computation -> cofactor / structure
+- code -> LU or Cholesky
+
+### 12.2 Log-Determinant Computation
+
+Never compute a determinant and then take its logarithm if numerical stability matters.
+
+Instead use:
+
+- LU-based `slogdet` for general matrices
+- Cholesky-based formulas for SPD matrices
+
+Conceptually:
+
+```text
+det(A)       -> can overflow / underflow
+log|det(A)|  -> stable scale
+sign + logabsdet -> safest representation
 ```
 
-This separates the sign from the magnitude, handling negative determinants.
+That is why libraries such as NumPy, SciPy, PyTorch, and JAX expose sign-and-log-determinant APIs rather than encouraging raw determinant use in probabilistic objectives.
 
-### 8.5 Numerical Rank vs Determinant
+### 12.3 Gradient of Log-Determinant in Autograd
 
-**Don't use determinant to check numerical rank!**
+Autodiff frameworks implement
 
-```
-Problem: Determinant scales poorly with matrix size and entries
+$$
+\nabla_A \log|\det(A)|=A^{-T}
+$$
 
-Example:
-A = [0.01  0  ]   det(A) = 0.0001  (small, but full rank!)
-    [ 0   0.01]
+through stable matrix factorizations rather than symbolic expansion.
 
-B = [1  1]        det(B) = 0.0001  (small because nearly singular)
-    [1  1.0001]
+This matters because a naive determinant implementation would be:
 
-Both have det ≈ 0.0001 but for completely different reasons!
-```
+- slow
+- unstable
+- disastrous for gradients
 
-**Better approaches:**
-1. **Singular Value Decomposition (SVD):** Check smallest singular values
-2. **Condition Number:** $\kappa = \sigma_{\max}/\sigma_{\min}$
-3. **Rank-Revealing QR:** Identifies numerical rank
+In practice, gradient flow through log-det is usually routed through LU, QR, or Cholesky internals depending on matrix structure.
 
-```python
-import numpy as np
+### 12.4 Stochastic Log-Det Estimation
 
-def numerical_rank(A, tol=1e-10):
-    """Determine numerical rank via SVD."""
-    _, s, _ = np.linalg.svd(A)
-    return np.sum(s > tol)
+For very large SPD matrices, exact $O(n^3)$ log-det is too expensive.
 
-# Check if matrix is numerically singular
-def is_singular(A, tol=1e-10):
-    return numerical_rank(A, tol) < min(A.shape)
-```
+A standard trick is
 
-### 8.6 When to Compute Determinants (and When Not To)
+$$
+\log\det(A)=\operatorname{tr}(\log A).
+$$
 
-**DO compute determinants for:**
-- Multivariate Gaussian probabilities (use log-det)
-- Jacobian in change of variables
-- Checking if solution exists (det ≠ 0)
-- Small matrices (2×2, 3×3) in performance-critical code
-- Geometric applications (areas, volumes)
+Then instead of forming $\log A$ explicitly, one estimates the trace stochastically using random probe vectors and polynomial or Lanczos approximations.
 
-**DON'T compute determinants for:**
-- Solving linear systems (use LU decomposition)
-- Matrix inversion (use direct methods)
-- Numerical rank determination (use SVD)
-- Large matrices if only checking singularity (use condition number)
+This leads to methods such as:
 
-### 8.7 Implementation Notes
+- Hutchinson trace estimation
+- stochastic Lanczos quadrature
+- Chebyshev-based trace approximations
 
-**NumPy:**
-```python
-# Standard determinant
-det = np.linalg.det(A)
+These methods are critical in scalable Gaussian process toolkits because they replace dense factorisations with repeated matrix-vector products.
 
-# Log-determinant with sign
-sign, logdet = np.linalg.slogdet(A)
+### 12.5 Determinants with Low-Rank Structure
 
-# Reconstruct when needed
-det = sign * np.exp(logdet)
-```
+Low-rank structure is determinant gold.
 
-**SciPy (more options):**
-```python
-from scipy import linalg
+If
 
-# Using LU decomposition
-lu, piv = linalg.lu_factor(A)
-det = np.prod(np.diag(lu)) * ((-1) ** np.sum(piv != np.arange(len(piv))))
+$$
+A \mapsto A + UV^T
+$$
 
-# For positive definite: Cholesky
-L = linalg.cholesky(Sigma, lower=True)
-log_det = 2 * np.sum(np.log(np.diag(L)))
+with rank $k \ll n$, then the determinant lemma turns an $n \times n$ problem into a $k \times k$ one.
+
+That is the same general efficiency principle behind many ML approximations:
+
+- low-rank covariance updates
+- inducing-point approximations
+- LoRA-style matrix updates
+- adapter-style structured perturbations
+
+The chapter theme is repeating itself:
+
+```text
+generic matrix -> expensive
+structured matrix -> determinant becomes tractable
 ```
 
-**PyTorch (for ML):**
-```python
-import torch
+## 13. Determinants and Linear System Theory
 
-A = torch.randn(3, 3)
-det = torch.det(A)
+### 13.1 Invertibility and the Determinant
 
-# Log-determinant (differentiable!)
-logdet = torch.logdet(A)  # For positive definite
-sign, logdet = torch.slogdet(A)  # General case
+For a square matrix,
+
+$$
+A \text{ invertible } \iff \det(A)\neq 0.
+$$
+
+This is the determinant's most famous theorem, but it should be understood as the synthesis of many equivalent statements:
+
+$$
+\det(A)\neq 0
+\iff
+\operatorname{rank}(A)=n
+\iff
+\operatorname{null}(A)=\{0\}
+\iff
+A^{-1}\text{ exists}.
+$$
+
+So the determinant is not one test among many. It is one gateway into the entire equivalence class of invertibility statements.
+
+### 13.2 Cramer's Rule and Explicit Formulas
+
+Cramer's rule gives explicit formulas for the coordinates of the solution to
+
+$$
+Ax=b.
+$$
+
+That makes determinant theory historically inseparable from linear systems. Before modern numerical linear algebra, determinants were studied partly because they gave exact symbolic solution formulas.
+
+Today the computational message is different:
+
+- Cramer's rule explains
+- LU solves
+
+The determinant remains conceptually central even when it is not the fastest numerical tool.
+
+### 13.3 Determinant Conditions for Solution Uniqueness
+
+If $A$ is square:
+
+- $\det(A)\neq 0$ -> unique solution for every $b$
+- $\det(A)=0$ -> not uniquely solvable for every $b$
+
+But note the subtlety:
+
+$$
+\det(A)=0
+$$
+
+does **not** by itself tell you whether a particular system has:
+
+- no solution
+- infinitely many solutions
+
+For that, one must compare the rank of $A$ and the augmented matrix.
+
+So determinants are decisive for invertibility, but not sufficient by themselves to classify every singular system.
+
+### 13.4 Characteristic Polynomial and Eigenvalue Systems
+
+The eigenvalue equation
+
+$$
+\det(A-\lambda I)=0
+$$
+
+is itself a determinant-based system condition.
+
+That is the bridge to the next chapter:
+
+- determinants tell you when a shifted matrix becomes singular
+- those singular shifts are exactly the eigenvalues
+- decomposition theory begins there
+
+## 14. Common Mistakes
+
+| Mistake | Why it is wrong | Fix |
+| --- | --- | --- |
+| `det(A + B) = det(A) + det(B)` | Determinant is not linear in the whole matrix | Use multilinearity one row/column at a time only |
+| `det(AB) = det(A) + det(B)` | Determinant is multiplicative, not additive | Remember `det(AB) = det(A)det(B)` |
+| `det(2A) = 2 det(A)` | Scaling every row by 2 scales determinant by $2^n$ | Use `det(alpha A) = alpha^n det(A)` |
+| `det(A) approximately 0 means numerically singular` | Determinant magnitude depends on scale and dimension | Use condition number to diagnose near-singularity |
+| `Sarrus' rule works for 4x4` | It only works for 3x3 matrices | Use cofactor expansion or LU beyond 3x3 |
+| `det(A) > 0 means all eigenvalues are positive` | Only the product is positive; negative eigenvalues can come in pairs | Check all eigenvalues or SPD criteria |
+| `Adding a multiple of one row changes determinant` | Row replacement leaves determinant unchanged | Track only swaps and scalings |
+| `det(A) = 0 tells me whether Ax=b has no solution or infinitely many` | It only tells you the matrix is singular | Use rank of `A` and `[A|b]` for classification |
+| `log(det(A))` is always real | Not if determinant is negative or matrix is not SPD | Use `log|det(A)|` or `slogdet` unless SPD is guaranteed |
+| `A large determinant always means good conditioning` | Conditioning depends on singular value ratio, not product alone | Use singular values or condition number |
+
+## 15. Exercises
+
+1. **Computing determinants**
+   Compute the determinant of each matrix using the most efficient method and justify the method choice:
+   - $A=\begin{pmatrix}5&3\\2&4\end{pmatrix}$
+   - $B=\begin{pmatrix}2&1&0\\0&3&1\\0&0&4\end{pmatrix}$
+   - $C=\begin{pmatrix}1&2&3\\4&5&6\\7&8&9\end{pmatrix}$
+   - $D=\begin{pmatrix}1&0&0&0\\2&3&0&0\\4&5&6&0\\7&8&9&10\end{pmatrix}$
+   - $E=\operatorname{diag}(2,-3,1,4,-1)$
+
+2. **Property verification**
+   Let
+   $$
+   A=\begin{pmatrix}2&1\\1&3\end{pmatrix},
+   \qquad
+   B=\begin{pmatrix}1&-1\\2&0\end{pmatrix}.
+   $$
+   Verify:
+   - $\det(AB)=\det(A)\det(B)=\det(BA)$
+   - $\det(A+B)\neq \det(A)+\det(B)$
+   - $\det(3A)=3^2\det(A)$
+   - $\det(A^T)=\det(A)$
+
+3. **Characteristic polynomial**
+   For
+   $$
+   A=\begin{pmatrix}4&2\\1&3\end{pmatrix},
+   $$
+   compute:
+   - the characteristic polynomial
+   - the eigenvalues
+   - eigenvectors
+   - a direct verification of Cayley-Hamilton
+
+4. **Geometric interpretation**
+   In $\mathbb{R}^2$, let
+   $$
+   u=\begin{pmatrix}3\\1\end{pmatrix},\qquad
+   v=\begin{pmatrix}1\\2\end{pmatrix}.
+   $$
+   Find the area of the spanned parallelogram, then apply:
+   - a rotation
+   - a reflection
+   - a scaling by factor 3
+   and track what happens to the determinant and orientation in each case.
+
+5. **Cofactors and adjugate**
+   For
+   $$
+   A=\begin{pmatrix}1&2&0\\3&1&1\\0&2&1\end{pmatrix},
+   $$
+   compute:
+   - $\det(A)$ by two different cofactor expansions
+   - the full cofactor matrix
+   - $\operatorname{adj}(A)$
+   - $A^{-1}$ from the adjugate identity
+
+6. **Determinant identities**
+   - Use the matrix determinant lemma on a diagonal matrix plus a rank-1 update
+   - Verify Sylvester's theorem on a small rectangular example
+   - Verify the block determinant formula on a block triangular matrix
+   - Compute a Schur complement determinant directly and by formula
+
+7. **Log-det for flows**
+   Consider a 3D coupling transformation with triangular Jacobian. Write its Jacobian explicitly, identify the diagonal entries, and derive the formula for $\log|\det J|$.
+
+8. **SPD and Gaussian computation**
+   For a symmetric positive definite covariance matrix:
+   - compute a Cholesky factor
+   - derive $\log\det(\Sigma)$ from the diagonal of the factor
+   - evaluate the Gaussian log-likelihood for a sample vector
+
+9. **Numerical instability**
+   Compare:
+   - direct determinant computation of $0.1 I_{50}$
+   - stable sign/log-determinant computation
+   Explain why the raw determinant is a poor numerical representation.
+
+## 16. Why This Matters for AI (2026 Edition)
+
+| Aspect | Impact |
+| --- | --- |
+| Normalising flows | The log-determinant of the Jacobian is the core term in the likelihood |
+| Multivariate Gaussians | Covariance normalization and entropy both depend on log-det |
+| Gaussian processes | Marginal likelihood combines linear solves and log-determinants |
+| Eigenvalue theory | The characteristic equation is a determinant equation |
+| Invertible networks | Local and global invertibility are determinant statements |
+| Information geometry | Fisher-metric volume terms involve determinants and log-determinants |
+| DPP-based diversity | Determinants score subset diversity via spanned volume |
+| Stability analysis | Determinants summarize total volume expansion or contraction of dynamics |
+| Low-rank updates | Determinant lemmas turn expensive recomputation into small auxiliary problems |
+| Numerical ML systems | Stable `slogdet`, Cholesky log-det, and stochastic estimators are production tools |
+
+The bigger picture is that determinants are one of the places where algebra and probability truly lock together. In deep learning you often care less about a matrix entry-by-entry and more about what the matrix does globally: does it preserve information, collapse dimensions, distort probability mass, or amplify uncertainty? Determinants answer precisely those questions.
+
+## 17. Conceptual Bridge
+
+The determinant is where matrix theory stops being just arithmetic and becomes geometry.
+
+- In linear algebra, it detects invertibility and dependence.
+- In geometry, it measures volume and orientation.
+- In calculus, it becomes the Jacobian factor in change of variables.
+- In probability, it becomes the normalization term for Gaussian families and invertible generative models.
+
+That is why this chapter sits exactly between matrix operations and spectral theory. Determinants summarize a matrix globally, but they also open the door to a finer structural story:
+
+$$
+\det(\lambda I-A)=0.
+$$
+
+That single equation launches the study of eigenvalues, eigenspaces, diagonalisation, spectral decompositions, PCA, SVD, and much of modern representation analysis in ML.
+
+```text
+Matrix entries
+    ->
+determinant
+    ->
+invertibility / volume / orientation
+    ->
+det(lambda I - A)
+    ->
+eigenvalues and decomposition theory
 ```
 
-### 8.8 Determinant in Backpropagation
-
-For normalizing flows and other models, we need gradients of log-determinants:
-
-$$\frac{\partial}{\partial A} \log\det(A) = A^{-T}$$
-
-This is used in training flow-based models where log $|\det J|$ appears in the loss.
-
----
-
-## 9. The Adjugate Matrix
-
-### 9.1 Definition
-
-The **adjugate** (or **classical adjoint**) of a matrix $A$ is:
-
-$$\text{adj}(A) = C^T$$
-
-Where $C$ is the **cofactor matrix**: $C_{ij} = (-1)^{i+j} M_{ij}$
-
-### 9.2 Properties
-
-**Fundamental Identity:**
-$$A \cdot \text{adj}(A) = \text{adj}(A) \cdot A = \det(A) \cdot I$$
-
-**Inverse Formula:**
-$$A^{-1} = \frac{1}{\det(A)} \text{adj}(A)$$
-
-**Example (2×2):**
-$$A = \begin{bmatrix} a & b \\ c & d \end{bmatrix} \implies \text{adj}(A) = \begin{bmatrix} d & -b \\ -c & a \end{bmatrix}$$
-
-$$A^{-1} = \frac{1}{ad-bc} \begin{bmatrix} d & -b \\ -c & a \end{bmatrix}$$
-
-### 9.3 Intuition
-
-The adjugate provides the inverse "without division":
-- $A \cdot \text{adj}(A) = \det(A) \cdot I$
-- Divide by $\det(A)$ to get the identity
-- Hence $\text{adj}(A)/\det(A) = A^{-1}$
-
----
-
-## 10. Advanced Topics
-
-### 10.1 Characteristic Polynomial
-
-The **characteristic polynomial** of $A$ is:
-
-$$p(\lambda) = \det(\lambda I - A)$$
-
-Its roots are the eigenvalues of $A$.
-
-**For 2×2:**
-$$p(\lambda) = \lambda^2 - \text{tr}(A)\lambda + \det(A)$$
-
-**For 3×3:**
-$$p(\lambda) = \lambda^3 - \text{tr}(A)\lambda^2 + \frac{1}{2}(\text{tr}(A)^2 - \text{tr}(A^2))\lambda - \det(A)$$
-
-### 10.2 Cayley-Hamilton Theorem
-
-Every matrix satisfies its own characteristic polynomial:
-
-$$p(A) = A^n - c_{n-1}A^{n-1} - \cdots - c_1 A - c_0 I = 0$$
-
-**Consequence:**
-$$A^{-1} = -\frac{1}{c_0}(A^{n-1} - c_{n-1}A^{n-2} - \cdots - c_1 I)$$
-
-(where $c_0 = (-1)^n\det(A)$)
-
-### 10.3 Determinant of Block Matrices
-
-**For general 2×2 blocks:**
-
-If $CD = DC$ (blocks commute):
-$$\det\begin{bmatrix} A & B \\ C & D \end{bmatrix} = \det(AD - BC)$$
-
-**Vandermonde Determinant:**
-$$\det\begin{bmatrix} 1 & x_1 & x_1^2 & \cdots & x_1^{n-1} \\ 1 & x_2 & x_2^2 & \cdots & x_2^{n-1} \\ \vdots & \vdots & \vdots & \ddots & \vdots \\ 1 & x_n & x_n^2 & \cdots & x_n^{n-1} \end{bmatrix} = \prod_{1 \leq i < j \leq n} (x_j - x_i)$$
-
-### 10.4 Permanent vs Determinant
-
-The **permanent** is similar to determinant but without alternating signs:
-
-$$\text{perm}(A) = \sum_{\sigma} \prod_{i=1}^n a_{i,\sigma(i)}$$
-
-- Computing permanent is #P-complete (much harder than determinant)
-- Used in quantum computing and combinatorics
-- Permanent of a 0-1 matrix counts perfect matchings
-
-### 10.5 Matrix Functions and Determinant
-
-For matrix exponential:
-$$\det(e^A) = e^{\text{tr}(A)}$$
-
-For matrix logarithm (when it exists):
-$$\text{tr}(\log A) = \log\det(A)$$
-
----
-
-## 11. Summary
-
-### 11.1 Key Formulas
-
-| Concept | Formula |
-|---------|---------|
-| 2×2 determinant | $\det\begin{bmatrix} a & b \\ c & d \end{bmatrix} = ad - bc$ |
-| Invertibility | $\det(A) \neq 0 \iff A$ is invertible |
-| Product rule | $\det(AB) = \det(A)\det(B)$ |
-| Transpose | $\det(A^T) = \det(A)$ |
-| Inverse | $\det(A^{-1}) = 1/\det(A)$ |
-| Scalar | $\det(cA) = c^n\det(A)$ |
-| Eigenvalue product | $\det(A) = \prod_{i=1}^n \lambda_i$ |
-| Triangular | $\det(A) = \prod_{i=1}^n a_{ii}$ |
-| Adjugate inverse | $A^{-1} = \text{adj}(A)/\det(A)$ |
-
-### 11.2 Geometric Interpretation Summary
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    DETERMINANT MEANINGS                     │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  det(A) = 0:  Singular matrix                               │
-│               - Columns are linearly dependent              │
-│               - Maps to lower dimension                     │
-│               - No inverse exists                           │
-│               - At least one eigenvalue is zero             │
-│                                                             │
-│  det(A) > 0:  Invertible, preserves orientation             │
-│               - Right-handed → Right-handed                 │
-│               - Counterclockwise → Counterclockwise         │
-│                                                             │
-│  det(A) < 0:  Invertible, reverses orientation              │
-│               - Right-handed → Left-handed                  │
-│               - Includes a reflection                       │
-│                                                             │
-│  |det(A)|:    Volume scaling factor                         │
-│               - How much the transformation scales volumes  │
-│               - Area in 2D, volume in 3D, hypervolume in nD │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 11.3 When to Use Determinants
-
-**✅ Good Uses:**
-- Check invertibility: Is $\det(A) \neq 0$?
-- Compute volume change under transformation
-- Jacobian in change of variables (normalizing flows)
-- Multivariate Gaussian normalization (use log-det)
-- Small matrix inverse via adjugate (2×2, 3×3)
-- Geometric calculations (areas, collinearity tests)
-
-**❌ Avoid:**
-- Solving linear systems (use LU decomposition)
-- Large matrix computations (use specialized methods)
-- Numerical rank checking (use SVD)
-- Direct determinant computation for ML (use log-det)
-
-### 11.4 Quick Reference Card
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    DETERMINANT CHEAT SHEET                  │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  COMPUTATION:                                               │
-│  • 2×2: ad - bc                                             │
-│  • 3×3: Sarrus' rule or cofactor expansion                  │
-│  • n×n: LU decomposition, multiply diagonal                 │
-│  • Positive definite: Cholesky, log(det) = 2Σlog(L_ii)     │
-│                                                             │
-│  PROPERTIES:                                                │
-│  • det(AB) = det(A)det(B)                                   │
-│  • det(A^T) = det(A)                                        │
-│  • det(A^{-1}) = 1/det(A)                                   │
-│  • det(cA) = c^n det(A)                                     │
-│  • det(A) = ∏λᵢ                                             │
-│                                                             │
-│  ROW OPERATIONS:                                            │
-│  • Swap rows: det → -det                                    │
-│  • Scale row by c: det → c·det                              │
-│  • Add rows: det → det (unchanged)                          │
-│                                                             │
-│  SPECIAL MATRICES:                                          │
-│  • Triangular: det = ∏ diagonal                             │
-│  • Orthogonal: det = ±1                                     │
-│  • Rotation: det = +1                                       │
-│  • Reflection: det = -1                                     │
-│                                                             │
-│  NUMERICAL:                                                 │
-│  • Use np.linalg.slogdet() for stability                    │
-│  • Use Cholesky for positive definite matrices              │
-│  • Don't use det for checking numerical rank                │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 12. Practice Problems
-
-### Conceptual Questions
-
-1. If $\det(A) = 3$ and $\det(B) = 4$, what is $\det(AB)$? $\det(A^2B)$?
-
-2. A matrix $A$ has eigenvalues 2, 3, and 5. What is $\det(A)$? What is $\det(A^{-1})$?
-
-3. If swapping two rows of $A$ gives $B$, how are $\det(A)$ and $\det(B)$ related?
-
-4. Why is the determinant of a rotation matrix always 1?
-
-5. If $A$ is $3 \times 3$ and $\det(A) = 2$, what is $\det(3A)$?
-
-### Computational Problems
-
-1. Compute by hand:
-   $$\det\begin{bmatrix} 2 & 1 & 3 \\ 0 & 4 & 5 \\ 0 & 0 & 6 \end{bmatrix}$$
-
-2. Use cofactor expansion to find:
-   $$\det\begin{bmatrix} 1 & 0 & 2 \\ 3 & 1 & 0 \\ 0 & 2 & 1 \end{bmatrix}$$
-
-3. Find the area of the parallelogram with vertices at $(0,0)$, $(3,1)$, $(1,4)$, $(4,5)$.
-
-4. Solve using Cramer's rule:
-   $$\begin{cases} 2x + 3y = 8 \\ 4x - y = 2 \end{cases}$$
-
-### ML/Applied Problems
-
-1. A covariance matrix has eigenvalues 4 and 1. What is the generalized variance?
-
-2. In a normalizing flow, a transformation has Jacobian with diagonal entries $[e^{s_1}, e^{s_2}, e^{s_3}]$. Express $\log|\det J|$ in terms of $s_1, s_2, s_3$.
-
-3. Why do flow-based models prefer triangular Jacobians?
-
----
-
-## 13. Further Reading
-
-### Textbooks
-- **Gilbert Strang, "Linear Algebra and Its Applications"** - Excellent geometric intuition
-- **David C. Lay, "Linear Algebra and Its Applications"** - Clear introductory treatment
-- **Carl D. Meyer, "Matrix Analysis and Applied Linear Algebra"** - Advanced topics
-
-### Online Resources
-- [3Blue1Brown: The Determinant](https://www.youtube.com/watch?v=Ip3X9LOh2dk) - Visual geometric intuition
-- [Gilbert Strang: Properties of Determinants](https://www.youtube.com/watch?v=srxexLishgY) - MIT OCW lecture
-- [Matrix Cookbook: Determinant Identities](https://www.math.uwaterloo.ca/~hwolkowi/matrixcookbook.pdf) - Reference
-
-### ML-Specific
-- [Normalizing Flows Tutorial](https://arxiv.org/abs/1908.09257) - Jacobian determinants in deep learning
-- [A Tutorial on Variational Autoencoders](https://arxiv.org/abs/1606.05908) - Change of variables
-
----
-
-## Navigation
-
-← [Previous: Systems of Equations](../03-Systems-of-Equations/README.md) | [Next: Matrix Rank →](../05-Matrix-Rank/README.md)
-
-[Back to Linear Algebra Basics](../README.md) | [Back to Main](../../README.md)
+Next: **Eigenvalues, Eigenvectors, and Matrix Decompositions**.
+
+## References
+
+- Gilbert Strang, *Introduction to Linear Algebra*, Wellesley-Cambridge Press.
+- Lloyd N. Trefethen and David Bau III, *Numerical Linear Algebra*, SIAM.
+- Gene H. Golub and Charles F. Van Loan, *Matrix Computations*, Johns Hopkins University Press.
+- [MIT 18.06 Linear Algebra](https://web.mit.edu/18.06/www/)
+- [Stanford EE263: Introduction to Linear Dynamical Systems](https://stanford.edu/class/ee263/)
+- [Vaswani et al. (2017), "Attention Is All You Need"](https://arxiv.org/abs/1706.03762)
+- [Rezende and Mohamed (2015), "Variational Inference with Normalizing Flows"](https://arxiv.org/abs/1505.05770)
+- [Dinh, Sohl-Dickstein, and Bengio (2017), "Density Estimation using Real NVP"](https://arxiv.org/abs/1605.08803)
+- [Kingma and Dhariwal (2018), "Glow: Generative Flow with Invertible 1x1 Convolutions"](https://arxiv.org/abs/1807.03039)
+- [Grathwohl et al. (2018), "FFJORD: Free-form Continuous Dynamics for Scalable Reversible Generative Models"](https://arxiv.org/abs/1810.01367)
+- [Gardner et al. (2018), "GPyTorch: Blackbox Matrix-Matrix Gaussian Process Inference with GPU Acceleration"](https://proceedings.neurips.cc/paper/2018/hash/27e8e17134dd7083b050476733207ea1-Abstract.html)
+- [GPyTorch documentation: stochastic log-likelihood and Lanczos settings](https://docs.gpytorch.ai/en/v1.8.1/settings.html)
+- [GPyTorch `StochasticLQ` implementation notes](https://docs.gpytorch.ai/en/v1.7.0/_modules/gpytorch/utils/stochastic_lq.html)
+- [Kulesza and Taskar (2012), *Determinantal Point Processes for Machine Learning*](https://www.nowpublishers.com/article/Details/MAL-044)
+- [Chen, Trogdon, and Ubaru (2021), "Analysis of stochastic Lanczos quadrature for spectrum approximation"](https://proceedings.mlr.press/v139/chen21s.html)
