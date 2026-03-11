@@ -223,18 +223,7 @@ math_for_ai/
 
 </details>
 
-
-
-
-
-
-
-
-
-
-
-
-
+```
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                          ║
 ║            ███╗   ███╗ █████╗ ████████╗██╗  ██╗    ███████╗ ██████╗ ██████╗             ║
@@ -259,7 +248,6 @@ math_for_ai/
   ① FOUNDATIONS    ② LINEAR ALGEBRA   ③ CALCULUS   ④ PROBABILITY    ⑤ OPTIMIZATION
         │                 │                 │         │                   │
         │                 │                 │         │                   │
-
 
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │  ① MATHEMATICAL FOUNDATIONS                                                            │
@@ -403,3 +391,4 @@ math_for_ai/
    TRACK B  [+ Info Theory → ML Math → Deep Learning]                  ← practitioners
    TRACK C  [+ LLMs → Scaling → Alignment]                             ← LLM engineers
    TRACK D  [+ Adv. Theory → Game Theory → Causal Inference]           ← researchers
+```
