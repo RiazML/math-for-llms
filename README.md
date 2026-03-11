@@ -385,10 +385,5 @@ math_for_ai/
 ║                                                                                          ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════╝
 
-   LEGEND:  ★ = Must-Know for Practitioners   │  → = Feeds Into   │  ╔╗ = Major Milestone
-   ─────────────────────────────────────────────────────────────────────────────────────
-   TRACK A  [Foundations → Lin.Alg → Calculus → Prob → Optimization]   ← start here
-   TRACK B  [+ Info Theory → ML Math → Deep Learning]                  ← practitioners
-   TRACK C  [+ LLMs → Scaling → Alignment]                             ← LLM engineers
-   TRACK D  [+ Adv. Theory → Game Theory → Causal Inference]           ← researchers
+  
 ```
