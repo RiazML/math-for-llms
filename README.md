@@ -47,7 +47,7 @@ This repository bridges that gap with a **learn-by-doing** approach:
 
 ```bash
 # Clone the repository
-git clone https://github.com/prmtkr/math_for_ai.git
+git clone https://github.com/prmtkr/math_for_llms.git
 cd math_for_ai
 
 # Set up the environment

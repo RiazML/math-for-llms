@@ -18,12 +18,6 @@ Your job is to produce three files in that directory: `notes.md`, `theory.ipynb`
 
 Before writing anything, perform deep research:
 
-### 1a. Read existing project standards
-- Read `docs/NOTATION_GUIDE.md` — mathematical symbol conventions you MUST follow
-- Read `docs/VISUALIZATION_GUIDE.md` — matplotlib/seaborn style rules for all plots
-- Read `docs/CHEATSHEET.md` — formula reference to ensure consistency
-- Read `docs/ML_MATH_MAP.md` — which math connects to which ML concepts
-- Read `CONTRIBUTING.md` — file structure and writing style requirements
 
 ### 1b. Study completed sections for style calibration
 Read ALL THREE files (notes.md, theory.ipynb, exercises.ipynb) from at least 2 completed sections:
@@ -33,10 +27,6 @@ Read ALL THREE files (notes.md, theory.ipynb, exercises.ipynb) from at least 2 c
 
 Pay attention to: line count (~2000-3000+ for notes.md), section depth, ASCII art format, AI connection density, proof style, exercise structure.
 
-### 1c. Understand prerequisite chain
-- Read the **previous** section's `notes.md` to know what the student already knows
-- Read the **next** section's `notes.md` to know where this section leads
-- Read the **chapter README.md** (`../README.md`) to understand section ordering
 
 ### 1d. External research
 - Search GitHub for high-quality open-source implementations (university courses, textbook repos)
@@ -508,9 +498,14 @@ Before delivering each file, verify:
 
 ## Chunked Delivery
 
-These files are large. Deliver in chunks, pausing for user review after each:
+These files are large. Deliver in chunks, pausing for user review after each: okay there is max tokken limitation so you can not implemet it at once do not try it !
 
-1. **Chunk 1**: `notes.md` — write full file via Write tool
+1. **phase 1**: `notes.md` — write full file via Write tool 
+   - implement in chunks becasue it has tokken limit for generation of per chunk 300 word max implement then 
+
+
+
+
 2. **Chunk 2**: `theory.ipynb` first half — write builder script to `/tmp/build_theory.py`, run it
 3. **Chunk 3**: `theory.ipynb` second half — write append script to `/tmp/append_theory.py`, run it
 4. **Chunk 4**: `exercises.ipynb` — write builder script to `/tmp/build_exercises.py`, run it
