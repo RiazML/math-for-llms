@@ -736,20 +736,35 @@ The [`docs/`](docs/) folder contains supplementary references:
 
 ## 🤝 Contributing
 
-Contributions are welcome! Here's how you can help:
+**37 sections still need implementation** — this is the primary way to contribute.
 
-- **Fix errors** — found a typo or incorrect formula? Open a PR
-- **Add exercises** — more practice problems are always valuable
-- **Improve explanations** — clearer intuition helps everyone
-- **Add visualizations** — interactive plots make concepts click
+### Implement a Missing Section (highest impact)
 
-```bash
-# Fork the repo, create a branch, make changes, then:
-git checkout -b feature/your-improvement
-git commit -m "Add: description of your change"
-git push origin feature/your-improvement
-# Open a Pull Request
-```
+1. Browse [open issues](https://github.com/RiazML/math-for-llms/issues?q=label%3A%22section%3A+missing%22) labelled `section: missing`
+2. Comment on the issue to claim the section
+3. Fork the repo and create a branch: `git checkout -b section/22-causal-inference/02-do-calculus`
+4. Implement all three files following [CONTRIBUTING.md](CONTRIBUTING.md):
+   - `notes.md` (2000+ lines)
+   - `theory.ipynb` (50+ cells, built via Python builder script)
+   - `exercises.ipynb` (8+ graded exercises)
+5. Open a Pull Request — link it to the issue
+
+### Chapters open for contribution
+
+| Chapter | Sections needed | Issues |
+| --- | --- | --- |
+| 20 Fourier Analysis | 5 | [Browse](https://github.com/RiazML/math-for-llms/issues?q=label%3A%22chapter%3A+fourier%22) |
+| 21 Statistical Learning Theory | 5 | [Browse](https://github.com/RiazML/math-for-llms/issues?q=label%3A%22chapter%3A+stat-learning%22) |
+| 22 Causal Inference | 4 | [Browse](https://github.com/RiazML/math-for-llms/issues?q=label%3A%22chapter%3A+causal%22) |
+| 23 Game Theory | 4 | [Browse](https://github.com/RiazML/math-for-llms/issues?q=label%3A%22chapter%3A+game-theory%22) |
+| 24 Measure Theory | 4 | [Browse](https://github.com/RiazML/math-for-llms/issues?q=label%3A%22chapter%3A+measure%22) |
+| 25 Differential Geometry | 4 | [Browse](https://github.com/RiazML/math-for-llms/issues?q=label%3A%22chapter%3A+diff-geometry%22) |
+
+### Other ways to help
+
+- **Fix errors** — typo or incorrect formula? Open a PR directly
+- **Improve exercises** — add harder problems or better test cases
+- **Add visualizations** — interactive plots for existing sections
 
 ---
 
