@@ -1,517 +1,312 @@
-# 📖 Mathematical Notation Guide
+# Notation Guide
 
-> A comprehensive guide to the mathematical notation used throughout this repository.
-
----
-
-## Table of Contents
-
-1. [Sets and Numbers](#sets-and-numbers)
-2. [Vectors](#vectors)
-3. [Matrices](#matrices)
-4. [Functions and Operations](#functions-and-operations)
-5. [Calculus](#calculus)
-6. [Probability](#probability)
-7. [Linear Algebra Specific](#linear-algebra-specific)
-8. [Greek Letters](#greek-letters)
-9. [Information Theory](#information-theory)
-10. [Graph Theory](#graph-theory)
-11. [Norms and Spaces](#norms-and-spaces)
-12. [Optimization](#optimization)
-13. [Common Conventions in ML](#common-conventions-in-ml)
-14. [Reading ML Papers: Notation Tips](#reading-ml-papers-notation-tips)
+> **Authority:** This document is the single source of truth for all mathematical notation
+> used throughout this repository. Every section, notebook, and exercise MUST conform
+> to these conventions. When conventions conflict with intuition, this guide wins.
 
 ---
 
-## Sets and Numbers
+## Design Principles
 
-| Symbol                    | Name                     | Meaning                                             |
-| ------------------------- | ------------------------ | --------------------------------------------------- | ----------- | ----------------------------- |
-| $\mathbb{N}$              | Natural numbers          | $\{0, 1, 2, 3, ...\}$ or $\{1, 2, 3, ...\}$         |
-| $\mathbb{Z}$              | Integers                 | $\{..., -2, -1, 0, 1, 2, ...\}$                     |
-| $\mathbb{Q}$              | Rational numbers         | Fractions $\frac{p}{q}$ where $p, q \in \mathbb{Z}$ |
-| $\mathbb{R}$              | Real numbers             | All numbers on the number line                      |
-| $\mathbb{R}^n$            | n-dimensional real space | Vectors with $n$ real components                    |
-| $\mathbb{R}^{m \times n}$ | Real matrices            | $m \times n$ matrices with real entries             |
-| $\mathbb{C}$              | Complex numbers          | Numbers of form $a + bi$                            |
-| $\in$                     | Element of               | $x \in S$ means $x$ is in set $S$                   |
-| $\notin$                  | Not element of           | $x \notin S$ means $x$ is not in $S$                |
-| $\subset$                 | Subset                   | $A \subset B$ means all of $A$ is in $B$            |
-| $\subseteq$               | Subset or equal          | $A \subseteq B$ includes $A = B$                    |
-| $\cup$                    | Union                    | $A \cup B$ = elements in $A$ or $B$                 |
-| $\cap$                    | Intersection             | $A \cap B$ = elements in both $A$ and $B$           |
-| $\emptyset$ or $\{\}$     | Empty set                | Set with no elements                                |
-| $                         | S                        | $                                                   | Cardinality | Number of elements in set $S$ |
+This guide follows the conventions of Goodfellow, Bengio & Courville (2016) *Deep Learning*,
+Horn & Johnson (2013) *Matrix Analysis*, and the notation standards of NeurIPS/ICML/ICLR.
+Where conventions conflict, the choice that minimises ambiguity in an ML context is adopted.
+
+**Three rules that override everything else:**
+
+1. A symbol's meaning must be determinable from context within three lines of its first use.
+2. The same symbol never denotes two different objects in the same section.
+3. Prefer established ML-paper conventions over personal preference.
 
 ---
 
-## Vectors
+## 1. Object Hierarchy
 
-### Notation Styles
+### 1.1 Type-to-Notation Map
 
-| Notation       | Meaning                 | Example                               |
-| -------------- | ----------------------- | ------------------------------------- |
-| $\mathbf{x}$   | Vector (bold lowercase) | $\mathbf{x} = [x_1, x_2, ..., x_n]^T$ |
-| $\vec{x}$      | Vector (arrow)          | Same as above                         |
-| $x_i$          | $i$-th component        | Element at position $i$               |
-| $\mathbf{e}_i$ | Standard basis vector   | 1 at position $i$, 0 elsewhere        |
-| $\mathbf{0}$   | Zero vector             | All components are 0                  |
-| $\mathbf{1}$   | Ones vector             | All components are 1                  |
+| Object | Notation style | LaTeX command | Example |
+| --- | --- | --- |---|
+| Scalar | Italic lowercase | `a`, `\alpha` | $x \in \mathbb{R}$ |
+| Vector | **Bold** lowercase | `\mathbf{x}` | $\mathbf{x} \in \mathbb{R}^n$ |
+| Matrix | Uppercase italic | `A`, `W` | $A \in \mathbb{R}^{m \times n}$ |
+| Tensor (order $\ge 3$) | Calligraphic | `\mathcal{X}` | $\mathcal{X} \in \mathbb{R}^{d_1 \times \cdots \times d_k}$ |
+| Random variable | Uppercase italic | `X`, `Z` | $X \sim \mathcal{N}(0,1)$ |
+| Set / space | Calligraphic | `\mathcal{D}`, `\mathcal{H}` | $\mathcal{D} = \{(\mathbf{x}^{(i)}, y^{(i)})\}$ |
+| Number field | Blackboard bold | `\mathbb{R}`, `\mathbb{C}` | $\mathbb{R}^n$, $\mathbb{C}^{m \times n}$ |
+| Distribution | Calligraphic | `\mathcal{N}`, `\mathcal{U}` | $\mathcal{N}(\boldsymbol{\mu}, \Sigma)$ |
 
-### Vector Operations
+> **Do:** `\mathbf{x}` for vectors.
+> **Do not:** `\vec{x}` (physics convention), `\underline{x}` (typewriter convention),
+> or plain `x` when $x$ is a vector — these are all errors in this codebase.
 
-| Symbol                                   | Name             | Meaning                           |
-| ---------------------------------------- | ---------------- | --------------------------------- | --- | ---------- |
-| $\mathbf{x}^T$                           | Transpose        | Row vector from column vector     |
-| $\mathbf{x} \cdot \mathbf{y}$            | Dot product      | $\sum_i x_i y_i$                  |
-| $\mathbf{x}^T \mathbf{y}$                | Inner product    | Same as dot product               |
-| $\langle \mathbf{x}, \mathbf{y} \rangle$ | Inner product    | Alternative notation              |
-| $\mathbf{x} \times \mathbf{y}$           | Cross product    | Vector perpendicular to both (3D) |
-| $\|\mathbf{x}\|$                         | Euclidean norm   | $\sqrt{\sum_i x_i^2}$             |
-| $\|\mathbf{x}\|_1$                       | L1 norm          | $\sum_i                           | x_i | $          |
-| $\|\mathbf{x}\|_2$                       | L2 norm          | Same as Euclidean norm            |
-| $\|\mathbf{x}\|_p$                       | Lp norm          | $(\sum_i                          | x_i | ^p)^{1/p}$ |
-| $\|\mathbf{x}\|_\infty$                  | Infinity norm    | $\max_i                           | x_i | $          |
-| $\mathbf{x} \odot \mathbf{y}$            | Hadamard product | Element-wise multiplication       |
+### 1.2 Indexing
 
-### Visual
+| What | Notation | LaTeX | Meaning |
+| --- | --- | --- |---|
+| Vector component | $x_i$ | `x_i` | $i$-th scalar, 1-indexed by default |
+| Matrix entry | $A_{ij}$ | `A_{ij}` | row $i$, column $j$ |
+| Row $i$ | $A_{i,:}$ | `A_{i,:}` | as a row vector |
+| Column $j$ | $A_{:,j}$ | `A_{:,j}` | as a column vector |
+| Data sample | $\mathbf{x}^{(i)}$ | `\mathbf{x}^{(i)}` | parentheses distinguish from power |
+| Layer index | $\mathbf{h}^{[l]}$ | `\mathbf{h}^{[l]}` | square brackets distinguish from data |
+| Time step | $\mathbf{h}_t$ | `\mathbf{h}_t` | subscript, used in sequences |
 
-```
-Column vector:        Row vector:
-    ┌───┐
-x = │ x₁│             x^T = [x₁  x₂  x₃]
-    │ x₂│
-    │ x₃│
-    └───┘
-```
+> **Convention:** $(i)$ = data sample, $[l]$ = network layer, $_t$ = time.
+> These three scopes must never share the same superscript/subscript style.
 
 ---
 
-## Matrices
+## 2. Number Fields and Spaces
 
-### Notation
-
-| Symbol                    | Meaning                        |
-| ------------------------- | ------------------------------ |
-| $A$, $B$, $M$             | Matrices (uppercase letters)   |
-| $A_{ij}$ or $a_{ij}$      | Element at row $i$, column $j$ |
-| $A_{i:}$                  | $i$-th row of $A$              |
-| $A_{:j}$                  | $j$-th column of $A$           |
-| $A^T$                     | Transpose                      |
-| $A^{-1}$                  | Inverse                        |
-| $A^+$                     | Pseudoinverse (Moore-Penrose)  |
-| $A^*$                     | Conjugate transpose            |
-| $I$ or $I_n$              | Identity matrix ($n \times n$) |
-| $O$                       | Zero matrix                    |
-| $\text{diag}(\mathbf{x})$ | Diagonal matrix from vector    |
-
-### Matrix Operations
-
-| Symbol           | Name                  | Meaning                                  |
-| ---------------- | --------------------- | ---------------------------------------- | ----------- | --- |
-| $AB$             | Matrix multiplication | $(AB)_{ij} = \sum_k A_{ik}B_{kj}$        |
-| $A \odot B$      | Hadamard product      | Element-wise multiplication              |
-| $A \otimes B$    | Kronecker product     | Block matrix                             |
-| $\text{tr}(A)$   | Trace                 | Sum of diagonal elements                 |
-| $\det(A)$ or $   | A                     | $                                        | Determinant |     |
-| $\text{rank}(A)$ | Rank                  | Number of linearly independent rows/cols |
-| $\|A\|_F$        | Frobenius norm        | $\sqrt{\sum_{i,j} A_{ij}^2}$             |
-| $\|A\|_2$        | Spectral norm         | Largest singular value                   |
-
-### Visual
-
-```
-       Column j
-          ↓
-    ┌─────────────┐
-    │ a₁₁ a₁₂ a₁₃│
-Row i→  │ a₂₁ a₂₂ a₂₃│   A ∈ ℝ^(3×3)
-    │ a₃₁ a₃₂ a₃₃│
-    └─────────────┘
-```
+| Symbol | LaTeX | Meaning |
+| --- | --- | --- |
+| $\mathbb{N}$ | `\mathbb{N}` | $\{0, 1, 2, \ldots\}$ (ISO 80000-2; 0 is included) |
+| $\mathbb{Z}$ | `\mathbb{Z}` | All integers $\{\ldots,-1,0,1,\ldots\}$ |
+| $\mathbb{R}$ | `\mathbb{R}` | Real line |
+| $\mathbb{R}^n$ | `\mathbb{R}^n` | Euclidean $n$-space (column vectors by default) |
+| $\mathbb{R}^{m \times n}$ | `\mathbb{R}^{m \times n}` | Real $m \times n$ matrices |
+| $\mathbb{C}$ | `\mathbb{C}` | Complex numbers |
+| $\mathbb{S}^n$ | `\mathbb{S}^n` | $n \times n$ real symmetric matrices |
+| $\mathbb{S}^n_+$ | `\mathbb{S}^n_+` | Positive semidefinite (PSD) cone |
+| $\mathbb{S}^n_{++}$ | `\mathbb{S}^n_{++}` | Strictly positive definite matrices |
+| $[n]$ | `[n]` | Index set $\{1, 2, \ldots, n\}$ |
 
 ---
 
-## Functions and Operations
+## 3. Linear Algebra
 
-### General
+### 3.1 Vectors
 
-| Symbol            | Name             | Meaning                         |
-| ----------------- | ---------------- | ------------------------------- |
-| $f: X \to Y$      | Function         | Maps from $X$ to $Y$            |
-| $f(x)$            | Function value   | Value of $f$ at $x$             |
-| $f \circ g$       | Composition      | $(f \circ g)(x) = f(g(x))$      |
-| $f^{-1}$          | Inverse function | $f^{-1}(f(x)) = x$              |
-| $\arg\max_x f(x)$ | Argmax           | Value of $x$ that maximizes $f$ |
-| $\arg\min_x f(x)$ | Argmin           | Value of $x$ that minimizes $f$ |
-| $\max(a, b)$      | Maximum          | Larger of $a$ and $b$           |
-| $\min(a, b)$      | Minimum          | Smaller of $a$ and $b$          |
-| $\sup$            | Supremum         | Least upper bound               |
-| $\inf$            | Infimum          | Greatest lower bound            |
+| Symbol | LaTeX | Meaning |
+| --- | --- | --- |
+| $\mathbf{x}$ | `\mathbf{x}` | Column vector (default orientation) |
+| $\mathbf{x}^\top$ | `\mathbf{x}^\top` | Transpose — use `^\top`, never `^T` in display math |
+| $\mathbf{e}_i$ | `\mathbf{e}_i` | $i$-th standard basis vector |
+| $\mathbf{0}$ | `\mathbf{0}` | Zero vector |
+| $\mathbf{1}$ | `\mathbf{1}` | All-ones vector |
+| $\langle \mathbf{x}, \mathbf{y} \rangle$ | `\langle \mathbf{x}, \mathbf{y} \rangle` | Inner product (preferred over dot) |
+| $\mathbf{x} \odot \mathbf{y}$ | `\mathbf{x} \odot \mathbf{y}` | Hadamard (element-wise) product |
 
-### Summation and Products
+> **Transpose:** Use `^\top` in all display equations. Reserve `^T` for inline code
+> comments only. Rationale: `^T` is ambiguous with transposing a random variable $T$.
 
-| Symbol            | Meaning            | Example                                   |
-| ----------------- | ------------------ | ----------------------------------------- |
-| $\sum_{i=1}^{n}$  | Summation          | $\sum_{i=1}^{3} i = 1 + 2 + 3$            |
-| $\prod_{i=1}^{n}$ | Product            | $\prod_{i=1}^{3} i = 1 \times 2 \times 3$ |
-| $\sum_i$          | Sum over index $i$ | Short form                                |
-| $\sum_{x \in S}$  | Sum over set       | Sum for all $x$ in $S$                    |
+### 3.2 Matrices
 
-### Common Functions
+| Symbol | LaTeX | Meaning |
+| --- | --- | --- |
+| $I_n$ | `I_n` | $n \times n$ identity (subscript when size matters) |
+| $A^\top$ | `A^\top` | Matrix transpose |
+| $A^{-1}$ | `A^{-1}` | Matrix inverse (only for square, non-singular $A$) |
+| $A^\dagger$ | `A^\dagger` | Moore-Penrose pseudoinverse |
+| $A^*$ | `A^*` | Conjugate transpose (Hermitian adjoint) |
+| $\operatorname{tr}(A)$ | `\operatorname{tr}(A)` | Trace — use `\operatorname`, not `\text` |
+| $\det(A)$ | `\det(A)` | Determinant |
+| $\operatorname{rank}(A)$ | `\operatorname{rank}(A)` | Rank |
+| $\operatorname{diag}(\mathbf{x})$ | `\operatorname{diag}(\mathbf{x})` | Diagonal matrix from vector |
+| $A \otimes B$ | `A \otimes B` | Kronecker product |
+| $A \succ 0$ | `A \succ 0` | Positive definite |
+| $A \succeq 0$ | `A \succeq 0` | Positive semidefinite |
 
-| Symbol              | Name              | Definition                |
-| ------------------- | ----------------- | ------------------------- | -------------- | --- |
-| $\exp(x)$ or $e^x$  | Exponential       |                           |
-| $\log(x)$           | Natural logarithm | Base $e$                  |
-| $\log_2(x)$         | Binary logarithm  | Base 2                    |
-| $\log_{10}(x)$      | Common logarithm  | Base 10                   |
-| $                   | x                 | $                         | Absolute value |     |
-| $\lfloor x \rfloor$ | Floor             | Largest integer $\leq x$  |
-| $\lceil x \rceil$   | Ceiling           | Smallest integer $\geq x$ |
-| $\text{sign}(x)$    | Sign function     | $-1$, $0$, or $1$         |
+### 3.3 Norms
 
----
+| Symbol | LaTeX | Definition | Use case |
+| --- | --- | --- | --- |
+| $\lVert \mathbf{x} \rVert_2$ | `\lVert \mathbf{x} \rVert_2` | $\sqrt{\sum x_i^2}$ | Default vector norm |
+| $\lVert \mathbf{x} \rVert_1$ | `\lVert \mathbf{x} \rVert_1` | $\sum \lvert x_i \rvert$ | Sparsity, L1 regularisation |
+| $\lVert \mathbf{x} \rVert_p$ | `\lVert \mathbf{x} \rVert_p` | $(\sum \lvert x_i \rvert^p)^{1/p}$ | General $\ell^p$ norm |
+| $\lVert \mathbf{x} \rVert_\infty$ | `\lVert \mathbf{x} \rVert_\infty` | $\max_i \lvert x_i \rvert$ | Chebyshev / max norm |
+| $\lVert A \rVert_F$ | `\lVert A \rVert_F` | $\sqrt{\sum_{i,j} A_{ij}^2}$ | Frobenius norm |
+| $\lVert A \rVert_2$ | `\lVert A \rVert_2` | $\sigma_{\max}(A)$ | Spectral norm (operator norm) |
+| $\lVert A \rVert_*$ | `\lVert A \rVert_*` | $\sum_i \sigma_i(A)$ | Nuclear norm (trace norm) |
 
-## Calculus
+> **Norm delimiters:** Always use `\lVert \rVert` for norms and `\lvert \rvert` for
+> absolute values — never bare `\|` or `|`. This ensures correct spacing in all renderers.
 
-### Derivatives
+### 3.4 Decompositions
 
-| Symbol                          | Name               | Meaning                                     |
-| ------------------------------- | ------------------ | ------------------------------------------- |
-| $\frac{df}{dx}$                 | Derivative         | Rate of change of $f$ w.r.t. $x$            |
-| $f'(x)$                         | Derivative         | Same as above                               |
-| $\frac{d^2f}{dx^2}$             | Second derivative  |                                             |
-| $f''(x)$                        | Second derivative  |                                             |
-| $\frac{\partial f}{\partial x}$ | Partial derivative | Derivative holding other variables constant |
-| $\partial_x f$                  | Partial derivative | Short notation                              |
-| $f_x$                           | Partial derivative | Subscript notation                          |
-| $\nabla f$                      | Gradient           | Vector of partial derivatives               |
-| $\nabla^2 f$                    | Laplacian          | Sum of second partials                      |
+| Name | Canonical form | Conditions |
+| --- | --- | --- |
+| Eigendecomposition | $A = Q \Lambda Q^{-1}$ | $A$ diagonalisable |
+| Spectral theorem | $A = Q \Lambda Q^\top$ | $A$ real symmetric |
+| SVD | $A = U \Sigma V^\top$ | $A \in \mathbb{R}^{m \times n}$, always exists |
+| QR | $A = QR$ | $Q$ orthogonal, $R$ upper triangular |
+| Cholesky | $A = LL^\top$ | $A \succ 0$ |
+| LU | $A = LU$ | Square, non-singular |
 
-### Gradient and Higher-Order
-
-| Symbol                                                   | Name                     | Definition                                                                  |
-| -------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------- |
-| $\nabla f$                                               | Gradient                 | $[\frac{\partial f}{\partial x_1}, ..., \frac{\partial f}{\partial x_n}]^T$ |
-| $\nabla_\theta f$                                        | Gradient w.r.t. $\theta$ | Specifies the variable                                                      |
-| $J$ or $\frac{\partial \mathbf{f}}{\partial \mathbf{x}}$ | Jacobian                 | Matrix of first partials                                                    |
-| $H$ or $\nabla^2 f$                                      | Hessian                  | Matrix of second partials                                                   |
-| $\frac{\partial^2 f}{\partial x \partial y}$             | Mixed partial            |                                                                             |
-
-### Integrals
-
-| Symbol             | Name                |
-| ------------------ | ------------------- |
-| $\int f(x) dx$     | Indefinite integral |
-| $\int_a^b f(x) dx$ | Definite integral   |
-| $\iint$            | Double integral     |
-| $\iiint$           | Triple integral     |
-| $\oint$            | Contour integral    |
+> **SVD convention:** $U \in \mathbb{R}^{m \times m}$, $\Sigma \in \mathbb{R}^{m \times n}$,
+> $V \in \mathbb{R}^{n \times n}$. Singular values $\sigma_1 \ge \sigma_2 \ge \cdots \ge 0$
+> are always in non-increasing order. Left singular vectors = columns of $U$;
+> right singular vectors = columns of $V$.
 
 ---
 
-## Probability
+## 4. Calculus and Optimisation
 
-### Basic Notation
+### 4.1 Derivatives
 
-| Symbol             | Name                 | Meaning                    |
-| ------------------ | -------------------- | -------------------------- | ---------------------------- |
-| $P(A)$             | Probability          | Probability of event $A$   |
-| $P(A               | B)$                  | Conditional probability    | Probability of $A$ given $B$ |
-| $P(A, B)$          | Joint probability    | Probability of $A$ and $B$ |
-| $P(A \cap B)$      | Joint probability    | Same as above              |
-| $P(A \cup B)$      | Probability of union | Either $A$ or $B$          |
-| $\bar{A}$ or $A^c$ | Complement           | Not $A$                    |
+| Symbol | LaTeX | Meaning |
+| --- | --- | --- |
+| $\frac{df}{dx}$ | `\frac{df}{dx}` | Derivative of scalar $f$ w.r.t. scalar $x$ |
+| $f'(x)$ | `f'(x)` | Prime notation — only for univariate functions |
+| $\frac{\partial f}{\partial x_i}$ | `\frac{\partial f}{\partial x_i}` | Partial derivative |
+| $\nabla_{\mathbf{x}} f$ | `\nabla_{\mathbf{x}} f` | Gradient: $\mathbf{g} \in \mathbb{R}^n$ where $g_i = \partial f/\partial x_i$ |
+| $J_f(\mathbf{x})$ | `J_f(\mathbf{x})` | Jacobian of $\mathbf{f}: \mathbb{R}^n \to \mathbb{R}^m$; $J \in \mathbb{R}^{m \times n}$ |
+| $H_f(\mathbf{x})$ | `H_f(\mathbf{x})` | Hessian: $(H)_{ij} = \partial^2 f / \partial x_i \partial x_j$ |
+| $\frac{\partial \mathcal{L}}{\partial \theta}$ | `\frac{\partial \mathcal{L}}{\partial \theta}` | Gradient of loss w.r.t. parameters — standard ML form |
 
-### Random Variables
+> **Gradient orientation:** $\nabla f \in \mathbb{R}^n$ is always a **column vector**.
+> This is the convention of Nocedal & Wright (2006) and all major ML frameworks.
+> The gradient points in the direction of steepest ascent.
 
-| Symbol                              | Name             | Meaning                          |
-| ----------------------------------- | ---------------- | -------------------------------- | --------------------- |
-| $X$, $Y$, $Z$                       | Random variables | Uppercase letters                |
-| $x$, $y$, $z$                       | Realizations     | Specific values                  |
-| $p(x)$ or $P(X=x)$                  | PMF              | Probability mass function        |
-| $f(x)$                              | PDF              | Probability density function     |
-| $F(x)$                              | CDF              | Cumulative distribution function |
-| $X \sim \mathcal{N}(\mu, \sigma^2)$ | Distribution     | $X$ follows normal distribution  |
-| $X \perp Y$                         | Independence     | $X$ and $Y$ are independent      |
-| $X \perp Y                          | Z$               | Conditional independence         | Independent given $Z$ |
+### 4.2 Optimisation Symbols
 
-### Expectation and Moments
-
-| Symbol             | Name               | Definition                                      |
-| ------------------ | ------------------ | ----------------------------------------------- |
-| $E[X]$             | Expectation        | $\sum_x x \cdot P(x)$ or $\int x \cdot f(x) dx$ |
-| $\mathbb{E}[X]$    | Expectation        | Alternative notation                            |
-| $\mu$              | Mean               | $E[X]$                                          |
-| $\text{Var}(X)$    | Variance           | $E[(X - \mu)^2]$                                |
-| $\sigma^2$         | Variance           | Alternative notation                            |
-| $\sigma$           | Standard deviation | $\sqrt{\text{Var}(X)}$                          |
-| $\text{Cov}(X, Y)$ | Covariance         | $E[(X-\mu_X)(Y-\mu_Y)]$                         |
-| $\rho_{XY}$        | Correlation        | $\frac{\text{Cov}(X,Y)}{\sigma_X \sigma_Y}$     |
-| $\Sigma$           | Covariance matrix  |                                                 |
-
-### Common Distributions
-
-| Distribution        | Notation                                            |
-| ------------------- | --------------------------------------------------- |
-| Normal/Gaussian     | $\mathcal{N}(\mu, \sigma^2)$                        |
-| Multivariate Normal | $\mathcal{N}(\boldsymbol{\mu}, \Sigma)$             |
-| Uniform             | $\text{Uniform}(a, b)$ or $U(a, b)$                 |
-| Bernoulli           | $\text{Bernoulli}(p)$ or $\text{Bern}(p)$           |
-| Binomial            | $\text{Binomial}(n, p)$ or $B(n, p)$                |
-| Poisson             | $\text{Poisson}(\lambda)$ or $\text{Pois}(\lambda)$ |
-| Exponential         | $\text{Exp}(\lambda)$                               |
-| Gamma               | $\text{Gamma}(\alpha, \beta)$                       |
-| Beta                | $\text{Beta}(\alpha, \beta)$                        |
+| Symbol | LaTeX | Meaning |
+| --- | --- | --- |
+| $\arg\min_{\mathbf{x}} f(\mathbf{x})$ | `\arg\min_{\mathbf{x}}` | Minimiser of $f$ |
+| $\arg\max_{\mathbf{x}} f(\mathbf{x})$ | `\arg\max_{\mathbf{x}}` | Maximiser of $f$ |
+| $f^*$ | `f^*` | Optimal (minimum) value |
+| $\mathbf{x}^*$ | `\mathbf{x}^*` | Optimal solution |
+| $\mathcal{L}(\mathbf{x}, \boldsymbol{\lambda})$ | `\mathcal{L}(\mathbf{x}, \boldsymbol{\lambda})` | Lagrangian |
+| $\boldsymbol{\lambda}$ | `\boldsymbol{\lambda}` | Lagrange multipliers (vector — use bold) |
+| $\text{s.t.}$ | `\text{s.t.}` | Subject to |
+| $\eta$ | `\eta` | Learning rate |
+| $\theta_t$ | `\theta_t` | Parameters at step $t$ |
 
 ---
 
-## Linear Algebra Specific
+## 5. Probability and Statistics
 
-### Eigenvalues and Eigenvectors
+### 5.1 Core Symbols
 
-| Symbol       | Meaning                        |
-| ------------ | ------------------------------ |
-| $\lambda$    | Eigenvalue                     |
-| $\mathbf{v}$ | Eigenvector                    |
-| $\Lambda$    | Diagonal matrix of eigenvalues |
-| $V$          | Matrix of eigenvectors         |
-| $\sigma_i$   | Singular value                 |
-| $U, V$       | Left/right singular vectors    |
+| Symbol | LaTeX | Meaning |
+| --- | --- | --- |
+| $P(A)$ | `P(A)` | Probability of event $A$ |
+| $p(\mathbf{x})$ | `p(\mathbf{x})` | Probability density / mass function |
+| $P(A \mid B)$ | `P(A \mid B)` | Conditional probability — use `\mid`, not `\|` |
+| $X \sim p$ | `X \sim p` | $X$ is distributed according to $p$ |
+| $X \perp\!\!\!\perp Y$ | `X \perp\!\!\!\perp Y` | Statistical independence |
+| $\mathbb{E}[X]$ | `\mathbb{E}[X]` | Expectation — use blackboard bold $\mathbb{E}$ |
+| $\mathbb{E}_{\mathbf{x} \sim p}[f(\mathbf{x})]$ | `\mathbb{E}_{\mathbf{x} \sim p}[f(\mathbf{x})]` | Expectation specifying distribution |
+| $\operatorname{Var}(X)$ | `\operatorname{Var}(X)` | Variance |
+| $\operatorname{Cov}(X, Y)$ | `\operatorname{Cov}(X, Y)` | Covariance |
+| $\Sigma$ | `\Sigma` | Covariance matrix — capital sigma, not `\sum` |
 
-### Norms and Inner Products
+> **Conditional probability delimiter:** Always `P(A \mid B)` with `\mid`.
+> Never `P(A|B)` — the bare pipe `|` has incorrect spacing in LaTeX renderers.
 
-| Symbol                         | Meaning                                 |
-| ------------------------------ | --------------------------------------- |
-| $\langle \cdot, \cdot \rangle$ | Inner product                           |
-| $\|\cdot\|$                    | Norm                                    |
-| $\perp$                        | Orthogonal to                           |
-| $\mathbf{u} \perp \mathbf{v}$  | $\mathbf{u}$ orthogonal to $\mathbf{v}$ |
+### 5.2 Standard Distributions
 
-### Decompositions
+| Distribution | Notation | LaTeX |
+| --- | --- | --- |
+| Normal | $\mathcal{N}(\mu, \sigma^2)$ | `\mathcal{N}(\mu, \sigma^2)` |
+| Multivariate Normal | $\mathcal{N}(\boldsymbol{\mu}, \Sigma)$ | `\mathcal{N}(\boldsymbol{\mu}, \Sigma)` |
+| Uniform | $\mathcal{U}(a, b)$ | `\mathcal{U}(a, b)` |
+| Bernoulli | $\operatorname{Bern}(p)$ | `\operatorname{Bern}(p)` |
+| Categorical | $\operatorname{Cat}(\mathbf{p})$ | `\operatorname{Cat}(\mathbf{p})` |
+| Dirichlet | $\operatorname{Dir}(\boldsymbol{\alpha})$ | `\operatorname{Dir}(\boldsymbol{\alpha})` |
 
-| Name               | Notation               |
-| ------------------ | ---------------------- |
-| Eigendecomposition | $A = V \Lambda V^{-1}$ |
-| SVD                | $A = U \Sigma V^T$     |
-| QR                 | $A = QR$               |
-| Cholesky           | $A = LL^T$             |
-| LU                 | $A = LU$               |
-
----
-
-## Greek Letters
-
-### Commonly Used in ML
-
-| Letter     | Name             | Common Use                        |
-| ---------- | ---------------- | --------------------------------- |
-| $\alpha$   | alpha            | Learning rate, significance level |
-| $\beta$    | beta             | Momentum coefficient, parameters  |
-| $\gamma$   | gamma            | Discount factor, regularization   |
-| $\delta$   | delta            | Small change, error               |
-| $\epsilon$ | epsilon          | Small positive number, noise      |
-| $\eta$     | eta              | Learning rate                     |
-| $\theta$   | theta            | Model parameters                  |
-| $\lambda$  | lambda           | Eigenvalue, regularization        |
-| $\mu$      | mu               | Mean                              |
-| $\nu$      | nu               | Degrees of freedom                |
-| $\pi$      | pi               | Policy (RL), 3.14159...           |
-| $\rho$     | rho              | Correlation, density              |
-| $\sigma$   | sigma            | Standard deviation, activation    |
-| $\tau$     | tau              | Temperature, time constant        |
-| $\phi$     | phi              | Feature function, angle           |
-| $\psi$     | psi              | Activation, wave function         |
-| $\omega$   | omega            | Frequency, weights                |
-| $\Sigma$   | Sigma (capital)  | Covariance matrix, summation      |
-| $\Omega$   | Omega (capital)  | Sample space                      |
-| $\Gamma$   | Gamma (capital)  | Gamma function                    |
-| $\Delta$   | Delta (capital)  | Change, difference                |
-| $\Theta$   | Theta (capital)  | Parameter space                   |
-| $\Lambda$  | Lambda (capital) | Diagonal matrix                   |
-| $\Phi$     | Phi (capital)    | Feature matrix                    |
+> **Covariance matrix:** The second argument of $\mathcal{N}(\boldsymbol{\mu}, \Sigma)$
+> is the **covariance matrix**, not the precision matrix. When using precision, write
+> $\mathcal{N}(\boldsymbol{\mu}, \Lambda^{-1})$ explicitly.
 
 ---
 
-## Information Theory
+## 6. Information Theory
 
-| Symbol | Name | Definition |
-|--------|------|------------|
-| $H(X)$ | Entropy | $-\sum p(x) \log p(x)$ |
-| $H(X,Y)$ | Joint entropy | $-\sum_{x,y} p(x,y) \log p(x,y)$ |
-| $H(X\|Y)$ | Conditional entropy | $H(X,Y) - H(Y)$ |
-| $D_{KL}(p\|\|q)$ | KL divergence | $\sum p(x) \log\frac{p(x)}{q(x)}$ |
-| $H(p,q)$ | Cross-entropy | $-\sum p(x) \log q(x)$ |
-| $I(X;Y)$ | Mutual information | $H(X) - H(X\|Y)$ |
+| Symbol | LaTeX | Definition | Unit |
+| --- | --- | --- | --- |
+| $H(X)$ | `H(X)` | $-\sum_x p(x) \log p(x)$ | nats (log = ln) or bits (log = log₂) |
+| $H(X \mid Y)$ | `H(X \mid Y)` | $H(X,Y) - H(Y)$ | Conditional entropy |
+| $D_{\mathrm{KL}}(p \| q)$ | `D_{\mathrm{KL}}(p \| q)` | $\sum_x p(x) \log \frac{p(x)}{q(x)}$ | Non-negative; zero iff $p = q$ |
+| $H(p, q)$ | `H(p, q)` | $-\sum_x p(x) \log q(x)$ | Cross-entropy; $H(p,q) = H(p) + D_{\mathrm{KL}}(p\|q)$ |
+| $I(X; Y)$ | `I(X; Y)` | $H(X) - H(X \mid Y)$ | Mutual information; symmetric |
+| $\operatorname{PPL}$ | `\operatorname{PPL}` | $\exp\!\left(-\frac{1}{T}\sum_{t=1}^T \log p(x_t \mid x_{<t})\right)$ | Perplexity — LLM evaluation |
 
-> **Note:** $\log$ typically means $\ln$ (nats) or $\log_2$ (bits) depending on context.
+> **KL divergence notation:** Write $D_{\mathrm{KL}}(p \| q)$ with `\mathrm{KL}` and
+> double-bar `\|`. Read as "KL divergence **from** $q$ **to** $p$" — $p$ is the reference
+> distribution. This is the convention of Kullback & Leibler (1951) and Cover & Thomas (2006).
 
 ---
 
-## Graph Theory
+## 7. Machine Learning Specifics
+
+### 7.1 Data and Model Parameters
+
+| Symbol | LaTeX | Meaning |
+| --- | --- | --- |
+| $\mathcal{D} = \{(\mathbf{x}^{(i)}, y^{(i)})\}_{i=1}^n$ | `\mathcal{D}` | Dataset of $n$ examples |
+| $n$ | `n` | Number of training samples |
+| $d$ | `d` | Input dimension (number of features) |
+| $\boldsymbol{\theta}$ | `\boldsymbol{\theta}` | All trainable parameters (vector or set) |
+| $\mathbf{W}^{[l]}$ | `\mathbf{W}^{[l]}` | Weight matrix at layer $l$ |
+| $\mathbf{b}^{[l]}$ | `\mathbf{b}^{[l]}` | Bias vector at layer $l$ |
+| $\hat{y}$ | `\hat{y}` | Predicted output |
+| $\mathcal{L}(\boldsymbol{\theta})$ | `\mathcal{L}(\boldsymbol{\theta})` | Loss function |
+| $f_{\boldsymbol{\theta}}(\mathbf{x})$ | `f_{\boldsymbol{\theta}}(\mathbf{x})` | Model with parameters $\boldsymbol{\theta}$ |
+
+### 7.2 Neural Network Layers
 
 | Symbol | Meaning |
-|--------|----------|
-| $G = (V, E)$ | Graph with vertices $V$ and edges $E$ |
-| $A$ | Adjacency matrix |
-| $D$ | Degree matrix |
-| $L = D - A$ | Graph Laplacian |
-| $\mathcal{N}(v)$ | Neighborhood of vertex $v$ |
-| $\deg(v)$ | Degree of vertex $v$ |
-| $d(u,v)$ | Distance between $u$ and $v$ |
-| $\lambda_i$ | $i$-th eigenvalue of Laplacian |
-| $K_n$ | Complete graph on $n$ vertices |
-| $G'$ (or $\bar{G}$) | Complement graph |
+| --- | --- |
+| $\mathbf{z}^{[l]} = \mathbf{W}^{[l]} \mathbf{a}^{[l-1]} + \mathbf{b}^{[l]}$ | Pre-activation at layer $l$ |
+| $\mathbf{a}^{[l]} = \sigma(\mathbf{z}^{[l]})$ | Post-activation at layer $l$ |
+| $\sigma$ | Generic activation function |
+| $\delta^{[l]}$ | Error signal (backprop gradient) at layer $l$ |
 
----
-
-## Norms and Spaces
+### 7.3 Transformer-Specific
 
 | Symbol | Meaning |
-|--------|----------|
-| $\|\mathbf{x}\|_p$ | $\ell^p$ norm |
-| $\|A\|_F$ | Frobenius norm |
-| $\|A\|_2$ | Spectral norm (operator norm) |
-| $\|A\|_*$ | Nuclear norm (trace norm) |
-| $\langle x, y \rangle$ | Inner product |
-| $\mathcal{H}$ | Hilbert space |
-| $\mathcal{H}_K$ | Reproducing Kernel Hilbert Space |
-| $K(x,x')$ | Kernel function |
-| $L^p$ | Lebesgue space of $p$-integrable functions |
-| $\ell^2$ | Space of square-summable sequences |
-| $(V, \|\cdot\|)$ | Normed space |
+| --- | --- |
+| $Q, K, V$ | Query, Key, Value matrices |
+| $d_k$ | Key/query dimension (scaling: $\sqrt{d_k}$) |
+| $d_{\mathrm{model}}$ | Model/embedding dimension |
+| $h$ | Number of attention heads |
+| $\operatorname{softmax}(\mathbf{z})_i = \frac{e^{z_i}}{\sum_j e^{z_j}}$ | Softmax — always written with explicit denominator on first use |
+| $\operatorname{Attention}(Q,K,V) = \operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$ | Scaled dot-product attention |
 
 ---
 
-## Optimization
+## 8. Greek Letters — Reserved Meanings
 
-| Symbol | Meaning |
-|--------|----------|
-| $\arg\min_x f(x)$ | Value of $x$ minimizing $f$ |
-| $\arg\max_x f(x)$ | Value of $x$ maximizing $f$ |
-| $\text{s.t.}$ | Subject to (constraint) |
-| $\mathcal{L}(x, \lambda)$ | Lagrangian |
-| $\lambda_i$ | Lagrange multiplier |
-| $\mu$ | KKT dual variable |
-| $\nabla^2 f$ or $H$ | Hessian matrix |
-| $\succeq 0$ | Positive semi-definite |
-| $\succ 0$ | Positive definite |
-| $f^*$ | Optimal value |
-| $x^*$ | Optimal solution |
-| $\mathcal{C}$ | Constraint set |
+The following assignments are fixed across the entire repository.
+Do not reuse these symbols for other quantities without explicit redefinition.
 
----
-
-## Common Conventions in ML
-
-### Data and Models
-
-| Symbol             | Meaning              |
-| ------------------ | -------------------- |
-| $\mathbf{x}$       | Input/feature vector |
-| $\mathbf{y}$       | Target/output vector |
-| $\hat{\mathbf{y}}$ | Predicted output     |
-| $\mathbf{X}$       | Design matrix (data) |
-| $\mathbf{w}$       | Weight vector        |
-| $\mathbf{b}$       | Bias vector          |
-| $W$                | Weight matrix        |
-| $\theta$           | All parameters       |
-| $n$                | Number of samples    |
-| $d$ or $p$         | Number of features   |
-| $m$                | Number of outputs    |
-| $k$                | Number of classes    |
-
-### Neural Networks
-
-| Symbol            | Meaning                     |
-| ----------------- | --------------------------- |
-| $L$               | Loss function               |
-| $\mathcal{L}$     | Loss function (script)      |
-| $J$               | Cost function               |
-| $a^{[l]}$         | Activation at layer $l$     |
-| $z^{[l]}$         | Pre-activation at layer $l$ |
-| $W^{[l]}$         | Weights at layer $l$        |
-| $b^{[l]}$         | Bias at layer $l$           |
-| $\sigma$          | Activation function         |
-| $\nabla_\theta L$ | Gradient of loss            |
-
-### Optimization
-
-| Symbol    | Meaning                 |
-| --------- | ----------------------- |
-| $\eta$    | Learning rate           |
-| $t$       | Time step / iteration   |
-| $\nabla$  | Gradient operator       |
-| $\alpha$  | Step size               |
-| $\lambda$ | Regularization strength |
+| Letter | Reserved use | Context |
+| --- | --- | --- |
+| $\alpha$ | Learning rate (alt.), significance level | Optimisation, statistics |
+| $\beta_1, \beta_2$ | Adam moment decay rates | Optimisation |
+| $\gamma$ | Discount factor (RL), gradient scaling | RL, normalisation |
+| $\eta$ | Learning rate (primary) | All optimisers |
+| $\lambda$ | Eigenvalue; regularisation strength | Linear algebra, regularisation |
+| $\mu$ | Mean; dual variable | Statistics, optimisation |
+| $\sigma$ | Standard deviation; sigmoid activation | Statistics, neural networks |
+| $\sigma_i$ | $i$-th singular value | SVD |
+| $\tau$ | Temperature (sampling); time constant | LLM decoding, RNNs |
+| $\boldsymbol{\theta}$ | All model parameters | Every ML model |
+| $\phi$ | Encoder / feature-map parameters | VAE, kernels |
+| $\psi$ | Auxiliary / decoder parameters | VAE |
+| $\omega$ | Angular frequency; weights (secondary) | Signal processing |
+| $\Sigma$ | Covariance matrix; singular value matrix | Probability, SVD |
+| $\Lambda$ | Diagonal eigenvalue matrix | Spectral decomposition |
+| $\Phi$ | Feature / design matrix | Kernel methods |
 
 ---
 
-## Quick Reference Card
+## 9. Common LaTeX Pitfalls
 
-```
-VECTORS & MATRICES
-──────────────────
-Bold lowercase = vector: x, a, v
-Uppercase = matrix: A, X, W
-Subscript = element: xᵢ, Aᵢⱼ
-Transpose: Aᵀ
-Inverse: A⁻¹
-Norm: ‖x‖
-
-CALCULUS
-────────
-Derivative: df/dx, f'(x)
-Partial: ∂f/∂x
-Gradient: ∇f
-Jacobian: J
-Hessian: H
-
-PROBABILITY
-───────────
-Probability: P(A)
-Conditional: P(A|B)
-Expectation: E[X]
-Variance: Var(X)
-Normal: 𝒩(μ, σ²)
-
-COMMON
-──────
-Sum: Σ
-Product: Π
-Approximately: ≈
-Proportional: ∝
-For all: ∀
-Exists: ∃
-Implies: ⟹
-If and only if: ⟺
-```
+| Wrong | Correct | Reason |
+| --- | --- | --- |
+| `\|x\|` | `\lVert x \rVert` | Incorrect spacing for norms |
+| `\|` inside probability | `\mid` | `P(A\|B)` renders poorly |
+| `^T` for transpose | `^\top` | `T` looks like a variable name |
+| `\text{tr}` | `\operatorname{tr}` | `\text` is semantic, `\operatorname` is mathematical |
+| `\mathit{ReLU}` | `\operatorname{ReLU}` | Named functions use `\operatorname` |
+| `...` | `\ldots` or `\cdots` | `\ldots` for baseline, `\cdots` for centred |
+| `\mathbb{E}_{x}` | `\mathbb{E}_{\mathbf{x} \sim p}` | Specify distribution when not clear from context |
+| `\sum` for covariance matrix | `\Sigma` | `\sum` is a summation sign |
 
 ---
 
-## Reading ML Papers: Notation Tips
-
-Common notation patterns you'll encounter:
-
-| Paper Convention | Meaning |
-|-----------------|----------|
-| $\theta$ | Model parameters |
-| $\phi$ | Variational/encoder parameters |
-| $\psi$ | Auxiliary parameters |
-| $\mathcal{D}$ | Dataset |
-| $\mathcal{L}$ | Loss or ELBO |
-| $p_\theta(x)$ | Model distribution |
-| $q_\phi(z\|x)$ | Approximate posterior |
-| $\mathbb{E}_{q}[\cdot]$ | Expectation under $q$ |
-| $\text{KL}(q\|\|p)$ | KL divergence |
-| $\odot$ | Element-wise (Hadamard) product |
-| $\otimes$ | Kronecker/tensor product |
-| $[N]$ | Set $\{1, 2, \ldots, N\}$ |
-| $\mathbb{1}[\cdot]$ | Indicator function |
-| $\propto$ | Proportional to |
-| $\sim$ | Distributed as (e.g., $x \sim \mathcal{N}(0,1)$) |
-
----
-
-_Understanding notation is half the battle in reading ML papers!_ 📚
+*This guide is versioned with the repository. If you find an inconsistency between this
+guide and any section file, the guide takes precedence — open an issue or PR to correct
+the section file.*

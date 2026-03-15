@@ -1,662 +1,187 @@
-# 🗺️ ML Math Map
+# ML Math Map
 
-> A comprehensive guide showing which mathematics is used where in Machine Learning.
-
----
-
-## Table of Contents
-
-1. [Overview Diagram](#overview-diagram)
-2. [Linear Algebra in ML](#linear-algebra-in-ml)
-3. [Calculus in ML](#calculus-in-ml)
-4. [Probability & Statistics in ML](#probability--statistics-in-ml)
-5. [Optimization in ML](#optimization-in-ml)
-6. [Information Theory in ML](#information-theory-in-ml)
-7. [By ML Model/Algorithm](#by-ml-modelalgorithm)
-8. [Numerical Methods in ML](#numerical-methods-in-ml)
-9. [Graph Theory in ML](#graph-theory-in-ml)
-10. [Functional Analysis & Kernels in ML](#functional-analysis--kernels-in-ml)
-11. [By Deep Learning Component](#by-deep-learning-component)
-12. [Suggested Learning Path](#-suggested-learning-path)
+> A precise mapping from mathematical concepts to their concrete roles in modern
+> ML systems. Each entry cites the specific model, paper, or algorithm where the
+> mathematics is load-bearing — not merely present.
 
 ---
 
-## Overview Diagram
+## How to Read This Document
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        MATHEMATICS FOR MACHINE LEARNING                      │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      │
-        ┌─────────────────────────────┼─────────────────────────────┐
-        │                             │                             │
-        ▼                             ▼                             ▼
-┌───────────────┐           ┌───────────────┐           ┌───────────────┐
-│LINEAR ALGEBRA │           │   CALCULUS    │           │ PROBABILITY   │
-├───────────────┤           ├───────────────┤           ├───────────────┤
-│• Data repr.   │           │• Optimization │           │• Uncertainty  │
-│• Transforms   │           │• Gradients    │           │• Inference    │
-│• Projections  │           │• Backprop     │           │• Distributions│
-└───────┬───────┘           └───────┬───────┘           └───────┬───────┘
-        │                           │                           │
-        └─────────────────────────────┼─────────────────────────────┘
-                                      │
-        ┌─────────────────────────────┼─────────────────────────────┐
-        │                             │                             │
-        ▼                             ▼                             ▼
-┌───────────────┐           ┌───────────────┐           ┌───────────────┐
-│ OPTIMIZATION  │           │ INFO THEORY   │           │  NUMERICAL    │
-├───────────────┤           ├───────────────┤           ├───────────────┤
-│• Training     │           │• Loss funcs   │           │• Stability    │
-│• Convergence  │           │• Compression  │           │• Precision    │
-│• Regularize   │           │• Information  │           │• Efficiency   │
-└───────────────┘           └───────────────┘           └───────────────┘
-```
+Each section identifies a mathematical domain, lists its core concepts, and maps
+each concept to: (a) the ML context, (b) the specific operation or formula, and
+(c) a concrete 2024–2026 example. This is a research-grade reference, not a survey.
 
 ---
 
-## Linear Algebra in ML
+## 1. Linear Algebra → ML
 
-### Core Concepts → ML Applications
+### 1.1 Matrix Multiplication
 
-| Linear Algebra Concept    | ML Application                  | Example                                       |
-| ------------------------- | ------------------------------- | --------------------------------------------- |
-| **Vectors**               | Feature representation          | Each data point as a vector                   |
-| **Matrix multiplication** | Forward propagation             | $\mathbf{y} = W\mathbf{x} + \mathbf{b}$       |
-| **Dot product**           | Similarity measurement          | Cosine similarity                             |
-| **Matrix transpose**      | Gradient computation            | $\nabla_W = \mathbf{x}^T \delta$              |
-| **Matrix inverse**        | Linear regression (closed form) | $\hat{\mathbf{w}} = (X^TX)^{-1}X^T\mathbf{y}$ |
-| **Eigenvalues/vectors**   | PCA, spectral clustering        | Dimensionality reduction                      |
-| **SVD**                   | Recommender systems             | Matrix factorization                          |
-| **Orthogonality**         | Feature decorrelation           | Gram-Schmidt in NNs                           |
-| **Determinant**           | Change of variables             | Normalizing flows                             |
-| **Trace**                 | Regularization                  | $\text{tr}(W^TW)$                             |
-| **Rank**                  | Model capacity                  | Low-rank approximation                        |
-| **Positive definiteness** | Covariance matrices             | Gaussian distributions                        |
+| Math concept | ML operation | Formula | Example |
+| --- | --- | --- | --- |
+| $\mathbf{y} = W\mathbf{x} + \mathbf{b}$ | Fully-connected layer | Forward pass | Every dense layer in every neural network |
+| $\text{Attention} = \text{softmax}(QK^\top/\sqrt{d_k})V$ | Self-attention | $O(n^2 d)$ | Transformers: GPT-4, LLaMA-3, Gemini |
+| $H^{(l+1)} = \sigma(\hat{A} H^{(l)} W^{(l)})$ | Graph convolution | Message passing | GCN (Kipf & Welling, 2017) |
 
-### Detailed Breakdown
+### 1.2 Eigendecomposition
 
-#### Data Representation
+| Concept | ML role | Where |
+| --- | --- | --- |
+| $A\mathbf{v} = \lambda \mathbf{v}$ | Stability of RNN hidden state | $\rho(W_h) < 1$ prevents exploding gradients |
+| Top eigenvector of $X^\top X$ | First principal component | PCA for dimensionality reduction |
+| Eigenvalues of graph Laplacian $L$ | Spectral graph convolution | ChebNet, spectral GNNs |
+| Hessian spectrum $\nabla^2 \mathcal{L}$ | Loss landscape sharpness | Sharpness-aware minimisation (Foret et al., 2021) |
+| Neural Tangent Kernel eigenvalues | Training speed of wide networks | NTK theory (Jacot et al., 2018) |
 
-```
-Data Matrix X ∈ ℝ^(n×d)
-─────────────────────────
-         Features
-         d columns
-      ┌─────────────┐
-    n │  x₁₁ ··· x₁d│  → Sample 1
-rows  │   ⋮  ⋱   ⋮  │
-      │  xn₁ ··· xnd│  → Sample n
-      └─────────────┘
+### 1.3 SVD
 
-Used in: Every ML algorithm!
-```
+| Concept | ML role | Where |
+| --- | --- | --- |
+| $A = U\Sigma V^\top$ | Low-rank weight decomposition | LoRA (Hu et al., 2022): $\Delta W = BA$ |
+| Eckart-Young theorem | Optimal rank-$k$ approximation | Matrix factorisation for recommenders |
+| Pseudoinverse $A^\dagger$ | Least-squares solution | Normal equations; ridge regression |
+| Singular value spectrum | Weight matrix health | WeightWatcher (Martin & Mahoney, 2021) |
+| Randomised SVD | Scalable approximation | Halko, Martinsson & Tropp (2011) |
 
-#### Neural Network Layer
+### 1.4 Norms and Regularisation
 
-```
-Linear Layer: y = Wx + b
-─────────────────────────
-Input x ∈ ℝ^d       →  Output y ∈ ℝ^m
-Weight W ∈ ℝ^(m×d)
-Bias b ∈ ℝ^m
-
-Matrix mult = linear transformation
-```
-
-#### Eigendecomposition Applications
-
-| Application         | How Eigenvalues Are Used            |
-| ------------------- | ----------------------------------- |
-| PCA                 | Eigenvectors = principal components |
-| PageRank            | Dominant eigenvector = page scores  |
-| Spectral Clustering | Eigenvectors of Laplacian           |
-| Markov Chains       | Stationary distribution             |
-| Recurrent NNs       | Stability analysis                  |
+| Norm | Regulariser | Effect | Used in |
+| --- | --- | --- | --- |
+| $\lVert \boldsymbol{\theta} \rVert_2^2$ | L2 / weight decay | Penalises large weights | AdamW, all modern LLMs |
+| $\lVert \boldsymbol{\theta} \rVert_1$ | L1 / Lasso | Induces sparsity | Sparse fine-tuning |
+| $\lVert W \rVert_2 = \sigma_{\max}(W)$ | Spectral normalisation | Lipschitz constraint | GANs (Miyato et al., 2018) |
+| $\lVert A \rVert_*$ (nuclear) | Nuclear norm | Low-rank inductive bias | Matrix completion |
 
 ---
 
-## Calculus in ML
+## 2. Calculus → ML
 
-### Core Concepts → ML Applications
+### 2.1 Chain Rule = Backpropagation
 
-| Calculus Concept        | ML Application                | Example                                                                                      |
-| ----------------------- | ----------------------------- | -------------------------------------------------------------------------------------------- |
-| **Derivatives**         | Gradient computation          | $\frac{\partial L}{\partial w}$                                                              |
-| **Chain rule**          | Backpropagation               | $\frac{\partial L}{\partial w} = \frac{\partial L}{\partial y}\frac{\partial y}{\partial w}$ |
-| **Partial derivatives** | Multivariate optimization     | Updating each weight                                                                         |
-| **Gradient**            | Direction of steepest descent | $\nabla L$                                                                                   |
-| **Jacobian**            | Multi-output functions        | Neural network layers                                                                        |
-| **Hessian**             | Second-order optimization     | Newton's method                                                                              |
-| **Taylor series**       | Local approximations          | Optimization analysis                                                                        |
-| **Integration**         | Probability densities         | Normalization constants                                                                      |
+The chain rule is not merely used in backpropagation — it **is** backpropagation.
 
-### Backpropagation Flow
+$$\frac{\partial \mathcal{L}}{\partial W^{[l]}} = \frac{\partial \mathcal{L}}{\partial \mathbf{a}^{[L]}} \cdot \prod_{k=l+1}^{L} \frac{\partial \mathbf{a}^{[k]}}{\partial \mathbf{a}^{[k-1]}} \cdot \frac{\partial \mathbf{a}^{[l]}}{\partial W^{[l]}}$$
 
-```
-Forward Pass:
-─────────────
-Input → [Linear] → [Activation] → [Linear] → [Activation] → Output → Loss
-  x        z₁          a₁           z₂          a₂           ŷ        L
+Every automatic differentiation framework (PyTorch, JAX, TensorFlow) is a
+symbolic implementation of this identity.
 
-Backward Pass (Chain Rule):
-───────────────────────────
-∂L/∂W₂ = ∂L/∂ŷ · ∂ŷ/∂a₂ · ∂a₂/∂z₂ · ∂z₂/∂W₂
+### 2.2 Key Derivatives in Practice
 
-∂L/∂W₁ = ∂L/∂ŷ · ∂ŷ/∂a₂ · ∂a₂/∂z₂ · ∂z₂/∂a₁ · ∂a₁/∂z₁ · ∂z₁/∂W₁
-         └──────────────────────────────────────────────────────────┘
-                          Chain Rule in Action!
-```
+| Function | Derivative | Why it matters |
+| --- | --- | --- |
+| $\sigma(x) = 1/(1+e^{-x})$ | $\sigma(x)(1-\sigma(x))$ | LSTM gate updates; vanishes for large $\lvert x \rvert$ |
+| $\tanh(x)$ | $1 - \tanh^2(x)$ | RNN hidden states; range $(-1,1)$ |
+| $\text{ReLU}(x) = \max(0,x)$ | $\mathbb{1}[x > 0]$ | Avoids vanishing gradient for $x > 0$ |
+| $\text{GELU}(x) = x\Phi(x)$ | $\Phi(x) + x\phi(x)$ | GPT-2, BERT, modern transformers |
+| $\text{softmax}(\mathbf{z})_i$ | $s_i(\delta_{ij} - s_j)$ | Cross-entropy gradient; numerically use log-sum-exp |
 
-### Gradient Visualization
+### 2.3 Gradient Flow and Vanishing/Exploding
 
-```
-Loss Surface
-─────────────
-     High Loss
-         ╱╲
-        ╱  ╲
-       ╱    ╲ ← ∇L points uphill
-      ╱  ·   ╲
-     ╱   ↓    ╲
-    ╱  current ╲
-   ╱   position ╲
-  ╱              ╲
- ╱      ★        ╲ ← minimum (goal)
-─────────────────────
-     Low Loss
+For a depth-$L$ network: $\frac{\partial \mathcal{L}}{\partial W^{[1]}} \propto \prod_{l=2}^{L} W^{[l]} \cdot \sigma'(\mathbf{z}^{[l]})$.
 
-Update: w ← w - η∇L  (move opposite to gradient)
-```
+| Condition | Effect | Fix |
+| --- | --- | --- |
+| $\lVert W \sigma' \rVert < 1$ repeated | Vanishing gradient | Residual connections, LSTM gates, ReLU |
+| $\lVert W \sigma' \rVert > 1$ repeated | Exploding gradient | Gradient clipping $\lVert g \rVert \le c$ |
+
+### 2.4 Second-Order Methods
+
+| Concept | Formula | ML application |
+| --- | --- | --- |
+| Hessian $H = \nabla^2 \mathcal{L}$ | $(H)_{ij} = \partial^2 \mathcal{L}/\partial\theta_i\partial\theta_j$ | Newton's method; Fisher information matrix |
+| Gauss-Newton approximation | $H \approx J^\top J$ | K-FAC (Martens & Grosse, 2015) |
+| Sharpness $\lambda_{\max}(H)$ | Largest Hessian eigenvalue | SAM (Foret et al., 2021); flat minima generalise better |
 
 ---
 
-## Probability & Statistics in ML
+## 3. Probability → ML
 
-### Core Concepts → ML Applications
+### 3.1 Probabilistic View of Supervised Learning
 
-| Probability Concept           | ML Application             | Example                |
-| ----------------------------- | -------------------------- | ---------------------- | --- |
-| **Probability distributions** | Modeling uncertainty       | Output probabilities   |
-| **Bayes' theorem**            | Bayesian inference         | Naive Bayes, posterior |
-| **Conditional probability**   | Classification             | $P(y                   | x)$ |
-| **Joint distributions**       | Generative models          | $P(x, y)$              |
-| **Expectation**               | Loss functions             | $E[L]$                 |
-| **Variance**                  | Uncertainty quantification | Prediction intervals   |
-| **Covariance**                | Feature relationships      | Multivariate Gaussian  |
-| **MLE**                       | Parameter estimation       | Training               |
-| **MAP**                       | Regularization             | L2 as Gaussian prior   |
-| **Sampling**                  | Monte Carlo methods        | Dropout, MCMC          |
+| Framework | Objective | Equivalent to |
+| --- | --- | --- |
+| MLE | $\max \sum \log p(y^{(i)} \mid \mathbf{x}^{(i)}; \boldsymbol{\theta})$ | Minimise cross-entropy loss |
+| MAP | $\max \sum \log p(y^{(i)} \mid \mathbf{x}^{(i)}; \boldsymbol{\theta}) + \log p(\boldsymbol{\theta})$ | L2 reg. (Gaussian prior), L1 reg. (Laplace prior) |
+| ELBO | $\mathbb{E}_{q}[\log p(\mathbf{x} \mid \mathbf{z})] - D_\text{KL}(q(\mathbf{z}\mid\mathbf{x}) \| p(\mathbf{z}))$ | VAE training objective (Kingma & Welling, 2014) |
 
-### Probabilistic View of ML
+### 3.2 Distributions in Active Use (2026)
 
-```
-Discriminative vs Generative
-────────────────────────────
+| Distribution | Where | Formula |
+| --- | --- | --- |
+| $\mathcal{N}(\boldsymbol{\mu}, \Sigma)$ | Weight init (He/Xavier), VAE latent, diffusion | $p(\mathbf{x}) \propto \exp(-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu})^\top \Sigma^{-1}(\mathbf{x}-\boldsymbol{\mu}))$ |
+| Categorical / softmax | LLM output token distribution | $p(x_i) = e^{z_i}/\sum_j e^{z_j}$ |
+| Bernoulli | Dropout mask, binary classification | $P(X=1) = p$ |
+| Dirichlet | Topic models, LDA, concentration prior | Conjugate to Categorical |
 
-Discriminative: Model P(y|x) directly
-┌─────────────────────────────────────┐
-│  Given input x, what is output y?   │
-│                                     │
-│  Examples: Logistic Regression,     │
-│            Neural Networks, SVM     │
-└─────────────────────────────────────┘
+### 3.3 Bayes' Theorem in ML
 
-Generative: Model P(x,y) = P(x|y)P(y)
-┌─────────────────────────────────────┐
-│  How is the data generated?         │
-│                                     │
-│  Examples: Naive Bayes, GMM,        │
-│            VAE, GAN                 │
-└─────────────────────────────────────┘
-```
+$$p(\boldsymbol{\theta} \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \boldsymbol{\theta})\, p(\boldsymbol{\theta})}{p(\mathcal{D})}$$
 
-### Regularization as Prior
-
-```
-MLE:  θ̂ = argmax P(D|θ)
-                ↓
-      No regularization
-
-MAP:  θ̂ = argmax P(D|θ)P(θ)
-                       ↑
-                    Prior!
-
-Gaussian prior P(θ) ∝ exp(-λ||θ||²)  →  L2 Regularization
-Laplace prior P(θ) ∝ exp(-λ||θ||₁)   →  L1 Regularization
-```
+- **Likelihood** $p(\mathcal{D} \mid \boldsymbol{\theta})$: the loss function
+- **Prior** $p(\boldsymbol{\theta})$: regularisation
+- **Posterior** $p(\boldsymbol{\theta} \mid \mathcal{D})$: what we actually want
+- **Evidence** $p(\mathcal{D})$: intractable; approximated by ELBO, Laplace, MCMC
 
 ---
 
-## Optimization in ML
+## 4. Information Theory → ML
 
-### Core Concepts → ML Applications
-
-| Optimization Concept         | ML Application            | Example            |
-| ---------------------------- | ------------------------- | ------------------ |
-| **Gradient descent**         | Training all models       | Weight updates     |
-| **SGD**                      | Large-scale training      | Batch processing   |
-| **Momentum**                 | Faster convergence        | SGD + momentum     |
-| **Adam**                     | Adaptive learning         | Most deep learning |
-| **Convexity**                | Global optimum guarantee  | Linear regression  |
-| **Lagrange multipliers**     | Constraints               | SVM dual problem   |
-| **Learning rate scheduling** | Training stability        | Warmup, decay      |
-| **Newton's method**          | Second-order optimization | Natural gradient   |
-
-### Optimizer Comparison
-
-```
-Optimization Landscape Navigation
-─────────────────────────────────
-
-GD:        SGD:       Momentum:    Adam:
-  ↓          ↓ ↘        ↓→→→→→      ↓→→
-  ↓          ↓↙         ↓           ↓→→
-  ↓        ↙↓           ↓           ↓→→
-  ↓       ↓  ↘          ↓           ↓
-  ★        ↘ ★         ★           ★
-
-Smooth    Noisy      Accelerated  Adaptive
-but slow  but        and smooth   per-param
-          escapes                 learning
-          local min              rate
-```
-
-### Learning Rate Effect
-
-```
-Learning Rate (η) Effects
-─────────────────────────
-
-η too small:          η just right:         η too large:
-     ·                     ·                     ·
-    ╱                     ╱                     ╱ ╲
-   ╱                     ╱                     ╱   ╲
-  ·                     ·                     ·     ·
- ╱                     ╱                           ╱
-·····★               ★                      ·····
-
-Slow                 Converges             Diverges
-convergence          smoothly              or oscillates
-```
+| Concept | Formula | ML role |
+| --- | --- | --- |
+| Cross-entropy | $H(p,q) = -\sum p \log q$ | **The** classification loss; training objective for all LLMs |
+| KL divergence | $D_\text{KL}(p\|q) = \sum p \log(p/q)$ | VAE regulariser; knowledge distillation; RLHF KL penalty |
+| Mutual information | $I(X;Y) = H(X) - H(X\mid Y)$ | InfoNCE loss; contrastive learning (SimCLR, CLIP) |
+| Perplexity | $\exp(-\frac{1}{T}\sum_t \log p(x_t\mid x_{<t}))$ | LLM evaluation; lower = better language model |
+| Bits-back coding | $-\mathbb{E}_q[\log p(\mathbf{x}\mid\mathbf{z})] + D_\text{KL}(q\|\,p)$ | VAE ELBO reinterpreted as compression |
 
 ---
 
-## Information Theory in ML
+## 5. Optimisation → ML
 
-### Core Concepts → ML Applications
+### 5.1 Gradient Descent Variants
 
-| Information Theory Concept | ML Application          | Example              |
-| -------------------------- | ----------------------- | -------------------- |
-| **Entropy**                | Uncertainty measurement | Decision tree splits |
-| **Cross-entropy**          | Classification loss     | Softmax + CE loss    |
-| **KL divergence**          | Distribution comparison | VAE loss, KD         |
-| **Mutual information**     | Feature selection       | InfoGAN              |
-| **Information gain**       | Feature importance      | Random forests       |
+| Algorithm | Update rule | Used in |
+| --- | --- | --- |
+| SGD + momentum | $\mathbf{v}_t = \beta\mathbf{v}_{t-1} + \nabla\mathcal{L}$; $\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \eta\mathbf{v}_t$ | Vision models |
+| Adam (Kingma & Ba, 2015) | Adaptive per-parameter $\eta$; bias-corrected moments | Default for LLMs |
+| AdamW (Loshchilov & Hutter, 2019) | Adam + decoupled weight decay | GPT-3, LLaMA, all frontier LLMs |
+| Muon (2024) | Orthogonalised Nesterov momentum | GPT-4o-scale training |
+| SOAP (2024) | Shampoo + Adam preconditioner | State-of-art efficiency |
 
-### Loss Functions from Information Theory
+### 5.2 Learning Rate Schedules
 
-```
-Cross-Entropy Loss
-──────────────────
-
-For classification with K classes:
-
-L = -∑ᵢ yᵢ log(ŷᵢ)
-
-Where:
-- yᵢ = true distribution (one-hot)
-- ŷᵢ = predicted probabilities (softmax output)
-
-Example (3 classes):
-True:      [1, 0, 0]
-Predicted: [0.7, 0.2, 0.1]
-Loss = -[1·log(0.7) + 0·log(0.2) + 0·log(0.1)]
-     = -log(0.7) ≈ 0.357
-```
-
-### KL Divergence in VAEs
-
-```
-VAE Loss = Reconstruction Loss + KL Divergence
-─────────────────────────────────────────────
-
-            ┌──────────────┐
-Input x  →  │   Encoder    │  →  μ, σ  →  z ~ N(μ,σ²)
-            └──────────────┘                   │
-                                               ▼
-            ┌──────────────┐              ┌────────┐
-Output x̂ ←  │   Decoder    │  ←───────── │ Sample │
-            └──────────────┘              └────────┘
-
-L = E[log p(x|z)] - KL(q(z|x) || p(z))
-    ─────────────   ─────────────────
-    Reconstruction   Regularization
-    (want high)      (want low)
-```
+| Schedule | Formula | Used in |
+| --- | --- | --- |
+| Cosine annealing | $\eta_t = \eta_{\min} + \frac{1}{2}(\eta_{\max}-\eta_{\min})(1+\cos\frac{\pi t}{T})$ | GPT, LLaMA pretraining |
+| Linear warmup | $\eta_t = \eta_{\max} \cdot t / T_\text{warm}$ | All large models (first 1–4K steps) |
+| WSD (warmup-stable-decay) | Constant phase + sharp cosine decay | Mistral, Phi-3 |
 
 ---
 
-## By ML Model/Algorithm
+## 6. Curriculum Map — Math to Model
 
-### Linear Regression
+This table maps each repository chapter to the specific models and papers
+that use it as load-bearing mathematics.
 
-| Math Concept   | Where Used                                                      |
-| -------------- | --------------------------------------------------------------- |
-| Linear algebra | $\hat{y} = X\mathbf{w}$                                         |
-| Matrix inverse | Normal equations: $\hat{\mathbf{w}} = (X^TX)^{-1}X^T\mathbf{y}$ |
-| Calculus       | Gradient descent: $\nabla_w L = X^T(X\mathbf{w} - \mathbf{y})$  |
-| Statistics     | MSE loss, R² score                                              |
-
-### Logistic Regression
-
-| Math Concept       | Where Used                       |
-| ------------------ | -------------------------------- | --------------- |
-| Linear algebra     | $z = \mathbf{w}^T\mathbf{x} + b$ |
-| Calculus           | Sigmoid derivative, gradient     |
-| Probability        | $P(y=1                           | x) = \sigma(z)$ |
-| Information theory | Cross-entropy loss               |
-
-### Support Vector Machine (SVM)
-
-| Math Concept   | Where Used                                                         |
-| -------------- | ------------------------------------------------------------------ |
-| Linear algebra | Hyperplane: $\mathbf{w}^T\mathbf{x} + b = 0$                       |
-| Calculus       | Gradient of hinge loss                                             |
-| Optimization   | Lagrange multipliers, dual problem                                 |
-| Kernel methods | $K(\mathbf{x}, \mathbf{x}') = \phi(\mathbf{x})^T\phi(\mathbf{x}')$ |
-
-### Principal Component Analysis (PCA)
-
-| Math Concept       | Where Used                   |
-| ------------------ | ---------------------------- |
-| Linear algebra     | Covariance matrix            |
-| Eigendecomposition | Finding principal components |
-| Optimization       | Maximize variance            |
-| Statistics         | Explained variance ratio     |
-
-### Decision Trees / Random Forests
-
-| Math Concept       | Where Used                      |
-| ------------------ | ------------------------------- |
-| Probability        | Class probabilities in leaves   |
-| Information theory | Information gain, Gini impurity |
-| Statistics         | Bootstrap sampling (RF)         |
-
-### K-Means Clustering
-
-| Math Concept   | Where Used                         |
-| -------------- | ---------------------------------- |
-| Linear algebra | Distance calculations              |
-| Calculus       | Minimizing within-cluster variance |
-| Optimization   | EM-like algorithm                  |
-
-### Neural Networks
-
-| Math Concept       | Where Used              |
-| ------------------ | ----------------------- |
-| Linear algebra     | Every layer computation |
-| Calculus           | Backpropagation         |
-| Probability        | Output layer, dropout   |
-| Optimization       | SGD, Adam               |
-| Information theory | Cross-entropy loss      |
-
-### Transformers
-
-| Math Concept   | Where Used                              |
-| -------------- | --------------------------------------- |
-| Linear algebra | Attention: $QK^T/\sqrt{d}$, projections |
-| Calculus       | Backprop through attention              |
-| Probability    | Softmax attention weights               |
-| Optimization   | Adam, learning rate schedules           |
+| Chapter | Core math | Primary models / papers |
+| --- | --- | --- |
+| 02 Linear Algebra Basics | Matrix ops, rank, projections | Every neural network |
+| 03 Advanced Linear Algebra | SVD, eigenvalues | LoRA, PCA, WeightWatcher |
+| 04 Calculus Fundamentals | Derivatives, chain rule | Backpropagation (Rumelhart et al., 1986) |
+| 05 Multivariate Calculus | Jacobian, Hessian | Adam, K-FAC, SAM |
+| 06 Probability Theory | Distributions, Bayes | VAE, DDPM, Bayesian deep learning |
+| 07 Statistics | MLE, MAP, hypothesis tests | Training objectives, model selection |
+| 08 Optimisation | Convexity, GD, constraints | All training algorithms |
+| 09 Information Theory | Entropy, KL, MI | Cross-entropy loss, RLHF, contrastive learning |
+| 10 Numerical Methods | Condition number, stability | Mixed precision, numerical autograd |
+| 11 Graph Theory | Laplacian, random walks | GCN, GAT, Node2Vec |
+| 12 Functional Analysis | Hilbert spaces, RKHS | SVMs, kernel methods, NTK theory |
+| 13 ML-Specific Math | Attention math, normalisation | Transformers (Vaswani et al., 2017) |
+| 14 Math for Specific Models | RNN/LSTM, CNN, GAN | Sequence models, generative models |
 
 ---
 
-## Numerical Methods in ML
-
-### Core Concepts → ML Applications
-
-| Numerical Concept | ML Application | Example |
-|-------------------|----------------|--------|
-| **Floating point** | Training stability | Mixed precision (FP16/BF16) |
-| **Condition number** | Ill-conditioned problems | Feature scaling necessity |
-| **Iterative solvers** | Large-scale systems | Conjugate gradient for GP |
-| **Numerical differentiation** | Gradient checking | Finite differences vs autograd |
-| **Interpolation** | Data augmentation | Spline interpolation |
-| **Random sampling** | Stochastic methods | Monte Carlo estimation |
-| **Matrix decomposition** | Efficient computation | Cholesky for GP inference |
-
-### Where Numerical Issues Arise
-
-```
-Training Pipeline:
-  Data → [Normalization] → Model → [Loss] → [Gradient] → [Update]
-                ↑                     ↑           ↑           ↑
-           Scale issues        Log-sum-exp   Vanishing/    Learning
-           (condition #)       trick         exploding     rate scale
-```
-
----
-
-## Graph Theory in ML
-
-### Core Concepts → ML Applications
-
-| Graph Concept | ML Application | Example |
-|---------------|----------------|--------|
-| **Adjacency matrix** | Graph representation | Social network data |
-| **Graph Laplacian** | Spectral clustering | Community detection |
-| **Random walks** | Node embedding | Node2Vec, DeepWalk |
-| **Message passing** | GNN framework | Node classification |
-| **Spectral methods** | Graph convolution | Spectral GCN (ChebNet) |
-| **Graph isomorphism** | Expressiveness | GIN (WL-test equivalent) |
-| **Attention on graphs** | Heterogeneous importance | GAT |
-| **Graph pooling** | Graph-level tasks | DiffPool |
-| **Shortest paths** | Distance features | Graph kernels |
-
-### GNN Architecture Map
-
-```
-Input Graph → [Encode] → Message Passing Layers → [Readout] → Prediction
-                            ↓
-              ┌─────────────────────────────────┐
-              │    h_v^{k+1} = UPDATE(          │
-              │        h_v^k,                    │
-              │        AGG({h_u^k : u ∈ N(v)})  │
-              │    )                              │
-              └─────────────────────────────────┘
-              Math: Linear algebra (matrix ops)
-                    + Calculus (backprop through graph)
-                    + Probability (attention weights)
-```
-
----
-
-## Functional Analysis & Kernels in ML
-
-### Core Concepts → ML Applications
-
-| Concept | ML Application | Example |
-|---------|----------------|--------|
-| **Norms** | Regularization | L1 (Lasso), L2 (Ridge) |
-| **Inner products** | Similarity | Cosine similarity, attention |
-| **Hilbert spaces** | Function spaces | RKHS for kernel methods |
-| **Reproducing kernels** | Kernel trick | SVM, GP |
-| **Spectral theorem** | Kernel PCA | Nonlinear dimensionality reduction |
-| **Banach fixed point** | Convergence | Bellman equation, iterative methods |
-| **NTK** | Neural network theory | Infinite-width analysis |
-
-### The Kernel Methods Pipeline
-
-```
-Input Space → [Feature Map φ] → Feature Space → [Linear Method] → Output
-     x          φ(x)              <φ(x),φ(x')>
-                  ↕                      ↕
-           Kernel Trick:            K(x,x')
-           Never compute φ(x)!     Compute directly
-```
-
----
-
-## By Deep Learning Component
-
-### Activation Functions
-
-| Function | Math Involved                                |
-| -------- | -------------------------------------------- |
-| Sigmoid  | $\sigma(x) = \frac{1}{1+e^{-x}}$, derivative |
-| Tanh     | Hyperbolic functions                         |
-| ReLU     | Piecewise functions                          |
-| Softmax  | Exponentials, normalization                  |
-| GELU     | Gaussian CDF                                 |
-
-### Loss Functions
-
-| Loss          | Math Involved         |
-| ------------- | --------------------- |
-| MSE           | Expectation, variance |
-| Cross-Entropy | Information theory    |
-| Hinge         | Optimization theory   |
-| Triplet       | Distance metrics      |
-| Contrastive   | Information theory    |
-
-### Regularization
-
-| Technique  | Math Involved               |
-| ---------- | --------------------------- |
-| L1         | Norms, sparsity             |
-| L2         | Norms, Gaussian prior       |
-| Dropout    | Probability, sampling       |
-| Batch Norm | Statistics (mean, variance) |
-| Layer Norm | Statistics                  |
-
-### Attention Mechanism
-
-```
-Scaled Dot-Product Attention
-────────────────────────────
-
-Attention(Q, K, V) = softmax(QK^T / √dₖ) V
-
-Math involved:
-├── Matrix multiplication: QK^T
-├── Scaling: √dₖ (for numerical stability)
-├── Softmax: probability distribution
-└── Weighted sum: attention × V
-
-Multi-Head Attention:
-├── Multiple parallel attention
-├── Concatenation
-└── Linear projection
-```
-
----
-
-## Quick Reference by Task
-
-### Classification
-
-- Linear algebra: Feature vectors, weight matrices
-- Probability: Class probabilities, Bayes
-- Information theory: Cross-entropy loss
-- Optimization: Gradient descent
-
-### Regression
-
-- Linear algebra: Matrix equations
-- Calculus: Gradients, optimization
-- Statistics: MSE, R², residuals
-
-### Clustering
-
-- Linear algebra: Distance metrics
-- Optimization: K-means objective
-- Probability: GMM
-
-### Dimensionality Reduction
-
-- Linear algebra: SVD, eigendecomposition
-- Statistics: Variance explained
-- Optimization: Reconstruction error
-
-### Generative Models
-
-- Probability: Distributions, sampling
-- Information theory: KL divergence
-- Linear algebra: Transformations
-
-### Reinforcement Learning
-
-- Probability: Markov decision processes
-- Optimization: Policy gradient
-- Linear algebra: Value function approximation
-
----
-
-## 📚 Suggested Learning Path
-
-```
-
-
-
-Start Here
-    │
-    ▼
-┌─────────────────┐
-│ 1. LINEAR       │ → Vectors, matrices, eigenvalues
-│    ALGEBRA      │    (Foundation for everything)
-└────────┬────────┘
-         │
-    ┌────┴────┐
-    ▼         ▼
-┌────────┐ ┌────────┐
-│CALCULUS│ │PROB &  │
-│        │ │STATS   │
-└───┬────┘ └───┬────┘
-    └────┬─────┘
-         ▼
-┌─────────────────┐
-│ 4. OPTIMIZATION │ → Training ML models
-└────────┬────────┘
-         │
-    ┌────┴────┐
-    ▼         ▼
-┌────────┐ ┌────────────┐
-│INFO    │ │NUMERICAL   │
-│THEORY  │ │METHODS     │
-└───┬────┘ └─────┬──────┘
-    └────┬───────┘
-         ▼
-┌─────────────────┐
-│ ADVANCED:       │
-│ • Graph Theory  │
-│ • Func. Analysis│
-│ • ML-Specific   │
-│ • Model Math    │
-└─────────────────┘
-
-
-
-
-```
-
-### Recommended Order for This Repository
-
-1. **01-Mathematical-Foundations** → Start here if rusty on basics
-2. **02-Linear-Algebra-Basics** → Essential for all ML
-3. **04-Calculus-Fundamentals** → Needed for optimization
-4. **05-Multivariate-Calculus** → Gradients and backprop
-5. **06-Probability-Theory** → Uncertainty and inference
-6. **07-Statistics** → Data analysis and estimation
-7. **08-Optimization** → Training algorithms
-8. **09-Information-Theory** → Loss functions and metrics
-9. **03-Advanced-Linear-Algebra** → Deeper theory
-10. **10-Numerical-Methods** → Implementation concerns
-11. **11-Graph-Theory** → Graph-structured data
-12. **12-Functional-Analysis** → Theory behind kernels
-13. **13-ML-Specific-Math** → Directly applied concepts
-14. **14-Math-for-Specific-Models** → Model-specific derivations
-
----
-
-_"The math you need depends on what you're building!"_ 🔧
+*This map is updated with each new section added to the curriculum.
+For the definitive reference on mathematics for ML, see:
+Goodfellow, Bengio & Courville (2016); Bishop (2006); Shalev-Shwartz & Ben-David (2014).*
