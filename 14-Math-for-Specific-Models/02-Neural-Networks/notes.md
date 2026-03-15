@@ -980,7 +980,7 @@ This exponential separation shows that going from 2 to 3 layers can save exponen
 
 **Montufar et al. (2014).** The number of **linear regions** (polyhedral pieces) of a depth-$L$, width-$n$ ReLU network in $\mathbb{R}^d$ satisfies:
 
-$$\text{# regions} \geq \left(\lfloor n/d \rfloor^{d(L-1)}\right) \cdot \binom{n}{d}$$
+$$\#\,\text{regions} \geq \left(\lfloor n/d \rfloor^{d(L-1)}\right) \cdot \binom{n}{d}$$
 
 A depth-1 network with $m$ neurons in $\mathbb{R}^d$ has at most $\binom{m}{d}$ regions. A depth-$L$ network with the same number of total neurons has exponentially more regions.
 
