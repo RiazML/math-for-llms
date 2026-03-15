@@ -1874,7 +1874,7 @@ As the feature map grows, this converges to a **Gaussian Process** with kernel $
 ### G.1 Numerical Stability
 
 **Log-sum-exp trick** (for normalisation):
-$$\log\sum_k e^{a_k} = a_\max + \log\sum_k e^{a_k - a_\max}$$
+$$\log\sum_k e^{a_k} = a_{\max} + \log\sum_k e^{a_k - a_{\max}}$$
 
 Apply in all forward passes, HMM computation, and softmax to prevent underflow/overflow.
 
