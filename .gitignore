@@ -152,4 +152,7 @@ logs/
 *.jpeg
 *.gif
 *.svg
-number_systems.png.claude/
+number_systems.png
+
+# Claude Code
+.claude/
