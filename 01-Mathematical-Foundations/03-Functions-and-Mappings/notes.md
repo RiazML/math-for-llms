@@ -55,8 +55,8 @@ After completing this section, you will:
    - [1.5 Historical Timeline](#15-historical-timeline)
    - [1.6 Pipeline Position in AI](#16-pipeline-position-in-ai)
 2. [Formal Definitions](#2-formal-definitions)
-   - [2.1 Function as Set of Ordered Pairs](#21-function-as-set-of-ordered-pairs)
-   - [2.2 Domain, Codomain, Range](#22-domain-codomain-range)
+   - [2.1 Function as a Set of Ordered Pairs](#21-function-as-a-set-of-ordered-pairs)
+   - [2.2 Domain, Codomain, and Range](#22-domain-codomain-and-range)
    - [2.3 Image and Preimage](#23-image-and-preimage)
    - [2.4 Equality of Functions](#24-equality-of-functions)
    - [2.5 Partial Functions](#25-partial-functions)
@@ -69,16 +69,16 @@ After completing this section, you will:
    - [3.6 Periodic Functions](#36-periodic-functions)
 4. [Function Composition](#4-function-composition)
    - [4.1 Definition and Notation](#41-definition-and-notation)
-   - [4.2 Associativity](#42-associativity)
-   - [4.3 Identity Function](#43-identity-function)
-   - [4.4 Composition Properties](#44-composition-properties)
+   - [4.2 Associativity of Composition](#42-associativity-of-composition)
+   - [4.3 The Identity Function](#43-the-identity-function)
+   - [4.4 Composition and Function Properties](#44-composition-and-function-properties)
    - [4.5 Neural Networks as Function Composition](#45-neural-networks-as-function-composition)
-   - [4.6 Commutative vs Non-Commutative Composition](#46-commutative-vs-non-commutative-composition)
+   - [4.6 Non-Commutativity of Composition](#46-non-commutativity-of-composition)
    - [4.7 Iterated Composition and Fixed Points](#47-iterated-composition-and-fixed-points)
 5. [Inverse Functions](#5-inverse-functions)
    - [5.1 Left and Right Inverses](#51-left-and-right-inverses)
    - [5.2 The Inverse Function](#52-the-inverse-function)
-   - [5.3 Inverse of Composition](#53-inverse-of-composition)
+   - [5.3 Inverse of a Composition](#53-inverse-of-a-composition)
    - [5.4 Pseudo-Inverse (Moore-Penrose)](#54-pseudo-inverse-moore-penrose)
    - [5.5 Invertibility and Information Preservation](#55-invertibility-and-information-preservation)
 6. [Special Classes of Functions](#6-special-classes-of-functions)
@@ -90,47 +90,51 @@ After completing this section, you will:
    - [6.6 Convex Functions](#66-convex-functions)
    - [6.7 Lipschitz Functions](#67-lipschitz-functions)
 7. [Higher-Order Functions and Functionals](#7-higher-order-functions-and-functionals)
-   - [7.1 Functions as First-Class Objects](#71-functions-as-first-class-objects)
-   - [7.2 Map, Filter, Reduce](#72-map-filter-reduce)
-   - [7.3 Functionals](#73-functionals)
-   - [7.4 Operators](#74-operators)
-   - [7.5 Currying and Partial Application](#75-currying-and-partial-application)
-   - [7.6 Function Spaces](#76-function-spaces)
+   - [7.1 Functions as Arguments](#71-functions-as-arguments)
+   - [7.2 Functionals (Functions of Functions)](#72-functionals-functions-of-functions)
+   - [7.3 Operators (Functions on Function Spaces)](#73-operators-functions-on-function-spaces)
+   - [7.4 Calculus of Variations](#74-calculus-of-variations)
+   - [7.5 Transformations in AI Frameworks](#75-transformations-in-ai-frameworks)
 8. [Continuity and Limits](#8-continuity-and-limits)
-   - [8.1 Limits of Functions](#81-limits-of-functions)
-   - [8.2 Continuity](#82-continuity)
+   - [8.1 The Epsilon-Delta Definition](#81-the-epsilon-delta-definition)
+   - [8.2 Types of Continuity](#82-types-of-continuity)
    - [8.3 Continuity in Higher Dimensions](#83-continuity-in-higher-dimensions)
-   - [8.4 Uniform Continuity](#84-uniform-continuity)
-   - [8.5 Discontinuities and Their Types](#85-discontinuities-and-their-types)
-   - [8.6 Intermediate Value Theorem](#86-intermediate-value-theorem)
+   - [8.4 Limits and Convergence](#84-limits-and-convergence)
+   - [8.5 Discontinuities and Their Consequences](#85-discontinuities-and-their-consequences)
 9. [Differentiable Functions and Derivatives](#9-differentiable-functions-and-derivatives)
-   - [9.1 The Derivative as a Function](#91-the-derivative-as-a-function)
-   - [9.2 Partial Derivatives and the Jacobian](#92-partial-derivatives-and-the-jacobian)
-   - [9.3 The Chain Rule](#93-the-chain-rule)
-   - [9.4 Differentiability Implies Continuity](#94-differentiability-implies-continuity)
-   - [9.5 Taylor's Theorem](#95-taylors-theorem)
+   - [9.1 Derivative as a Linear Approximation](#91-derivative-as-a-linear-approximation)
+   - [9.2 Smoothness Classes](#92-smoothness-classes)
+   - [9.3 The Chain Rule and Backpropagation](#93-the-chain-rule-and-backpropagation)
+   - [9.4 Gradient Problems in Deep Networks](#94-gradient-problems-in-deep-networks)
+   - [9.5 Automatic Differentiation](#95-automatic-differentiation)
 10. [Measure-Theoretic View of Functions](#10-measure-theoretic-view-of-functions)
-    - [10.1 Measurable Functions](#101-measurable-functions)
-    - [10.2 Lebesgue Integration](#102-lebesgue-integration)
-    - [10.3 Almost Everywhere (A.E.) Properties](#103-almost-everywhere-ae-properties)
-    - [10.4 Probability Distributions as Functions](#104-probability-distributions-as-functions)
-11. [Functions in Machine Learning — Systematic Treatment](#11-functions-in-machine-learning--systematic-treatment)
-    - [11.1 The Learning Problem as Function Approximation](#111-the-learning-problem-as-function-approximation)
-    - [11.2 Universal Approximation Theorem](#112-universal-approximation-theorem)
-    - [11.3 Parameterised Function Families](#113-parameterised-function-families)
-    - [11.4 Symmetries and Equivalences in Function Space](#114-symmetries-and-equivalences-in-function-space)
-    - [11.5 The Function Computed by Attention](#115-the-function-computed-by-attention)
-    - [11.6 Loss Functions as Functions](#116-loss-functions-as-functions)
-    - [11.7 Function Transformations in Training](#117-function-transformations-in-training)
+    - [10.1 Why Measure Theory?](#101-why-measure-theory)
+    - [10.2 Measurable Functions](#102-measurable-functions)
+    - [10.3 Random Variables as Measurable Functions](#103-random-variables-as-measurable-functions)
+    - [10.4 Lebesgue Integration](#104-lebesgue-integration)
+    - [10.5 Almost Everywhere and Null Sets](#105-almost-everywhere-and-null-sets)
+11. [Functions in Machine Learning](#11-functions-in-machine-learning)
+    - [11.1 Universal Approximation Theorems](#111-universal-approximation-theorems)
+    - [11.2 Loss Functions as Function Compositions](#112-loss-functions-as-function-compositions)
+    - [11.3 Hypothesis Classes and Function Spaces](#113-hypothesis-classes-and-function-spaces)
+    - [11.4 Attention as a Function](#114-attention-as-a-function)
+    - [11.5 Tokenisation and Embedding as Functions](#115-tokenisation-and-embedding-as-functions)
+    - [11.6 The Transformer Block as a Function](#116-the-transformer-block-as-a-function)
 12. [Category Theory Perspective](#12-category-theory-perspective)
-    - [12.1 Categories](#121-categories)
-    - [12.2 Examples of Categories](#122-examples-of-categories)
-    - [12.3 Functors](#123-functors)
-    - [12.4 Natural Transformations](#124-natural-transformations)
-    - [12.5 Why Category Theory for AI](#125-why-category-theory-for-ai)
-13. [Common Mistakes](#13-common-mistakes)
-14. [Exercises](#14-exercises)
-15. [Why This Matters for AI (2026 Edition)](#15-why-this-matters-for-ai-2026-edition)
+    - [12.1 Categories and Morphisms](#121-categories-and-morphisms)
+    - [12.2 Functors: Maps Between Categories](#122-functors-maps-between-categories)
+    - [12.3 Natural Transformations](#123-natural-transformations)
+    - [12.4 Isomorphisms and Equivalences](#124-isomorphisms-and-equivalences)
+    - [12.5 The Yoneda Lemma and Representations](#125-the-yoneda-lemma-and-representations)
+13. [Common Mistakes and Misconceptions](#13-common-mistakes-and-misconceptions)
+14. [Exercises and Practice Problems](#14-exercises-and-practice-problems)
+15. [Why This Matters for AI/LLMs](#15-why-this-matters-for-aillms)
+    - [15.1 Everything Is a Function](#151-everything-is-a-function)
+    - [15.2 The Function Properties That Matter Most](#152-the-function-properties-that-matter-most)
+    - [15.3 Scale and the Function Perspective](#153-scale-and-the-function-perspective)
+16. [Conceptual Bridge](#16-conceptual-bridge)
+    - [16.1 Looking Ahead](#161-looking-ahead)
+    - [16.2 The Meta-Insight](#162-the-meta-insight)
 
 ---
 
@@ -1513,444 +1517,121 @@ It takes any differentiable function and returns its Jacobian (or gradient, for 
 
 ## 8. Continuity and Limits
 
+This chapter only needs the core idea of continuity: functions can preserve nearby structure instead of tearing inputs apart with abrupt jumps. The full story belongs to [Limits and Continuity](../../04-Calculus-Fundamentals/01-Limits-and-Continuity/notes.md), where epsilon-delta reasoning, theorem statements, and examples are treated systematically.
+
 ### 8.1 The Epsilon-Delta Definition
 
-**Intuition.** A function is continuous at a point if small changes in the input produce small changes in the output — there are no sudden jumps.
+A function is **continuous at $a$** when sufficiently small input changes force small output changes:
 
-**Formal definition.** A function $f: \mathbb{R} \to \mathbb{R}$ is **continuous at $a$** if:
+$$\forall \varepsilon > 0,\; \exists \delta > 0:\; |x-a| < \delta \implies |f(x)-f(a)| < \varepsilon$$
 
-$$\forall \varepsilon > 0, \; \exists \delta > 0 : |x - a| < \delta \implies |f(x) - f(a)| < \varepsilon$$
-
-In words: for any desired output tolerance $\varepsilon$, there exists an input tolerance $\delta$ such that inputs within $\delta$ of $a$ produce outputs within $\varepsilon$ of $f(a)$.
-
-```
-f(x)
-  │    ────────────
-  │   ╱            ╲
-f(a)+ε ─ ─ ─ ─ ─ ─ ─ ─   ← upper bound
-  │  ╱  │          │  ╲
-f(a)─ ─ ─ ─ ─•─ ─ ─ ─ ─   ← f(a)
-  │ ╱   │    │     │   ╲
-f(a)-ε ─ ─ ─ ─ ─ ─ ─ ─   ← lower bound
-  │╱    │    │     │    ╲
-  ──────┼────┼─────┼──── x
-      a-δ   a    a+δ
-```
-
-**Continuous on a set.** $f$ is **continuous on $S$** if it is continuous at every point in $S$. $f$ is continuous if it is continuous on its entire domain.
-
-**Equivalent formulations (in metric spaces):**
-
-1. **Epsilon-delta**: $\forall \varepsilon > 0, \exists \delta > 0 : d(x, a) < \delta \implies d(f(x), f(a)) < \varepsilon$
-2. **Sequential**: $x_n \to a \implies f(x_n) \to f(a)$ (preserves convergent sequences)
-3. **Topological**: Preimages of open sets are open: $U \text{ open} \implies f^{-1}(U) \text{ open}$
-
-The topological definition generalises to arbitrary topological spaces and is the most general.
+You do not need to master epsilon-delta proofs yet. What matters in this chapter is the interpretation: continuity is a structural property of a function, not a plotting aesthetic. It tells us whether a function respects local neighborhoods.
 
 ### 8.2 Types of Continuity
 
-**Uniform continuity.** $f$ is **uniformly continuous** on $S$ if $\delta$ can be chosen independently of the point $a$:
+Ordinary continuity is pointwise: the allowed $\delta$ may depend on the location $a$. **Uniform continuity** is stronger: one choice of $\delta$ works across the whole set. **Lipschitz continuity** is stronger still and gives an explicit bound on how much outputs can move relative to inputs.
 
-$$\forall \varepsilon > 0, \; \exists \delta > 0 : \forall x, y \in S, \; |x - y| < \delta \implies |f(x) - f(y)| < \varepsilon$$
-
-The key difference: for ordinary continuity, $\delta$ can depend on both $\varepsilon$ and the point $a$. For uniform continuity, $\delta$ depends only on $\varepsilon$.
-
-**Example.** $f(x) = x^2$ on $\mathbb{R}$:
-- Continuous: yes (at every point, for given $\varepsilon$ and $a$, choose $\delta = \min(1, \varepsilon/(2|a|+1))$)
-- Uniformly continuous on $\mathbb{R}$: **no**. Near $x = 10^6$, a change of $\delta = 10^{-6}$ changes $f$ by $\approx 2$. The required $\delta$ for a given $\varepsilon$ shrinks as $|a| \to \infty$.
-
-**Heine-Cantor theorem.** Every continuous function on a **compact** (closed and bounded) set is uniformly continuous. This is why neural network layers with bounded weights operate nicely — the functions are uniformly continuous on any bounded input region.
-
-**Lipschitz continuity (recap).** $|f(x) - f(y)| \leq L|x - y|$ for all $x, y$. This is stronger than uniform continuity (choose $\delta = \varepsilon / L$). Every Lipschitz continuous function is uniformly continuous, but not conversely ($f(x) = \sqrt{x}$ on $[0,1]$ is uniformly continuous but not Lipschitz at $x = 0$).
-
-**Hölder continuity.** $|f(x) - f(y)| \leq C|x - y|^\alpha$ for some $C > 0$ and $\alpha \in (0, 1]$. When $\alpha = 1$, this is Lipschitz. For $\alpha < 1$, the function can have "cusps" (like $\sqrt{x}$, which is $1/2$-Hölder).
-
-**Hierarchy of regularity:**
-
-```
-Differentiable ⊂ Lipschitz ⊂ Hölder ⊂ Uniformly Continuous ⊂ Continuous
-     ↓               ↓          ↓              ↓                 ↓
-  Smooth         Bounded     Moderate       Bounded           May have
-  slope           slope      growth         variation         jumps
-```
+For AI, this hierarchy matters because robustness, sensitivity, and optimization stability are all function-shape questions. When we say a layer is "well behaved," we usually mean something in this family.
 
 ### 8.3 Continuity in Higher Dimensions
 
-**Definition.** For $f: \mathbb{R}^n \to \mathbb{R}^m$, continuity at $a$ means:
+For $f: \mathbb{R}^n \to \mathbb{R}^m$, continuity is stated with norms:
 
-$$\forall \varepsilon > 0, \; \exists \delta > 0 : \|x - a\| < \delta \implies \|f(x) - f(a)\| < \varepsilon$$
+$$\forall \varepsilon > 0,\; \exists \delta > 0:\; \|x-a\| < \delta \implies \|f(x)-f(a)\| < \varepsilon$$
 
-The norms can be any norms on $\mathbb{R}^n$ and $\mathbb{R}^m$ (since all norms are equivalent in finite dimensions, the choice doesn't matter for continuity).
-
-**Important subtlety.** In multiple dimensions, a function can be continuous in each variable separately (all partial limits exist) but NOT jointly continuous. For example:
-
-$$f(x, y) = \begin{cases} \frac{xy}{x^2 + y^2} & (x,y) \neq (0,0) \\ 0 & (x,y) = (0,0) \end{cases}$$
-
-This is continuous along every line through the origin (every $f(t\cos\theta, t\sin\theta)$ is continuous in $t$), but NOT continuous at $(0,0)$ — along the path $y = x$, $f(t,t) = 1/2 \neq 0$.
-
-**For AI.** Multivariate continuity arises throughout deep learning:
-- Loss surfaces $\mathcal{L}(\theta)$ for $\theta \in \mathbb{R}^p$ with $p$ in the billions
-- All standard layers (linear, convolution, attention with softmax) are continuous functions
-- Gradient descent relies on continuity: a small step in $\theta$ produces a small change in loss
+This is the version that matters for neural networks, where inputs, hidden states, and parameters all live in high-dimensional spaces. A small step in parameter space should not cause an uncontrolled jump in loss unless the model includes genuinely discontinuous operations.
 
 ### 8.4 Limits and Convergence
 
-**Limit of a function.** $\lim_{x \to a} f(x) = L$ means:
+Limits describe what a function approaches near a point, even if the function value at that point is missing or different. Continuity can be summarized as "the function value agrees with the limiting value."
 
-$$\forall \varepsilon > 0, \; \exists \delta > 0 : 0 < |x - a| < \delta \implies |f(x) - L| < \varepsilon$$
-
-Note: $f$ does not need to be defined at $a$, and even if it is, $f(a)$ may differ from $L$. Continuity at $a$ means $f(a) = L$.
-
-**One-sided limits:**
-- $\lim_{x \to a^+} f(x) = L^+$ (right limit): approach $a$ from above
-- $\lim_{x \to a^-} f(x) = L^-$ (left limit): approach $a$ from below
-- The limit exists if and only if both one-sided limits exist and are equal: $L^+ = L^-$
-
-**Limits at infinity:**
-
-$$\lim_{x \to \infty} f(x) = L \quad \text{means} \quad \forall \varepsilon > 0, \exists M: x > M \implies |f(x) - L| < \varepsilon$$
-
-**Key limits for AI activation functions:**
-
-| Limit | Value | Significance |
-|---|---|---|
-| $\lim_{x \to \infty} \sigma(x)$ | $1$ | Sigmoid saturates at 1 |
-| $\lim_{x \to -\infty} \sigma(x)$ | $0$ | Sigmoid saturates at 0 |
-| $\lim_{x \to \infty} \tanh(x)$ | $1$ | Tanh saturates at 1 |
-| $\lim_{x \to -\infty} \tanh(x)$ | $-1$ | Tanh saturates at -1 |
-| $\lim_{x \to \infty} \text{ReLU}(x)/x$ | $1$ | ReLU is asymptotically linear |
-| $\lim_{x \to -\infty} \text{ReLU}(x)$ | $0$ | ReLU kills negative inputs |
-| $\lim_{x \to \infty} \text{GELU}(x)/x$ | $1$ | GELU approaches identity |
-| $\lim_{x \to -\infty} \text{GELU}(x)$ | $0$ | GELU approaches zero |
-| $\lim_{x \to \infty} \text{softmax}(x \cdot e_i)$ | $e_i$ | Softmax approaches argmax |
+This perspective is especially useful for activation functions and optimization trajectories: sigmoid and tanh saturate toward limiting values, while ReLU becomes asymptotically linear on the positive side. We will return to these ideas in [Limits and Continuity](../../04-Calculus-Fundamentals/01-Limits-and-Continuity/notes.md).
 
 ### 8.5 Discontinuities and Their Consequences
 
-**Types of discontinuities:**
+Not every useful AI function is smooth or even continuous. `argmax`, hard thresholding, rounding, and hard attention all introduce abrupt changes. That is why so much modern ML relies on soft relaxations such as softmax, sigmoid gates, or temperature-controlled approximations.
 
-1. **Removable**: The limit exists but $f(a)$ is missing or wrong. Can be "fixed" by redefining $f(a)$.
-2. **Jump**: Left and right limits exist but differ: $L^+ \neq L^-$.
-3. **Essential**: The limit does not exist at all (e.g., $\sin(1/x)$ near $x = 0$).
-
-**Discontinuities in AI:**
-
-| Function | Discontinuity | Type | Consequence |
-|---|---|---|---|
-| **ReLU** at $x = 0$ | Not differentiable | Kink (continuous, not smooth) | Gradient is undefined (use subgradient) |
-| **Step function** $\mathbb{1}_{x > 0}$ | Jump discontinuity | Classification boundary | Cannot backpropagate (gradient is 0 or undefined) |
-| **argmax** | Discontinuous | Jump at ties | Small perturbation can change output |
-| **Hard attention** | Discontinuous | Selection operation | Requires REINFORCE or Gumbel-Softmax |
-
-**Straight-through estimator (STE).** When the forward pass uses a discontinuous function (like rounding or hard thresholding), the backward pass pretends the function is the identity $f(x) = x$ or another smooth surrogate. This is mathematically unjustified but works well in practice for:
-- Binary neural networks (weights are $\pm 1$)
-- Vector quantisation (VQ-VAE)
-- Discrete token selection
-
-**Gumbel-Softmax (Jang et al. 2017, Maddison et al. 2017).** A continuous relaxation of discrete sampling:
-
-$$y_i = \frac{\exp((\log \pi_i + g_i)/\tau)}{\sum_j \exp((\log \pi_j + g_j)/\tau)}$$
-
-where $g_i \sim \text{Gumbel}(0,1)$ and $\tau$ is a temperature. As $\tau \to 0$, this approaches a discrete sample (discontinuous). As $\tau \to \infty$, it approaches a uniform distribution (smooth). The trick is to use a moderate $\tau$ during training to get smooth gradients.
+The important bridge for this chapter is simple: continuity is one of the first major properties that distinguishes function classes in a way that directly affects trainability and robustness.
 
 ---
 
 
 ## 9. Differentiable Functions and Derivatives
 
+Differentiability is the next major refinement: not only does the function avoid jumps, it admits a meaningful local linear approximation. The detailed machinery lives in [Derivatives and Differentiation](../../04-Calculus-Fundamentals/02-Derivatives-and-Differentiation/notes.md), [Partial Derivatives and Gradients](../../05-Multivariate-Calculus/01-Partial-Derivatives-and-Gradients/notes.md), [Chain Rule and Backpropagation](../../05-Multivariate-Calculus/03-Chain-Rule-and-Backpropagation/notes.md), and [Automatic Differentiation](../../05-Multivariate-Calculus/05-Automatic-Differentiation/notes.md).
+
 ### 9.1 Derivative as a Linear Approximation
 
-**Definition.** A function $f: \mathbb{R} \to \mathbb{R}$ is **differentiable at $a$** if the limit:
+For a scalar function, the derivative at $a$ is the limit
 
-$$f'(a) = \lim_{h \to 0} \frac{f(a + h) - f(a)}{h}$$
+$$f'(a) = \lim_{h \to 0}\frac{f(a+h)-f(a)}{h}$$
 
-exists. The derivative $f'(a)$ is the slope of the best linear approximation to $f$ at $a$:
-
-$$f(a + h) \approx f(a) + f'(a) \cdot h \quad \text{(for small } h\text{)}$$
-
-**The Fréchet derivative (multivariable generalisation).** A function $f: \mathbb{R}^n \to \mathbb{R}^m$ is differentiable at $a$ if there exists a linear map $Df(a): \mathbb{R}^n \to \mathbb{R}^m$ such that:
-
-$$\lim_{h \to 0} \frac{\|f(a + h) - f(a) - Df(a)(h)\|}{\|h\|} = 0$$
-
-The Fréchet derivative $Df(a)$ is a **matrix** (the Jacobian), not a number. It is the best linear approximation to $f$ at $a$.
-
-**Key objects:**
-
-| Object | Notation | Dimensions | Description |
-|---|---|---|---|
-| **Gradient** | $\nabla f(a)$ | $\mathbb{R}^n$ | For $f: \mathbb{R}^n \to \mathbb{R}$: direction of steepest ascent |
-| **Jacobian** | $J_f(a)$ | $\mathbb{R}^{m \times n}$ | For $f: \mathbb{R}^n \to \mathbb{R}^m$: matrix of all partial derivatives |
-| **Hessian** | $H_f(a)$ | $\mathbb{R}^{n \times n}$ | For $f: \mathbb{R}^n \to \mathbb{R}$: matrix of second partial derivatives |
-
-**Relationships:**
-- The Jacobian of $f: \mathbb{R}^n \to \mathbb{R}$ is the transpose of the gradient: $J_f = (\nabla f)^T$
-- The Hessian is the Jacobian of the gradient: $H_f = J_{\nabla f}$
+when that limit exists. In higher dimensions, the same idea becomes the gradient or Jacobian: the best linear map that approximates the function near a point. This "best local linear model" viewpoint is the right mental model for optimization.
 
 ### 9.2 Smoothness Classes
 
-**Definition.** The **smoothness class** $C^k$ is the set of functions whose first $k$ derivatives exist and are continuous:
+Analysts organize functions by regularity: continuous functions, continuously differentiable functions, twice differentiable functions, and so on. In ML terms, this is the difference between kinked activations such as ReLU and smoother choices such as GELU or softplus.
 
-| Class | Definition | Properties |
-|---|---|---|
-| $C^0$ | Continuous | No jumps |
-| $C^1$ | Continuously differentiable | Smooth, no kinks |
-| $C^2$ | Twice continuously differentiable | Curvature is defined |
-| $C^k$ | $k$ times continuously differentiable | More regular |
-| $C^\infty$ | Infinitely differentiable ("smooth") | All derivatives exist |
-| $C^\omega$ | Analytic (equals its Taylor series) | Strongest regularity |
-
-**Inclusions:** $C^\omega \subsetneq C^\infty \subsetneq \cdots \subsetneq C^2 \subsetneq C^1 \subsetneq C^0$
-
-**Smoothness of AI components:**
-
-| Component | Smoothness | Notes |
-|---|---|---|
-| Linear layer $Wx + b$ | $C^\omega$ | Analytic everywhere |
-| Sigmoid $\sigma(x)$ | $C^\omega$ | Analytic everywhere |
-| Tanh | $C^\omega$ | Analytic everywhere |
-| GELU | $C^\infty$ | Smooth but not analytic |
-| SiLU/Swish | $C^\infty$ | Smooth |
-| ReLU | $C^0$, not $C^1$ | Kink at $x = 0$ |
-| Leaky ReLU | $C^0$, not $C^1$ | Kink at $x = 0$ |
-| Softplus | $C^\infty$ | Smooth approximation of ReLU |
-| Layer Norm | $C^\infty$ (away from $\sigma=0$) | Smooth for non-constant inputs |
-| Softmax | $C^\omega$ | Analytic everywhere |
-| Attention (with softmax) | $C^\infty$ | Smooth end-to-end |
-
-**Why smoothness matters for training:**
-- $C^1$ (first derivative exists) is needed for gradient-based optimisation
-- $C^2$ allows second-order methods (Newton's method, natural gradient)
-- Higher smoothness implies better-behaved loss landscapes
-- ReLU works despite being $C^0$ because the set of non-differentiable points has measure zero — the gradient is defined "almost everywhere"
+You do not need the full taxonomy yet. The important lesson is that stronger regularity assumptions buy stronger theorems, but many practical models deliberately work at the edge of those assumptions because piecewise-linear functions are computationally convenient.
 
 ### 9.3 The Chain Rule and Backpropagation
 
-**The chain rule.** If $f = g \circ h$ (i.e., $f(x) = g(h(x))$), then:
+Differentiation becomes operationally important because neural networks are compositions:
 
-$$f'(x) = g'(h(x)) \cdot h'(x)$$
+$$f = f_L \circ \cdots \circ f_2 \circ f_1$$
 
-In multivariable form, for $f = g \circ h$ with $h: \mathbb{R}^n \to \mathbb{R}^k$ and $g: \mathbb{R}^k \to \mathbb{R}^m$:
-
-$$J_f(x) = J_g(h(x)) \cdot J_h(x) \quad \in \mathbb{R}^{m \times n}$$
-
-The Jacobian of a composition is the product of Jacobians.
-
-**For a deep network** $f = f_L \circ f_{L-1} \circ \cdots \circ f_1$:
-
-$$J_f(x) = J_{f_L} \cdot J_{f_{L-1}} \cdot \ldots \cdot J_{f_1}$$
-
-**Backpropagation** computes gradient of scalar loss $\mathcal{L}$ with respect to all parameters. Starting from the output and working backward:
-
-$$\frac{\partial \mathcal{L}}{\partial \theta_l} = \frac{\partial \mathcal{L}}{\partial f_L} \cdot \prod_{k=l+1}^{L} J_{f_k} \cdot \frac{\partial f_l}{\partial \theta_l}$$
-
-**Forward mode vs. reverse mode:**
-
-| Mode | Computes | Cost | Best when |
-|---|---|---|---|
-| **Forward** | One column of Jacobian per pass | $O(n)$ passes for full Jacobian | Few inputs ($n$ small) |
-| **Reverse** | One row of Jacobian per pass | $O(m)$ passes for full Jacobian | Few outputs ($m$ small) |
-
-For neural network training, $m = 1$ (scalar loss), so reverse mode (backpropagation) computes the full gradient in a single backward pass. This is the key insight that makes training billion-parameter models feasible.
+The **chain rule** tells us how derivatives of compositions combine, and backpropagation is the computational form of that rule. This is the main reason the function-composition viewpoint earlier in the chapter matters so much.
 
 ### 9.4 Gradient Problems in Deep Networks
 
-**Vanishing gradients.** If $\|J_{f_l}\|_{\text{op}} < 1$ for each layer, then:
+Composing many layers can make gradients shrink, blow up, or become numerically unstable. Vanishing and exploding gradients are not separate mysteries; they are consequences of how many Jacobian-like factors are multiplied together through depth.
 
-$$\left\|\prod_{l=1}^{L} J_{f_l}\right\| \leq \prod_{l=1}^{L} \|J_{f_l}\| \to 0 \quad \text{as } L \to \infty$$
-
-Gradients shrink exponentially with depth. This is why sigmoid-based networks couldn't be trained beyond ~5 layers.
-
-**Exploding gradients.** If $\|J_{f_l}\|_{\text{op}} > 1$:
-
-$$\prod_{l=1}^{L} \|J_{f_l}\| \to \infty \quad \text{as } L \to \infty$$
-
-Gradients grow exponentially, causing numerical instability.
-
-**Solutions adopted in modern architectures:**
-
-| Technique | How It Helps | Mathematical Mechanism |
-|---|---|---|
-| **ReLU** | Gradient is exactly 1 or 0 | $\|J_{\text{ReLU}}\| = 1$ for active neurons |
-| **Residual connections** | $f(x) = x + g(x)$ | $J_f = I + J_g$ — eigenvalues near 1 |
-| **Layer normalisation** | Normalises activations | Constrains $\|J\|$ to be $O(1)$ |
-| **Careful initialisation** | Xavier/He init | Ensures $\mathbb{E}[\|J\|^2] = 1$ |
-| **Gradient clipping** | Caps gradient norm | $g \leftarrow g \cdot \min(1, c/\|g\|)$ |
-
-**Residual connections — the key innovation.** For $f(x) = x + g(x)$:
-
-$$J_f = I + J_g$$
-
-The Jacobian has eigenvalues $1 + \lambda_i(J_g)$ rather than $\lambda_i(J_g)$. Even if $\lambda_i(J_g)$ is small, the eigenvalue of $J_f$ is near 1. This creates "gradient highways" that allow gradients to flow through very deep networks (100+ layers). Without residual connections, training GPT-scale models would be impossible.
+Residual connections, normalization, initialization schemes, and gradient clipping are all function-shaping interventions designed to keep this derivative information usable.
 
 ### 9.5 Automatic Differentiation
 
-**Automatic differentiation (AD)** computes exact derivatives (up to floating-point precision) by systematically applying the chain rule to elementary operations.
+Modern frameworks do not symbolically differentiate full formulas by hand. They build a computation graph and apply local derivative rules mechanically. That is **automatic differentiation**, and it is what turns abstract calculus into a practical training system.
 
-**Key distinction from other methods:**
-
-| Method | How It Works | Accuracy | Cost |
-|---|---|---|---|
-| **Symbolic** | Algebraic manipulation of expressions | Exact | Expression swell for complex $f$ |
-| **Numerical** | Finite differences: $(f(x+h) - f(x))/h$ | $O(h)$ or $O(h^2)$ | $O(n)$ evaluations of $f$ |
-| **Automatic** | Chain rule on computation graph | Exact (up to float) | $O(\text{cost}(f))$ |
-
-**The computation graph.** Any differentiable function can be decomposed into a directed acyclic graph (DAG) of elementary operations:
-
-```
-x₁, x₂ (inputs)
-    │
-    ▼
-v₁ = x₁ * x₂         ← elementary multiply
-    │
-    ▼
-v₂ = sin(v₁)          ← elementary sin
-    │
-    ▼
-v₃ = v₂ + x₁         ← elementary add
-    │
-    ▼
-y = exp(v₃)           ← elementary exp
-```
-
-**Forward mode (tangent propagation):** Propagates $\dot{v}_i = \partial v_i / \partial x_j$ from inputs to outputs.
-
-**Reverse mode (adjoint propagation / backprop):** Propagates $\bar{v}_i = \partial y / \partial v_i$ from outputs to inputs.
-
-**Modern AD frameworks:**
-
-| Framework | Mode | Language |
-|---|---|---|
-| PyTorch autograd | Reverse (dynamic graph) | Python |
-| JAX | Forward + Reverse (functional) | Python |
-| TensorFlow | Reverse (static/dynamic graph) | Python |
-| Swift for TensorFlow | Forward + Reverse (language-level) | Swift |
-| Enzyme | Forward + Reverse (LLVM-level) | C/C++/Fortran |
-
-**Higher-order derivatives.** AD can be applied recursively: `grad(grad(f))` computes the Hessian-vector product. This enables:
-- Second-order optimisation (computing or approximating the Hessian)
-- Meta-learning (differentiating through the training loop)
-- Physics-informed neural networks (computing $\nabla^2 f$ for PDE constraints)
+For this section, the main bridge is conceptual: once functions are composed from simple pieces, their derivatives can also be assembled systematically. That idea powers nearly all large-scale deep learning.
 
 ---
 
 
-## 10. Measure-Theoretic View
+## 10. Measure-Theoretic View of Functions
+
+Functions eventually need to interact with probability, integration, and "almost everywhere" reasoning. This chapter only needs a preview so the vocabulary will feel familiar later. The closest developed companions in the current curriculum are [Introduction to Probability and Random Variables](../../06-Probability-Theory/01-Introduction-and-Random-Variables/notes.md), [Expectation and Moments](../../06-Probability-Theory/04-Expectation-and-Moments/notes.md), and [Integration](../../04-Calculus-Fundamentals/03-Integration/notes.md); the dedicated measure-theory chapter sequence is still mostly scaffolded.
 
 ### 10.1 Why Measure Theory?
 
-In probability and machine learning, we work with functions that relate to "how likely" events are, or "how much" of a domain satisfies a condition. The naive notion of "length" or "area" breaks down for pathological sets, and the notion of "probability" needs a rigorous foundation. Measure theory provides this.
+Probability theory needs a rigorous way to say which subsets count as events, which functions are valid random variables, and when an expectation is well defined. Measure theory supplies that language.
 
-**The need for measure theory:**
-- Not all subsets of $\mathbb{R}$ can be assigned a consistent "length" (Vitali sets)
-- Probability distributions can be continuous, discrete, or mixtures — we need a framework that handles all three
-- Integration must work for very general classes of functions
-- Convergence theorems (dominated convergence, monotone convergence) need precise statements
+From the function viewpoint, the key upgrade is that we stop asking only "what output does this function produce?" and start asking "how does this function interact with a measure on its domain?"
 
 ### 10.2 Measurable Functions
 
-**Setup.** A **measurable space** is a pair $(X, \mathcal{A})$ where $X$ is a set and $\mathcal{A}$ is a **$\sigma$-algebra** on $X$ — a collection of "measurable" subsets closed under complementation and countable unions.
+A function between measurable spaces is **measurable** when preimages of measurable sets remain measurable. This is the measure-theoretic analogue of continuity preserving open-set structure.
 
-**Definition.** A function $f: (X, \mathcal{A}) \to (Y, \mathcal{B})$ between measurable spaces is **measurable** if:
-
-$$f^{-1}(B) \in \mathcal{A} \quad \text{for all } B \in \mathcal{B}$$
-
-Preimages of measurable sets are measurable. This is the measure-theoretic analogue of continuity (which requires preimages of open sets to be open).
-
-**Why this matters:** Measurability ensures that we can compute probabilities and expectations. If $f$ is measurable and $\mu$ is a measure on $(X, \mathcal{A})$, then we can define $\mu(f^{-1}(B))$ — the measure of the set where $f$ takes values in $B$.
-
-**Key facts:**
-- All continuous functions are measurable (with Borel $\sigma$-algebras)
-- Compositions of measurable functions are measurable
-- Pointwise limits of measurable functions are measurable (this fails for continuous functions!)
-- Sums, products, and max/min of measurable functions are measurable
-
-**For AI.** Every function used in neural networks is continuous (hence measurable). The measurability requirement becomes important when:
-- Defining random variables as measurable functions from probability spaces
-- Ensuring expectations $\mathbb{E}[f(X)]$ are well-defined
-- Working with generated distributions (the generator's output must be a measurable function)
+That condition is what lets us push probabilities through a function and talk about the distribution of outputs in a mathematically controlled way.
 
 ### 10.3 Random Variables as Measurable Functions
 
-**Definition.** A **random variable** is a measurable function $X: (\Omega, \mathcal{F}, P) \to (\mathbb{R}, \mathcal{B}(\mathbb{R}))$ from a probability space to the reals (with the Borel $\sigma$-algebra).
+A random variable is not fundamentally a mysterious object that "has a distribution." It is a measurable function
 
-```
-Probability Space          Random Variable           Real Line
-   (Ω, F, P)          X: Ω → R (measurable)        (R, B(R))
-                    
-  ┌─────────┐              X                     ──────────────
-  │  ω₁ ●   │───────────────→                    ──●──────────
-  │  ω₂ ●   │───────────────→                    ────●────────
-  │  ω₃ ●   │───────────────→                    ──────●──────
-  │         │                                     
-  │  P(A)   │    P(X ∈ B) = P(X⁻¹(B))           B ⊂ R
-  └─────────┘              = P({ω : X(ω) ∈ B})
-```
+$$X : (\Omega, \mathcal{F}, P) \to (\mathbb{R}, \mathcal{B}(\mathbb{R}))$$
 
-**The pushforward measure.** Given a random variable $X: \Omega \to \mathbb{R}$ and probability measure $P$ on $\Omega$, the **pushforward** (or **induced measure**) on $\mathbb{R}$ is:
-
-$$P_X(B) = P(X^{-1}(B)) = P(\{\omega \in \Omega : X(\omega) \in B\})$$
-
-This is the probability distribution of $X$.
-
-**For AI: Generative models and pushforward.**
-
-A generative model defines a measurable function $G: \mathbb{R}^d \to \mathbb{R}^D$ (from latent space to data space). If $Z \sim p_z$ is the latent distribution, then:
-
-$$X = G(Z) \sim G_{\#} p_z$$
-
-where $G_{\#} p_z$ is the pushforward of $p_z$ through $G$. Training a generative model is equivalent to finding $G$ such that $G_{\#} p_z \approx p_{\text{data}}$.
-
-| Model | Latent $p_z$ | Map $G$ | Pushforward $G_{\#} p_z$ |
-|---|---|---|---|
-| **GAN** | $\mathcal{N}(0, I)$ | Generator network | $\approx p_{\text{data}}$ (adversarial training) |
-| **VAE** | $\mathcal{N}(0, I)$ | Decoder network | $\approx p_{\text{data}}$ (ELBO optimisation) |
-| **Normalising Flow** | $\mathcal{N}(0, I)$ | Invertible network | $= p_{\text{data}}$ (exact likelihood via change of variables) |
-| **Diffusion** | $\mathcal{N}(0, I)$ | Learned denoise process | $\approx p_{\text{data}}$ (score matching) |
+from outcomes to values. The distribution is the pushforward of $P$ through $X$. This perspective becomes especially helpful when we later treat generative models as maps that transform one distribution into another.
 
 ### 10.4 Lebesgue Integration
 
-**Motivation.** The Riemann integral partitions the **domain** and sums areas of thin rectangles. The Lebesgue integral partitions the **range** and sums areas of horizontal slabs. The Lebesgue approach works for a much larger class of functions and enables powerful convergence theorems.
+Expectation is integration with respect to a probability measure. Lebesgue integration is the framework that makes this precise for very general classes of functions, far beyond the simple Riemann-integrable cases you first see in basic calculus.
 
-**Definition.** For a non-negative measurable function $f: X \to [0, \infty)$ and measure $\mu$ on $(X, \mathcal{A})$:
-
-$$\int_X f \, d\mu = \sup \left\{ \int_X s \, d\mu : s \text{ is a simple function}, 0 \leq s \leq f \right\}$$
-
-where a simple function $s = \sum_{i=1}^{n} c_i \mathbb{1}_{A_i}$ takes finitely many values.
-
-**Key convergence theorems:**
-
-| Theorem | Statement | Use in AI |
-|---|---|---|
-| **Monotone convergence** | If $f_n \uparrow f$ (increasing to $f$), then $\int f_n \to \int f$ | Justifies training on increasingly complex data |
-| **Dominated convergence** | If $|f_n| \leq g$ (integrable) and $f_n \to f$ pointwise, then $\int f_n \to \int f$ | Justifies swapping limits and expectations |
-| **Fatou's lemma** | $\int \liminf f_n \leq \liminf \int f_n$ | Lower bounds on limits of losses |
-
-**For AI: Expectation as Lebesgue integral.** For a random variable $X$ with distribution $P_X$:
-
-$$\mathbb{E}[X] = \int_{\mathbb{R}} x \, dP_X(x)$$
-
-The expected loss of a model $f$ over data distribution $\mathcal{D}$:
-
-$$\mathcal{L}(f) = \int_{X \times Y} \ell(f(x), y) \, d\mathcal{D}(x, y) = \mathbb{E}_{(x,y) \sim \mathcal{D}}[\ell(f(x), y)]$$
-
-The empirical loss $\hat{\mathcal{L}}(f) = \frac{1}{n}\sum_{i=1}^n \ell(f(x_i), y_i)$ replaces the Lebesgue integral with a sum over the empirical measure $\hat{\mathcal{D}} = \frac{1}{n}\sum \delta_{(x_i, y_i)}$.
+For ML, this matters because loss expectations, likelihoods, densities, and interchange-of-limit arguments all rest on integration theory, even when the notation looks innocently familiar.
 
 ### 10.5 Almost Everywhere and Null Sets
 
-**Definition.** A property holds **almost everywhere (a.e.)** with respect to measure $\mu$ if the set where it fails has measure zero:
+Many theorems in analysis and ML care only about what happens outside sets of measure zero. A property that holds **almost everywhere** may fail on a negligible exceptional set and still be enough for integration, optimization, and probability arguments.
 
-$$\mu(\{x : \text{property fails at } x\}) = 0$$
-
-**Examples in AI:**
-- ReLU is differentiable **a.e.** (the non-differentiable set $\{0\}$ has Lebesgue measure zero)
-- Two functions that agree a.e. have the same integral: $f = g$ a.e. $\implies \int f = \int g$
-- During SGD, the probability of landing exactly on a non-differentiable point is zero (for continuous parameter distributions)
-
-**For AI.** The fact that ReLU is not differentiable at exactly one point ($x = 0$) is irrelevant in practice because:
-1. The set $\{x = 0\}$ has Lebesgue measure zero
-2. The probability that any pre-activation is exactly zero is zero (under continuous distributions)
-3. The "subgradient" at $x = 0$ can be chosen arbitrarily (typically $0$ or $1$) without affecting the convergence of SGD
-
-This is why mathematically imprecise operations (like defining $\text{ReLU}'(0) = 0$) are justified — they agree with the true derivative almost everywhere, which is all that integration and expectation require.
+This is why ReLU's non-differentiability at a single point is usually harmless in practice: the bad set is tiny in the measure-theoretic sense that later theory makes precise.
 
 ---
 
@@ -2414,7 +2095,9 @@ where $\mathcal{L}$ is the loss, $C$ is compute, $D$ is data, and $N$ is paramet
 - More compute → more SGD steps → better search through the hypothesis class
 - The power-law form suggests deep structural regularities in the relationship between function class capacity and approximation quality
 
-### 15.4 Looking Ahead
+## 16. Conceptual Bridge
+
+### 16.1 Looking Ahead
 
 The mathematical tools from this chapter appear throughout the rest of this curriculum:
 
@@ -2427,7 +2110,11 @@ The mathematical tools from this chapter appear throughout the rest of this curr
 | **Information Theory** | Entropy and mutual information as functionals on distributions |
 | **Backpropagation** | Chain rule for compositions of differentiable functions |
 
-**The meta-insight.** Mathematics is, in a deep sense, the study of functions and their properties. Linear algebra studies linear functions. Calculus studies differentiable functions. Topology studies continuous functions. Measure theory studies measurable functions. Category theory studies all structure-preserving functions (morphisms) at once. Understanding functions — truly understanding them — is understanding the language in which all of AI is written.
+### 16.2 The Meta-Insight
+
+Mathematics is, in a deep sense, the study of functions and their properties. Linear algebra studies linear functions. Calculus studies differentiable functions. Topology studies continuous functions. Measure theory studies measurable functions. Category theory studies all structure-preserving functions (morphisms) at once.
+
+The bridge forward is this: later chapters will often look like they are about matrices, gradients, probability distributions, or optimization algorithms, but underneath they are still about maps between spaces, compositions of transformations, and constraints on what those transformations can preserve. Understanding functions — truly understanding them — is understanding the language in which all of AI is written.
 
 ---
 

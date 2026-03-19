@@ -36,7 +36,7 @@ After completing this section, you will:
 - Apply all algebraic properties: linearity, splitting, reindexing, interchange, telescoping
 - Derive closed-form results for arithmetic, geometric, and power series
 - Convert between products and sums using logarithms (the foundation of log-likelihood)
-- Understand Einstein summation convention and implement tensor operations via `torch.einsum`
+- Recognize Einstein summation convention as the shorthand behind tensor notation and `einsum`
 - Manipulate double sums, change summation order, and handle triangular index regions
 - Determine convergence of infinite series using ratio, root, comparison, and integral tests
 - Decompose every major AI formula (softmax, cross-entropy, attention, perplexity, BM25) into its summation/product structure
@@ -1591,183 +1591,71 @@ Both components are summations. The dense similarity is a dot product $\sum_i q_
 
 ## 9. Einstein Summation Convention
 
-The Einstein summation convention, introduced by Albert Einstein in his 1916 paper on general relativity, eliminates the explicit $\Sigma$ symbol entirely. Any index that appears **exactly twice** in a single term is implicitly summed over. This convention is now the standard notation in tensor calculus, physics, and — thanks to `torch.einsum` and `np.einsum` — a powerful tool in modern deep learning code.
+This section is a bridge, not the full treatment. The goal here is to recognize Einstein notation as a compressed way of writing repeated sums, so the dedicated next chapter, [Einstein Summation and Index Notation](../05-Einstein-Summation-and-Index-Notation/notes.md), can focus on tensor structure, index discipline, and implementation patterns without reintroducing the summation idea from scratch.
 
-### 9.1 Motivation: When Sigma Becomes Noise
+### 9.1 Motivation
 
-Consider the matrix multiplication formula:
-
-**Explicit sigma notation:**
+In many formulas, the summation symbol eventually becomes visual noise. Matrix multiplication is the classic example:
 
 $$
-C_{ij} = \sum_{k=1}^{p} A_{ik} B_{kj}
+C_{ij} = \sum_k A_{ik} B_{kj}
 $$
 
-**Einstein convention:**
+Einstein notation suppresses the explicit sigma and lets the repeated index carry the summation implicitly:
 
 $$
 C_{ij} = A_{ik} B_{kj}
 $$
 
-The index $k$ appears twice (once in $A$, once in $B$), so it is **summed over** automatically. The indices $i$ and $j$ each appear once, so they are **free indices** that label the output.
+The mathematical content is the same. What changes is the visual emphasis: the notation highlights the index pattern rather than the bookkeeping symbol.
 
-**Why drop the sigma?**
+### 9.2 Examples of Einstein Notation
 
-In expressions with many summations, the $\Sigma$ symbols obscure the structure. Compare the Ricci curvature tensor transformation:
+The pattern is easiest to learn by translating familiar sums:
 
-With sigmas: $R'_{\mu\nu} = \sum_{\alpha} \sum_{\beta} \frac{\partial x^\alpha}{\partial x'^\mu} \frac{\partial x^\beta}{\partial x'^\nu} R_{\alpha\beta}$
+| Operation       | Sigma notation               | Einstein notation |
+| --------------- | ---------------------------- | ----------------- |
+| Dot product     | $\sum_i a_i b_i$            | $a_i b_i$         |
+| Matrix-vector   | $\sum_j A_{ij} x_j$         | $A_{ij} x_j$      |
+| Matrix product  | $\sum_k A_{ik} B_{kj}$      | $A_{ik} B_{kj}$   |
+| Trace           | $\sum_i A_{ii}$             | $A_{ii}$          |
+| Bilinear form   | $\sum_{i,j} a_i M_{ij} b_j$ | $a_i M_{ij} b_j$  |
 
-Einstein: $R'_{\mu\nu} = \frac{\partial x^\alpha}{\partial x'^\mu} \frac{\partial x^\beta}{\partial x'^\nu} R_{\alpha\beta}$
+Seen this way, Einstein notation is not a new operation. It is a shorthand for repeated-index sums you already know how to read.
 
-The structure is identical — the repeated indices $\alpha, \beta$ tell us what's being summed.
+### 9.3 Rules for Einstein Notation
 
-### 9.2 The Rules
+A safe first-pass reading rule is:
 
-**Rule 1 — Repeated index = summation (dummy index):**
+- indices that appear twice in one term are summed
+- indices that appear once are free and determine the output shape
+- free indices must match across both sides of an equation
+- if an index appears three or more times, stop and rewrite the expression explicitly
 
-An index that appears exactly twice in a monomial (a single product term) is summed over all its values.
+Those rules are enough to parse the most common ML examples. The next chapter develops the more careful index discipline needed for higher-rank tensors and more complex contractions.
 
-$$
-a_i b_i \equiv \sum_{i=1}^{n} a_i b_i \qquad \text{(dot product)}
-$$
+### 9.4 Einstein Notation in PyTorch: `einsum`
 
-**Rule 2 — Free index = unsummed:**
-
-An index that appears exactly once on each side of an equation labels the components. The equation holds for every value of the free index.
-
-$$
-c_i = A_{ij} b_j \quad \Leftrightarrow \quad c_i = \sum_j A_{ij} b_j \quad \text{for each } i
-$$
-
-**Rule 3 — No index appears three or more times:**
-
-If you see an index three times, the expression is either wrong or needs explicit sigmas.
-
-**Rule 4 — Free indices must match on both sides:**
-
-In $c_i = A_{ij} b_j$, the left side has free index $i$, and the right side also has free index $i$ (after summing out $j$). This is consistent.
-
-**Index classification summary:**
-
-```
-  Expression:  C_ij = A_ik B_kj
-
-  Index analysis:
-  ┌───────┬────────────┬─────────┬──────────┐
-  │ Index │ Appears in │ Count   │ Type     │
-  ├───────┼────────────┼─────────┼──────────┤
-  │  i    │ C, A       │ 1 each  │ Free     │
-  │  j    │ C, B       │ 1 each  │ Free     │
-  │  k    │ A, B       │ 2 total │ Dummy    │
-  │       │            │ (summed)│          │
-  └───────┴────────────┴─────────┴──────────┘
-```
-
-### 9.3 Common Operations in Einstein Notation
-
-| Operation        | Standard                       | Einstein          | `einsum` string  |
-| ---------------- | ------------------------------ | ----------------- | ---------------- |
-| Dot product      | $\sum_i a_i b_i$               | $a_i b_i$         | `'i,i->'`        |
-| Matrix-vector    | $\sum_j A_{ij} b_j$            | $A_{ij} b_j$      | `'ij,j->i'`      |
-| Matrix multiply  | $\sum_k A_{ik} B_{kj}$         | $A_{ik} B_{kj}$   | `'ik,kj->ij'`    |
-| Outer product    | $a_i b_j$ (no sum)             | $a_i b_j$         | `'i,j->ij'`      |
-| Trace            | $\sum_i A_{ii}$                | $A_{ii}$          | `'ii->'`         |
-| Transpose        | $B_{ji} = A_{ij}$              | $B_{ji} = A_{ij}$ | `'ij->ji'`       |
-| Batch matmul     | $\sum_k A_{bik} B_{bkj}$       | $A_{bik} B_{bkj}$ | `'bik,bkj->bij'` |
-| Bilinear form    | $\sum_i \sum_j a_i M_{ij} b_j$ | $a_i M_{ij} b_j$  | `'i,ij,j->'`     |
-| Hadamard product | $C_{ij} = A_{ij} B_{ij}$       | $A_{ij} B_{ij}$   | `'ij,ij->ij'`    |
-| Frobenius norm²  | $\sum_i \sum_j A_{ij}^2$       | $A_{ij} A_{ij}$   | `'ij,ij->'`      |
-
-### 9.4 `torch.einsum` and `np.einsum`
-
-The einsum function in PyTorch and NumPy translates Einstein notation strings directly into tensor operations:
+Libraries such as PyTorch and NumPy make the connection explicit through `einsum`, which turns index patterns into code:
 
 ```python
-import torch
+# matrix multiply
+C = torch.einsum('ik,kj->ij', A, B)
 
-# Attention scores: Q @ K^T / sqrt(d_k)
-# Q: (batch, heads, seq_q, d_k)
-# K: (batch, heads, seq_k, d_k)
-scores = torch.einsum('bhqd,bhkd->bhqk', Q, K) / (d_k ** 0.5)
-
-# Attention output: scores @ V
-# V: (batch, heads, seq_k, d_v)
-output = torch.einsum('bhqk,bhkd->bhqd', attention_weights, V)
+# attention scores
+scores = torch.einsum('bhqd,bhkd->bhqk', Q, K)
 ```
 
-**Reading an einsum string:**
-
-```
-  'bhqd,bhkd->bhqk'
-   ││││ ││││  ││││
-   ││││ ││││  ││└─ k: output has seq_k dimension (free)
-   ││││ ││││  │└── q: output has seq_q dimension (free)
-   ││││ ││││  └─── h: output has heads dimension (free)
-   ││││ │││└────── b: output has batch dimension (free)
-   ││││ │││
-   ││││ ││└─ d: appears in both inputs → SUMMED (contraction)
-   ││││ ││
-   │└┘│ └┘── remaining indices determine shapes
-   │  │
-   Input 1    Input 2
-```
-
-**Performance note:** Modern `einsum` implementations use **optimal contraction paths**. The `opt_einsum` library finds the best order to contract indices, sometimes giving 10× speedups for complex multi-tensor operations:
-
-```python
-# Without optimisation: might be O(n^5)
-# With optimisation: breaks into O(n^3) matmuls
-import opt_einsum
-path, _ = opt_einsum.contract_path('ijk,jkl,klm->im', A, B, C)
-result = opt_einsum.contract('ijk,jkl,klm->im', A, B, C, optimize=path)
-```
+For this chapter, the important idea is conceptual: `einsum` is programmable Einstein notation. Once you can read the repeated indices, you can often read the code directly from the math.
 
 ### 9.5 Tensor Contraction
 
-Einstein summation generalises to **tensor contraction** — the fundamental operation in multilinear algebra.
+Einstein notation naturally leads to **tensor contraction**, where repeated indices are summed out and the remaining free indices define the output tensor. Dot products, matrix multiplication, traces, and attention score computations are all contractions of this kind.
 
-**Definition:** Given tensors $A$ with indices ${i_1, \ldots, i_p}$ and $B$ with indices ${j_1, \ldots, j_q}$, a contraction identifies a pair of indices (one from each tensor) and sums over them:
-
-$$
-C_{(\text{remaining indices})} = \sum_{k} A_{\ldots k \ldots} B_{\ldots k \ldots}
-$$
-
-**Contraction reduces rank:** If $A$ has rank $p$ and $B$ has rank $q$, and we contract $r$ pairs of indices, the result has rank $p + q - 2r$.
-
-```
-  Rank arithmetic:
-  ┌─────────────────────────────────────────────────────┐
-  │  Operation     │ Input Ranks │ Contractions │ Output │
-  ├─────────────────────────────────────────────────────┤
-  │  Dot product   │  1 + 1      │  1           │  0     │
-  │  Mat-vec       │  2 + 1      │  1           │  1     │
-  │  Mat-mat       │  2 + 2      │  1           │  2     │
-  │  Batch matmul  │  3 + 3      │  1           │  3*    │
-  │  Trace         │  2          │  1 (self)    │  0     │
-  │  Double contraction│ 2 + 2   │  2           │  0     │
-  └─────────────────────────────────────────────────────┘
-  * Batch indices preserved, not contracted
-```
-
-**AI application — attention as tensor contraction:**
-
-Multi-head attention involves a sequence of contractions:
-
-$$
-S_{bhij} = Q_{bhid} K_{bhjd} \quad \text{(contract } d\text{)}
-$$
-
-$$
-O_{bhid} = \alpha_{bhij} V_{bhjd} \quad \text{(contract } j\text{)}
-$$
-
-$$
-\text{out}_{bid} = O_{bhid} W^O_{hdd'} \quad \text{(contract } h, d\text{)}
-$$
-
-Each contraction is one line of `einsum` — the entire multi-head attention is three contractions.
+That is the real reason this preview belongs here: it shows that summation notation does not disappear in tensor algebra. It becomes more compact, more structural, and more expressive. The full transition from explicit sums to tensor contractions continues in [Einstein Summation and Index Notation](../05-Einstein-Summation-and-Index-Notation/notes.md).
 
 ---
+
 
 ## 10. Double Sums and Index Interaction
 

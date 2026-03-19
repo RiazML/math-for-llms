@@ -62,6 +62,7 @@ After completing this section, you will be able to:
 - [14. Common Mistakes](#14-common-mistakes)
 - [15. Exercises](#15-exercises)
 - [16. Why This Matters for AI](#16-why-this-matters-for-ai)
+- [17. Conceptual Bridge](#17-conceptual-bridge)
 
 ---
 
@@ -1881,85 +1882,66 @@ Verify your implementation with numerical gradient checking (finite differences 
 
 ### 16.1 Impact Across the AI Stack
 
-Einstein summation notation is not merely academic shorthand — it is the **computational lingua franca** of modern AI systems. Every layer of the stack, from theoretical research papers to production inference engines, benefits from thinking in indices.
+Einstein summation notation is not merely academic shorthand - it is the computational lingua franca of modern AI systems. Every layer of the stack, from theoretical research papers to production inference engines, benefits from thinking in indices.
 
 | Domain | Without Index Notation | With Index Notation |
-|--------|----------------------|---------------------|
-| **Research papers** | Ambiguous matrix expressions, dimensions unclear | Precise, self-documenting equations |
-| **Attention mechanisms** | Nested loops or opaque `bmm` calls | Single einsum string: `bhid,bhjd->bhij` |
-| **Backpropagation** | Memorise gradient formulas | Derive any gradient mechanically |
-| **Tensor compilers (XLA, TVM)** | Manual kernel fusion | Automatic optimisation from contraction specs |
-| **LoRA / Adapters** | Ad-hoc low-rank tricks | Clear decomposition: $W_{ij} \approx A_{ik} B_{kj}$ |
-| **Multi-head attention** | Reshapes and transposes | Natural batch index: $Q_{bhid}$ |
-| **Distributed training** | Confusing sharding specs | Shard along a named index |
-| **Quantisation** | Unclear where precision is lost | Per-index scaling: $\hat{W}_{ij} = s_i W_{ij}^{(q)}$ |
-| **Sparse attention** | Masking heuristics | Constraint on index range: $|i - j| < w$ |
-| **Graph neural networks** | Aggregation as special case | Generalised: $h_i^{(l+1)} = \sigma(A_{ij} h_j^{(l)} W_{kk'})$ |
-| **Diffusion models** | Score function algebra | Index-level Stein identity derivation |
+|--------|------------------------|---------------------|
+| Research papers | Ambiguous matrix expressions, dimensions unclear | Precise, self-documenting equations |
+| Attention mechanisms | Nested loops or opaque `bmm` calls | Single `einsum` string: `bhid,bhjd->bhij` |
+| Backpropagation | Memorize gradient formulas | Derive gradients mechanically |
+| Tensor compilers | Manual kernel fusion | Automatic optimization from contraction specs |
+| LoRA / adapters | Ad-hoc low-rank tricks | Clear decomposition: $W_{ij} \approx A_{ik} B_{kj}$ |
+| Multi-head attention | Reshapes and transposes | Natural batch index: $Q_{bhid}$ |
+| Distributed training | Confusing sharding specs | Shard along a named index |
+| Quantization | Unclear where precision is lost | Per-index scaling: $\hat{W}_{ij} = s_i W_{ij}^{(q)}$ |
+| Sparse attention | Masking heuristics | Constraint on index range: $|i-j| < w$ |
+| Graph neural networks | Aggregation as a special case | Generalized: $h_i^{(l+1)} = \sigma(A_{ij} h_j^{(l)} W_{kk'})$ |
+| Diffusion models | Score-function algebra | Index-level Stein identity derivation |
 
-### 16.2 The Conceptual Bridge
+### 16.2 Key Takeaways
 
-```
-╔══════════════════════════════════════════════════════════════════╗
-║          FROM MATHEMATICAL NOTATION TO WORKING CODE             ║
-╠══════════════════════════════════════════════════════════════════╣
-║                                                                  ║
-║   Paper Equation                                                 ║
-║       ↓                                                          ║
-║   "Attention(Q,K,V) = softmax(QK^T/√d_k)V"                    ║
-║       ↓                                                          ║
-║   Index Notation                                                 ║
-║       ↓                                                          ║
-║   O_ia = softmax_j(Q_id K_jd / √d_k) V_ja                     ║
-║       ↓                                                          ║
-║   Einsum String                                                  ║
-║       ↓                                                          ║
-║   scores = einsum('bhid,bhjd->bhij', Q, K)                     ║
-║   output = einsum('bhij,bhja->bhia', attn, V)                  ║
-║       ↓                                                          ║
-║   Optimised Kernel                                               ║
-║       ↓                                                          ║
-║   FlashAttention (tiled, fused, memory-efficient)               ║
-║       ↓                                                          ║
-║   Hardware-specific implementation                               ║
-║                                                                  ║
-║   At every level, index notation tells you EXACTLY what          ║
-║   data flows where, which dimensions contract, and what          ║
-║   the output shape must be.                                      ║
-║                                                                  ║
-╚══════════════════════════════════════════════════════════════════╝
+1. Einstein summation is a language, not just notation. Learning it changes how you read papers, write code, and debug models.
+2. Free indices determine the output shape; dummy indices determine the computation.
+3. `einsum` is the universal API for turning index notation into executable tensor code.
+4. Once a forward pass is written in index notation, many backward-pass steps become mechanical through product-rule reasoning and identities such as $\frac{\partial x_i}{\partial x_j} = \delta_{ij}$.
+5. Index notation reveals optimization opportunities: contraction order, low-rank structure, sparsity, and parallel axes all become easier to see.
+6. Modern architectures are index expressions. Transformers, GNNs, diffusion models, and mixture-of-experts all benefit from this viewpoint.
+7. Symmetries often appear as constraints on how indices transform, which makes the notation useful for principled architecture design.
+
+## 17. Conceptual Bridge
+
+### 17.1 From Mathematical Notation to Working Code
+
+```text
+paper equation
+  -> attention(Q, K, V) = softmax(QK^T / sqrt(d_k)) V
+  -> index notation
+  -> O_ia = softmax_j(Q_id K_jd / sqrt(d_k)) V_ja
+  -> einsum strings
+  -> scores = einsum('bhid,bhjd->bhij', Q, K)
+  -> output = einsum('bhij,bhja->bhia', attn, V)
+  -> optimized kernels and hardware-specific implementations
 ```
 
-### 16.3 Key Takeaways
+At every level, index notation tells you what data flows where, which dimensions contract, and what the output shape must be. That is the bridge from paper math to production tensor programs.
 
-1. **Einstein summation is a language**, not just notation. Learning it transforms how you read papers, write code, and debug models.
+### 17.2 Where This Leads Next
 
-2. **Free indices = output shape, dummy indices = computation.** This single rule lets you determine the result of any tensor expression at a glance.
+The next chapters turn indices into the working language of vectors, matrices, tensors, gradients, and efficient kernels. Once you can read repeated-index structure fluently, large model equations become far less mysterious: they collapse into a small set of contraction patterns you can analyze, implement, and optimize.
 
-3. **Einsum is the universal API.** Whether in NumPy, PyTorch, TensorFlow, or JAX, `einsum` translates index notation directly into executable code with zero ambiguity.
-
-4. **Gradients become mechanical.** Once a forward pass is written in index notation, the backward pass follows from the product rule and the identity $\frac{\partial x_i}{\partial x_j} = \delta_{ij}$.
-
-5. **Index notation reveals optimisation opportunities.** Contraction order, low-rank structure (LoRA), sparsity patterns, and parallelism axes all become visible in the indices.
-
-6. **Modern architectures are index expressions.** Transformers, GNNs, diffusion models, and mixture-of-experts can all be compactly and precisely specified using the tools from this chapter.
-
-7. **Symmetries are encoded in indices.** Equivariance, invariance, and conservation laws manifest as constraints on how indices transform — enabling principled architecture design.
-
-### 16.4 References and Further Reading
+## References and Further Reading
 
 | Resource | Topic | Type |
 |----------|-------|------|
 | Einstein, A. (1916). "The Foundation of the General Theory of Relativity" | Original convention introduction | Paper |
 | Kolda & Bader (2009). "Tensor Decompositions and Applications" | CP, Tucker, tensor networks | Survey |
 | Vaswani et al. (2017). "Attention Is All You Need" | Transformer architecture | Paper |
-| Laue, Mitterreiter & Giesen (2020). "A Simple and Efficient Tensor Calculus" | Automatic tensor differentiation | Paper |
-| Daniel Smith — `opt_einsum` library | Contraction order optimisation | Software |
+| Laue, Mitterreiter, and Giesen (2020). "A Simple and Efficient Tensor Calculus" | Automatic tensor differentiation | Paper |
+| `opt_einsum` documentation | Contraction-order optimization | Software |
 | Penrose (1971). "Applications of Negative Dimensional Tensors" | Diagrammatic tensor notation | Paper |
 | Dao et al. (2022). "FlashAttention" | Memory-efficient attention kernels | Paper |
 | Hu et al. (2021). "LoRA: Low-Rank Adaptation" | Low-rank weight decomposition | Paper |
-| NumPy documentation — `numpy.einsum` | Reference implementation | Documentation |
-| Bridson (2007). "Fast Poisson Disk Sampling" (Appendix on index notation) | Applied index notation example | Paper |
+| NumPy documentation - `numpy.einsum` | Reference implementation | Documentation |
 
 ---
 

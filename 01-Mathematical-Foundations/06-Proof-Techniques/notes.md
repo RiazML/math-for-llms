@@ -152,6 +152,7 @@ After completing this section, you will:
   - [14. Common Mistakes in Proofs](#14-common-mistakes-in-proofs)
   - [15. Exercises](#15-exercises)
   - [16. Why This Matters for AI](#16-why-this-matters-for-ai)
+  - [17. Conceptual Bridge](#17-conceptual-bridge)
 
 ---
 
@@ -1678,7 +1679,7 @@ Machine learning operates in a landscape of empirical results. Proofs provide th
 
 Without proofs, we are running experiments in the dark. With proofs, we know **why** things work (or fail) and **when** guarantees hold.
 
-### 16.2 The Proof ↔ Algorithm Correspondence
+### 16.2 Proofs and Algorithms
 
 There is a deep connection between proofs and algorithms (the **Curry–Howard correspondence** in its broadest sense):
 
@@ -1717,6 +1718,25 @@ The field is coming full circle: AI systems are now being used to **discover and
 | **ATP systems** | Automated theorem provers (Vampire, E, Z3) integrated with ML heuristics |
 
 The ability to formalise and verify proofs is becoming a key AI capability, and understanding proof techniques is essential for building and evaluating these systems.
+
+---
+
+## 17. Conceptual Bridge
+
+### 17.1 From Proof Strategy to ML Reasoning
+
+This chapter sits underneath the rest of the curriculum in a quiet but important way. Later topics will look like they are about vectors, derivatives, optimization, probability, or model architecture, but the moment a theorem appears, the same proof patterns return:
+
+- direct proof for algebraic identities and gradient derivations
+- contradiction for impossibility results and lower bounds
+- induction for sequence length, layer depth, and recursive structure
+- construction for algorithms, witnesses, and counterexamples
+
+Proof techniques are therefore not separate from applied ML mathematics. They are the reasoning templates that make later chapters readable.
+
+### 17.2 What Comes Next
+
+As you move into linear algebra, calculus, probability, and optimization, try to read every result with three questions in mind: what is assumed, what is being concluded, and why this proof strategy fits the shape of the claim. That habit turns proof literacy into practical engineering judgment, because it helps you distinguish empirical patterns from actual guarantees.
 
 ---
 
