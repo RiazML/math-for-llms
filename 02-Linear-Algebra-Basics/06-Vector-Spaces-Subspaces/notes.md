@@ -330,6 +330,8 @@ The arc of this timeline is clear: what began as abstract geometry became, over 
 
 ## 2. Formal Definitions
 
+> **Recall:** [Vectors and Spaces §3](../01-Vectors-and-Spaces/notes.md#3-abstract-vector-spaces) introduced the vector space axioms with concrete geometric intuition ($\mathbb{R}^n$, function spaces, polynomial spaces). This section re-derives them in full axiomatic rigour — the goal here is _provability_, not intuition. The two sections are complementary: §01 tells you _what_ the axioms describe; this section tells you _what follows_ from them.
+
 ### 2.1 The Axioms of a Vector Space
 
 A **vector space** over a field $F$ (we use $F = \mathbb{R}$ throughout unless stated otherwise) is a set $V$ together with two operations:
@@ -1217,6 +1219,13 @@ which is just the Rank-Nullity Theorem re-expressed using the fact that $\text{n
 
 ## 7. The Four Fundamental Subspaces
 
+> **Recall:** Earlier sections used these subspaces informally:
+>
+> - [Systems of Equations §4.3](../03-Systems-of-Equations/notes.md#43-the-fundamental-theorem-of-linear-algebra-applied-to-systems) — used col($A$) and null($A^\top$) to characterise when $Ax = b$ is solvable
+> - [Matrix Rank §4](../05-Matrix-Rank/notes.md) — used rank and null space dimension to state the rank-nullity theorem
+>
+> This section is the canonical home: rigorous definitions, dimensional identities, bases computed from RREF, the orthogonality relationships, and their geometric interpretation as the complete decomposition of $\mathbb{R}^m$ and $\mathbb{R}^n$.
+
 For any matrix $A \in \mathbb{R}^{m \times n}$ with $\text{rank}(A) = r$, Gilbert Strang identified four fundamental subspaces that together give a complete picture of how $A$ acts as a linear map $\mathbb{R}^n \to \mathbb{R}^m$. Understanding all four — their definitions, dimensions, bases, and mutual relationships — is the complete theory of linear systems.
 
 ### 7.1 Definition of All Four Subspaces
@@ -1577,6 +1586,8 @@ Then $\cos\theta_i = \sigma_i$ (the $i$-th singular value of $Q_1^\top Q_2$). Th
 ---
 
 ## 9. Inner Product Spaces and Orthogonality
+
+> **Recall:** [Vectors and Spaces §5–§6](../01-Vectors-and-Spaces/notes.md#6-inner-product-spaces) developed norms and inner products concretely in $\mathbb{R}^n$ — dot product, angle, Cauchy-Schwarz, and orthogonal projection. This section extends those ideas to abstract inner product spaces: general Hilbert spaces, orthonormal bases, Gram-Schmidt orthogonalization, and orthogonal complements. The abstract setting is what makes these concepts applicable to function spaces (Fourier analysis, kernels) and not just $\mathbb{R}^n$.
 
 ### 9.1 Inner Products
 

@@ -507,6 +507,10 @@ span{v}              span{v, w}               span{e1, ..., en}
 
 ## 3. Abstract Vector Spaces
 
+> **Reading note:** This section introduces the vector space axioms and their most common concrete instances ($\mathbb{R}^n$, function spaces, polynomial spaces). The focus here is on geometric intuition and computational examples. For the full axiomatic treatment — subspace criteria, span, linear independence, quotient spaces, and the abstract theory of bases — see the dedicated section.
+>
+> → _Full axiomatic treatment: [Vector Spaces and Subspaces §2–§6](../06-Vector-Spaces-Subspaces/notes.md)_
+
 ### 3.1 The Vector Space Axioms
 
 Let $F$ be a field, usually $\mathbb{R}$ or $\mathbb{C}$. A vector space over $F$ is a set $V$ equipped with:
@@ -1095,6 +1099,10 @@ Completeness matters because many learning algorithms are iterative. Gradient me
 ---
 
 ## 6. Inner Product Spaces
+
+> **Reading note:** This section develops inner products concretely in $\mathbb{R}^n$ and establishes the geometric tools used throughout this chapter (dot product, angle, Cauchy-Schwarz, orthogonality). The abstract inner product space theory — Gram-Schmidt, orthonormal bases, Hilbert spaces, and orthogonal complements — is developed in full later.
+>
+> → _Full treatment: [Vector Spaces and Subspaces §9](../06-Vector-Spaces-Subspaces/notes.md#9-inner-product-spaces-and-orthogonality)_
 
 ### 6.1 Inner Products
 

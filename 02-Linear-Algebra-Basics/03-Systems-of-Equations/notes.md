@@ -978,39 +978,24 @@ This count is one of the simplest and most useful geometric heuristics in all of
 
 ### 4.3 The Fundamental Theorem of Linear Algebra Applied to Systems
 
-The four fundamental subspaces explain system solving elegantly.
+The four fundamental subspaces of $A \in \mathbb{R}^{m \times n}$ give the cleanest picture of when $Ax = b$ is solvable:
 
-For $A \in \mathbb{R}^{m \times n}$:
+- $\mathrm{col}(A) \subseteq \mathbb{R}^m$ — the set of achievable right-hand sides
+- $\mathrm{null}(A) \subseteq \mathbb{R}^n$ — the set of solutions to $Ax = 0$
+- $\mathrm{row}(A) \subseteq \mathbb{R}^n$ — the input directions that are not annihilated
+- $\mathrm{null}(A^\top) \subseteq \mathbb{R}^m$ — the left null space; directions $b$ cannot lie in for solvability
 
-- $\mathrm{col}(A) \subseteq \mathbb{R}^m$
-- $\mathrm{null}(A) \subseteq \mathbb{R}^n$
-- $\mathrm{row}(A) \subseteq \mathbb{R}^n$
-- $\mathrm{null}(A^\top) \subseteq \mathbb{R}^m$
+**Reading solvability from these subspaces:**
 
-For the system $Ax = b$:
+- $Ax = b$ is consistent $\iff$ $b \in \mathrm{col}(A)$
+- if $x_p$ is any particular solution, every solution is $x_p + v$ for some $v \in \mathrm{null}(A)$
+- $b$ has a component in $\mathrm{null}(A^\top)$ $\iff$ the system is inconsistent
 
-- consistency means $b \in \mathrm{col}(A)$
-- if $x_p$ is one solution, then every solution is $x_p + \mathrm{null}(A)$
-- incompatibility is measured by $\mathrm{null}(A^\top)$, the left null space
+The direct-sum decomposition $\mathbb{R}^m = \mathrm{col}(A) \oplus \mathrm{null}(A^\top)$ is what makes the least-squares projection of §6 well-defined: we project $b$ onto $\mathrm{col}(A)$ and discard the $\mathrm{null}(A^\top)$ component.
 
-The direct-sum decomposition
-
-$$
-\mathbb{R}^m = \mathrm{col}(A) \oplus \mathrm{null}(A^\top)
-$$
-
-is especially important. It says every right-hand side $b$ splits uniquely as
-
-$$
-b = b_{\mathrm{col}} + b_{\perp},
-$$
-
-with
-
-- $b_{\mathrm{col}} \in \mathrm{col}(A)$
-- $b_{\perp} \in \mathrm{null}(A^\top)$
-
-Exact solvability is equivalent to $b_{\perp} = 0$.
+> **Scope note:** This section uses the four fundamental subspaces as a practical tool for understanding $Ax = b$. Their rigorous definitions, orthogonality relationships, and dimensional identities are the canonical subject of a later section.
+>
+> → _Full treatment: [Vector Spaces and Subspaces §7](../06-Vector-Spaces-Subspaces/notes.md#7-the-four-fundamental-subspaces)_
 
 ### 4.4 The Fredholm Alternative
 
