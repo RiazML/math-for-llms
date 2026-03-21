@@ -1,3 +1,7 @@
+[← Back to Advanced Linear Algebra](../README.md) | [← Linear Transformations](../04-Linear-Transformations/notes.md) | [Matrix Norms →](../06-Matrix-Norms/notes.md)
+
+---
+
 # Orthogonality and Orthonormality
 
 ## Introduction
@@ -796,3 +800,7 @@ Benefits of orthogonal computations:
 
 - [theory.ipynb](theory.ipynb) - Comprehensive code examples with visualizations
 - [exercises.ipynb](exercises.ipynb) - Practice problems with solutions
+
+---
+
+[← Back to Advanced Linear Algebra](../README.md) | [← Linear Transformations](../04-Linear-Transformations/notes.md) | [Matrix Norms →](../06-Matrix-Norms/notes.md)

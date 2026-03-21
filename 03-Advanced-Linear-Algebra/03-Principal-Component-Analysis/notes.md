@@ -1,3 +1,7 @@
+[← Back to Advanced Linear Algebra](../README.md) | [← SVD](../02-Singular-Value-Decomposition/notes.md) | [Linear Transformations →](../04-Linear-Transformations/notes.md)
+
+---
+
 # Principal Component Analysis (PCA)
 
 ## Introduction
@@ -778,3 +782,7 @@ When to consider alternatives:
 3. Murphy, K.P. - "Machine Learning: A Probabilistic Perspective" (2012)
 4. Hastie, Tibshirani, Friedman - "The Elements of Statistical Learning" (2009)
 5. Tipping, M.E. & Bishop, C.M. - "Probabilistic Principal Component Analysis" (1999)
+
+---
+
+[← Back to Advanced Linear Algebra](../README.md) | [← SVD](../02-Singular-Value-Decomposition/notes.md) | [Linear Transformations →](../04-Linear-Transformations/notes.md)

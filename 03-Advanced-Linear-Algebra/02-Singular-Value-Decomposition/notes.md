@@ -888,3 +888,8 @@ CONCEPTUAL MAP — SVD IN THE CURRICULUM
 ```
 
 **The single most important insight about SVD:** Every matrix is the composition of three simple operations — rotate, scale, rotate. The singular values tell you how much the matrix stretches space in its principal directions; the singular vectors tell you which directions those are. Understanding this decomposition is understanding every linear operation in every neural network, every data compression, and every least-squares problem in machine learning.
+
+
+---
+
+[← Back to Advanced Linear Algebra](../README.md) | [← Eigenvalues](../01-Eigenvalues-and-Eigenvectors/notes.md) | [PCA →](../03-Principal-Component-Analysis/notes.md)

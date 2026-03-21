@@ -1,3 +1,7 @@
+[← Back to Advanced Linear Algebra](../README.md) | [← Orthogonality](../05-Orthogonality-and-Orthonormality/notes.md) | [Positive Definite Matrices →](../07-Positive-Definite-Matrices/notes.md)
+
+---
+
 # Matrix Norms and Condition Numbers
 
 ## Introduction
@@ -688,3 +692,7 @@ cond(A)          # κ(A) = σ_max / σ_min
 # SVD components
 U, S, Vt = svd(A)  # A = U @ diag(S) @ Vt
 ```
+
+---
+
+[← Back to Advanced Linear Algebra](../README.md) | [← Orthogonality](../05-Orthogonality-and-Orthonormality/notes.md) | [Positive Definite Matrices →](../07-Positive-Definite-Matrices/notes.md)

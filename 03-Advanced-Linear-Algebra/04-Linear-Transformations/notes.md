@@ -1,3 +1,7 @@
+[← Back to Advanced Linear Algebra](../README.md) | [← PCA](../03-Principal-Component-Analysis/notes.md) | [Orthogonality →](../05-Orthogonality-and-Orthonormality/notes.md)
+
+---
+
 # Linear Transformations
 
 ## Introduction
@@ -864,3 +868,7 @@ Composition:
 3. Goodfellow et al. - "Deep Learning" (Chapter 2)
 4. 3Blue1Brown - "Essence of Linear Algebra" (YouTube series)
 5. Boyd & Vandenberghe - "Introduction to Applied Linear Algebra"
+
+---
+
+[← Back to Advanced Linear Algebra](../README.md) | [← PCA](../03-Principal-Component-Analysis/notes.md) | [Orthogonality →](../05-Orthogonality-and-Orthonormality/notes.md)

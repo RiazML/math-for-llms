@@ -1,3 +1,7 @@
+[← Back to Advanced Linear Algebra](../README.md) | [← Positive Definite Matrices](../07-Positive-Definite-Matrices/notes.md) | [Next Chapter: Calculus →](../../04-Calculus-Fundamentals/README.md)
+
+---
+
 # Matrix Decompositions
 
 ## Introduction
@@ -32,23 +36,25 @@ This section covers the three most practical decompositions: **LU** (general sys
 
 ## 1. Overview of Decompositions
 
+**Scope of this section:** LU, QR, and Cholesky — the three _computational_ decompositions used for solving linear systems, least squares, and sampling from multivariate Gaussians.
+
+> **Spectral decompositions** (Eigendecomposition, SVD) reveal the structure of a matrix but are not the focus here:
+>
+> - Eigendecomposition → _Full treatment: [Eigenvalues and Eigenvectors](../01-Eigenvalues-and-Eigenvectors/notes.md)_
+> - SVD → _Full treatment: [Singular Value Decomposition](../02-Singular-Value-Decomposition/notes.md)_
+> - Cholesky in the context of PD matrices → _Full treatment: [Positive Definite Matrices §5](../07-Positive-Definite-Matrices/notes.md)_
+
 ```
-Matrix A
-    │
-    ├─── LU Decomposition: A = LU or A = PLU
-    │    └── General square matrices, solving linear systems
-    │
-    ├─── QR Decomposition: A = QR
-    │    └── Any matrix, least squares, eigenvalue algorithms
-    │
-    ├─── Cholesky: A = LL^T
-    │    └── Symmetric positive definite, fast and stable
-    │
-    ├─── Eigendecomposition: A = QΛQ^(-1)
-    │    └── Diagonalizable matrices, spectral analysis
-    │
-    └─── SVD: A = UΣV^T
-         └── Any matrix, most general decomposition
+Computational Decompositions (this section)
+─────────────────────────────────────────────────
+ LU:       PA = LU        General square systems
+ QR:       A  = QR        Least squares, any shape
+ Cholesky: A  = LLᵀ       Symmetric positive definite
+
+Spectral Decompositions (other sections)
+─────────────────────────────────────────────────
+ Eigendecomp: A = VΛV⁻¹  → §01-Eigenvalues
+ SVD:         A = UΣVᵀ   → §02-SVD
 ```
 
 ---
@@ -190,73 +196,24 @@ This is more stable than solving normal equations $(A^TA)\mathbf{x} = A^T\mathbf
 
 ---
 
-## 4. Cholesky Decomposition
+## 4. Cholesky Decomposition — Overview
 
-### Definition
+Cholesky factorisation writes $A = LL^\top$ for any symmetric positive definite (SPD) matrix, where $L$ is lower triangular with positive diagonal entries. It is approximately **twice as fast as LU** (exploiting symmetry, $n^3/6$ vs $2n^3/3$ FLOPs), requires no pivoting, and serves as a numerical PD test: the algorithm fails if and only if $A$ is not positive definite.
 
-For **symmetric positive definite** matrix $A$:
-$$A = LL^T$$
+**When to use Cholesky vs LU vs QR:**
 
-where $L$ is **lower triangular** with **positive diagonal entries**.
+| | Cholesky | LU | QR |
+|---|---|---|---|
+| Matrix type | SPD only | Any square | Any |
+| FLOPs | $n^3/6$ | $2n^3/3$ | $2n^3/3$ |
+| Pivoting | Never needed | Often needed | Never needed |
+| Numerical stability | Excellent | Good (with pivoting) | Excellent |
 
-Alternatively: $A = R^TR$ where $R = L^T$ is upper triangular.
+**For AI:** Gaussian process inference, Bayesian covariance updates, natural gradient preconditioning, and sampling from multivariate Gaussians ($x \sim \mathcal{N}(\mu, \Sigma)$ via $\mu + Lz$, $z \sim \mathcal{N}(0,I)$) all rest on Cholesky.
 
-### Algorithm
-
-$$l_{jj} = \sqrt{a_{jj} - \sum_{k=1}^{j-1} l_{jk}^2}$$
-
-$$l_{ij} = \frac{1}{l_{jj}}\left(a_{ij} - \sum_{k=1}^{j-1} l_{ik}l_{jk}\right) \quad \text{for } i > j$$
-
-Compute column by column, left to right.
-
-### Existence and Uniqueness
-
-- **Exists** iff $A$ is symmetric positive definite
-- **Unique** when diagonal of $L$ is constrained to be positive
-- If algorithm encounters negative under square root → matrix is not PD
-
-### Computational Advantages
-
-| Aspect       | Cholesky        | LU               | QR |
-| ------------ | --------------- | ---------------- | --- |
-| Requirements | Symmetric PD    | Square           | Any |
-| FLOPs | $\frac{n^3}{6}$ | $\frac{2n^3}{3}$ | $\frac{2n^3}{3}$ |
-| Pivoting     | Never needed      | Often needed     | Never needed |
-| Storage      | Half the matrix | Full matrix      | $Q$ and $R$ |
-| Stability | Excellent for SPD | Needs pivoting | Excellent |
-
-### Variant: LDLᵀ Decomposition
-
-$$A = LDL^T$$
-
-where $L$ is unit lower triangular (ones on diagonal) and $D$ is diagonal.
-
-**Advantages**:
-- Avoids square roots (faster, works over integers)
-- Easier to detect non-positive-definiteness (check $D$ diagonal)
-- Same storage requirement as Cholesky
-
-**Relationship**: If $A = LDL^T$, then $A = (L\sqrt{D})(L\sqrt{D})^T$ is Cholesky.
-
-### Solving Systems with Cholesky
-
-For $A\mathbf{x} = \mathbf{b}$ where $A$ is SPD:
-
-1. **Cholesky**: $A = LL^T$ — $O(n^3/6)$
-2. **Forward substitution**: $L\mathbf{y} = \mathbf{b}$ — $O(n^2/2)$
-3. **Back substitution**: $L^T\mathbf{x} = \mathbf{y}$ — $O(n^2/2)$
-
-### Determinant from Cholesky
-
-$$\det(A) = \det(LL^T) = (\det L)^2 = \left(\prod_{i=1}^n l_{ii}\right)^2$$
-
-### Log-Determinant (Important for ML)
-
-For Gaussian likelihoods, we need $\log|\Sigma|$:
-
-$$\log\det(A) = 2\sum_{i=1}^n \log(l_{ii})$$
-
-This avoids overflow/underflow issues with large matrices.
+> **Canonical treatment** (full algorithm, LDLᵀ variant, log-determinant formula, PD test, and AI applications):
+>
+> → _[Positive Definite Matrices §5](../07-Positive-Definite-Matrices/notes.md)_
 
 ---
 
@@ -534,3 +491,7 @@ x = solve_triangular(L.T, solve_triangular(L, b, lower=True))
 - **Block decompositions**: For large structured matrices
 - **Randomized methods**: Randomized QR, randomized SVD for massive matrices
 - **GPU implementations**: cuSOLVER, MAGMA for parallel decompositions
+
+---
+
+[← Back to Advanced Linear Algebra](../README.md) | [← Positive Definite Matrices](../07-Positive-Definite-Matrices/notes.md) | [Next Chapter: Calculus →](../../04-Calculus-Fundamentals/README.md)

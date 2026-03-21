@@ -1,3 +1,7 @@
+[← Back to Advanced Linear Algebra](../README.md) | [← Matrix Norms](../06-Matrix-Norms/notes.md) | [Matrix Decompositions →](../08-Matrix-Decompositions/notes.md)
+
+---
+
 # Positive Definite Matrices
 
 ## Introduction
@@ -696,3 +700,7 @@ Positive Definiteness in Machine Learning:
 - **Low-rank PSD Approximation**: Nyström method for kernel approximations
 - **Matrix Completion**: Recovering PSD matrices from partial observations
 - **Log-determinant Optimization**: Using $\log\det$ as a smooth surrogate for rank
+
+---
+
+[← Back to Advanced Linear Algebra](../README.md) | [← Matrix Norms](../06-Matrix-Norms/notes.md) | [Matrix Decompositions →](../08-Matrix-Decompositions/notes.md)
