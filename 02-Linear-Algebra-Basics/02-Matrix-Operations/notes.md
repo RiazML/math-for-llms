@@ -37,9 +37,10 @@ After completing this chapter, you should be able to:
 - Reason about shape compatibility and debug dimension errors quickly
 - Explain matrix multiplication from row, column, outer-product, and block perspectives
 - Understand when inverses exist and when pseudo-inverses are required
-- Use determinants, LU, QR, eigendecomposition, SVD, and Cholesky in the right settings
+- Know when an inverse exists and when to use a pseudo-inverse instead
 - Connect matrix operations directly to forward passes, backpropagation, attention, LoRA, quantization, and hardware efficiency
 - Interpret matrix conditioning and numerical stability in AI systems
+- Recognise which matrix decomposition is appropriate for a given problem and know where to find its full treatment
 
 ---
 
@@ -94,46 +95,17 @@ After completing this chapter, you should be able to:
     - [7.3 Moore-Penrose Conditions](#73-moore-penrose-conditions)
     - [7.4 Least Squares Solution](#74-least-squares-solution)
     - [7.5 Pseudo-Inverse Properties](#75-pseudo-inverse-properties)
-  - [8. Determinant](#8-determinant)
-    - [8.1 Definition](#81-definition)
-    - [8.2 Computing Determinants](#82-computing-determinants)
-    - [8.3 Properties of Determinants](#83-properties-of-determinants)
-    - [8.4 Determinant and Eigenvalues](#84-determinant-and-eigenvalues)
-    - [8.5 Log-Determinant in AI](#85-log-determinant-in-ai)
-  - [9. LU Decomposition](#9-lu-decomposition)
-    - [9.1 Definition and Existence](#91-definition-and-existence)
-    - [9.2 Algorithm Gaussian Elimination](#92-algorithm-gaussian-elimination)
-    - [9.3 Solving Linear Systems with LU](#93-solving-linear-systems-with-lu)
-    - [9.4 Partial Pivoting](#94-partial-pivoting)
-    - [9.5 Applications in AI](#95-applications-in-ai)
-  - [10. QR Decomposition](#10-qr-decomposition)
-    - [10.1 Definition](#101-definition)
-    - [10.2 Algorithms](#102-algorithms)
-    - [10.3 Applications of QR](#103-applications-of-qr)
-    - [10.4 AI Applications](#104-ai-applications)
-  - [11. Eigendecomposition](#11-eigendecomposition)
-    - [11.1 Eigenvalues and Eigenvectors](#111-eigenvalues-and-eigenvectors)
-    - [11.2 Eigendecomposition Diagonalisation](#112-eigendecomposition-diagonalisation)
-    - [11.3 Spectral Theorem for Symmetric Matrices](#113-spectral-theorem-for-symmetric-matrices)
-    - [11.4 Powers and Functions of Matrices](#114-powers-and-functions-of-matrices)
-    - [11.5 Eigenvalues and Matrix Properties](#115-eigenvalues-and-matrix-properties)
-    - [11.6 Computing Eigenvalues in Practice](#116-computing-eigenvalues-in-practice)
-  - [12. Singular Value Decomposition](#12-singular-value-decomposition)
-    - [12.1 Definition](#121-definition)
-    - [12.2 Thin Economy SVD](#122-thin-economy-svd)
-    - [12.3 SVD and the Four Fundamental Subspaces](#123-svd-and-the-four-fundamental-subspaces)
-    - [12.4 SVD and Eigendecomposition Connection](#124-svd-and-eigendecomposition-connection)
-    - [12.5 Low-Rank Approximation Eckart-Young](#125-low-rank-approximation-eckart-young)
-    - [12.6 SVD in AI Applications](#126-svd-in-ai-applications)
-    - [12.7 Randomised SVD](#127-randomised-svd)
-  - [13. Cholesky Decomposition](#13-cholesky-decomposition)
-    - [13.1 Definition](#131-definition)
-    - [13.2 Algorithm](#132-algorithm)
-    - [13.3 Properties and Applications](#133-properties-and-applications)
-  - [14. Common Mistakes](#14-common-mistakes)
-  - [15. Exercises](#15-exercises)
-  - [16. Why This Matters for AI](#16-why-this-matters-for-ai)
-  - [17. Conceptual Bridge](#17-conceptual-bridge)
+  - [8. Matrix Decompositions — Preview](#8-matrix-decompositions--preview)
+    - [8.1 Determinant](#81-determinant)
+    - [8.2 LU Decomposition](#82-lu-decomposition)
+    - [8.3 QR Decomposition](#83-qr-decomposition)
+    - [8.4 Eigendecomposition](#84-eigendecomposition)
+    - [8.5 Singular Value Decomposition](#85-singular-value-decomposition)
+    - [8.6 Cholesky Decomposition](#86-cholesky-decomposition)
+  - [9. Common Mistakes](#9-common-mistakes)
+  - [10. Exercises](#10-exercises)
+  - [11. Why This Matters for AI](#11-why-this-matters-for-ai)
+  - [12. Conceptual Bridge](#12-conceptual-bridge)
   - [References](#references)
 
 ---
@@ -1504,882 +1476,94 @@ $$
 
 The pseudo-inverse behaves like inverse in some ways, but not all.
 
----
-
-## 8. Determinant
-
-### 8.1 Definition
-
-The determinant is a scalar associated with a square matrix:
-
-$$
-\det(A) \in \mathbb{R}.
-$$
-
-The full algebraic definition is the Leibniz formula:
-
-$$
-\det(A)
-=
-\sum_{\sigma \in S_n}
-\mathrm{sgn}(\sigma)
-\prod_{i=1}^n a_{i,\sigma(i)}.
-$$
-
-The geometric meaning is even more important:
-
-- $|\det(A)|$ is the volume scaling factor of the linear map
-- $\det(A) > 0$ preserves orientation
-- $\det(A) < 0$ reverses orientation
-- $\det(A) = 0$ collapses volume to lower dimension
-
-```text
-Determinant as volume scaling
-
-unit square --A--> parallelogram
-
-area after map = |det(A)| * area before map
-
-det = 0 means the square collapses into a line or point
-```
-
-This is why determinant detects singularity. A linear map is non-invertible exactly when it collapses volume.
-
-### 8.2 Computing Determinants
-
-For a $2 \times 2$ matrix:
-
-$$
-\det
-\begin{pmatrix}
-a & b \\
-c & d
-\end{pmatrix}
-= ad - bc.
-$$
-
-For a $3 \times 3$ matrix, cofactor expansion gives:
-
-$$
-\det(A)
-=
-a_{11}\det(M_{11})
-- a_{12}\det(M_{12})
-+ a_{13}\det(M_{13}),
-$$
-
-where $M_{1j}$ is the corresponding minor.
-
-For general matrices, direct cofactor expansion is computationally poor. The practical route is factorization.
-
-If $A$ is triangular, then
-
-$$
-\det(A) = \prod_i A_{ii}.
-$$
-
-If $PA = LU$, then
-
-$$
-\det(A) = \det(P)^{-1}\det(L)\det(U).
-$$
-
-For unit-lower-triangular $L$, $\det(L)=1$, so the determinant comes from the diagonal of $U$ up to the sign from the permutation.
-
-### 8.3 Properties of Determinants
-
-Key identities:
-
-$$
-\det(AB) = \det(A)\det(B),
-$$
-
-$$
-\det(A^\top) = \det(A),
-$$
-
-$$
-\det(A^{-1}) = \frac{1}{\det(A)},
-$$
-
-$$
-\det(\alpha A) = \alpha^n \det(A)
-\quad \text{for } A \in \mathbb{R}^{n \times n}.
-$$
-
-Row operations affect determinant in simple ways:
-
-- swap two rows -> determinant changes sign
-- multiply a row by $\alpha$ -> determinant scales by $\alpha$
-- add a multiple of one row to another -> determinant unchanged
-
-There are also useful structured identities:
-
-$$
-\det
-\begin{pmatrix}
-A & B \\
-0 & D
-\end{pmatrix}
-=
-\det(A)\det(D),
-$$
-
-and, when $A$ is invertible,
-
-$$
-\det(A + uv^\top)
-=
-(1 + v^\top A^{-1}u)\det(A),
-$$
-
-which is the matrix determinant lemma.
-
-### 8.4 Determinant and Eigenvalues
-
-If the eigenvalues of a square matrix $A$ are $\lambda_1, \ldots, \lambda_n$, counted with multiplicity, then
-
-$$
-\det(A) = \prod_{i=1}^n \lambda_i,
-\qquad
-\mathrm{tr}(A) = \sum_{i=1}^n \lambda_i.
-$$
-
-The characteristic polynomial is
-
-$$
-p(\lambda) = \det(\lambda I - A),
-$$
-
-and its roots are the eigenvalues.
-
-### 8.5 Log-Determinant in AI
-
-In modern AI, the determinant often appears through the log-determinant rather than the raw determinant.
-
-In normalizing flows, if $z = f(x)$ and the transformation is invertible, then
-
-$$
-\log p_X(x)
-=
-\log p_Z(f(x))
-+ \log \left| \det \frac{\partial f}{\partial x} \right|.
-$$
-
-That Jacobian determinant can be extremely expensive in general, which is why many flow architectures are designed so the Jacobian is triangular or otherwise structured. For triangular Jacobians,
-
-$$
-\log |\det(J)| = \sum_i \log |J_{ii}|.
-$$
-
-Log-determinants also appear in Gaussian log-likelihoods:
-
-$$
-\log \mathcal{N}(x \mid \mu, \Sigma)
-=
--\frac{1}{2}\log \det(\Sigma)
--\frac{1}{2}(x-\mu)^\top \Sigma^{-1}(x-\mu)
-+ \text{const}.
-$$
-
-So determinant is not only classical algebra. It is part of the probabilistic machinery of modern generative modeling.
 
 ---
 
-## 9. LU Decomposition
+## 8. Matrix Decompositions — Preview
 
-### 9.1 Definition and Existence
+Matrix decompositions factor $A$ into structured products that expose different kinds of mathematical structure. Each decomposition in this section has a dedicated home elsewhere in the curriculum where it is treated in full — with proofs, algorithms, and worked examples. What follows is a navigational preview: enough context to understand which decomposition applies and why, plus explicit forward links to the full treatment.
 
-For a square matrix $A \in \mathbb{R}^{n \times n}$, an LU decomposition writes
-
-$$
-A = LU,
-$$
-
-where:
-
-- $L$ is lower triangular, often with ones on the diagonal
-- $U$ is upper triangular
-
-Not every matrix admits LU without row exchanges. But with pivoting, we have
-
-$$
-PA = LU,
-$$
-
-where $P$ is a permutation matrix. This form exists very generally for nonsingular matrices and is the standard practical version.
-
-LU matters because it converts a general linear system into two triangular systems, and triangular systems are easy to solve.
-
-### 9.2 Algorithm Gaussian Elimination
-
-LU factorization is the bookkeeping form of Gaussian elimination.
-
-At each step:
-
-1. choose a pivot in the current column
-2. eliminate entries below the pivot
-3. store the elimination multipliers in $L$
-4. continue on the remaining submatrix
-
-The resulting matrix after elimination is $U$.
-
-```text
-Gaussian elimination pattern
-
-[x x x x]      [x x x x]      [x x x x]
-[x x x x]  ->  [0 x x x]  ->  [0 x x x]
-[x x x x]      [0 x x x]      [0 0 x x]
-[x x x x]      [0 x x x]      [0 0 0 x]
-```
-
-For dense $n \times n$ matrices, LU factorization costs about
-
-$$
-\frac{2}{3}n^3
-$$
-
-floating-point operations.
-
-### 9.3 Solving Linear Systems with LU
-
-If
-
-$$
-PA = LU,
-$$
-
-then to solve
-
-$$
-Ax = b
-$$
-
-we solve in three steps:
-
-1. apply the permutation: $Pb$
-2. solve $Ly = Pb$ by forward substitution
-3. solve $Ux = y$ by back substitution
-
-The factorization costs $O(n^3)$ once, but each additional right-hand side costs only $O(n^2)$ to solve. That is why LU is so useful when many systems share the same matrix but have different right-hand sides.
-
-### 9.4 Partial Pivoting
-
-Pivoting means swapping rows to choose a better pivot before elimination. Partial pivoting selects the largest-magnitude entry in the current column among the eligible rows.
-
-Reasons pivoting matters:
-
-- prevents division by zero
-- reduces numerical instability
-- controls growth of intermediate values
-
-Without pivoting, Gaussian elimination can be disastrously unstable on matrices that are perfectly well-behaved mathematically.
-
-The decomposition with pivoting is usually written
-
-$$
-PA = LU.
-$$
-
-### 9.5 Applications in AI
-
-LU is not as fashionable in ML discussion as SVD or Cholesky, but it still matters.
-
-Typical use cases:
-
-- solving general dense linear systems
-- determinant and log-determinant computation via triangular factors
-- intermediate routines inside scientific libraries
-- Gaussian-model calculations when symmetry or definiteness cannot be exploited
-
-If the matrix is symmetric positive definite, Cholesky is usually better. If the problem is least squares, QR is usually better. But when the matrix is general and square, LU is the default workhorse.
+> **Decomposition decision table**
+>
+> | Goal | Use |
+> | ---- | --- |
+> | Solve $Ax = b$ for general square $A$ | LU (Gaussian elimination) |
+> | Solve $Ax = b$ for symmetric positive definite $A$ | Cholesky |
+> | Least squares: $\min_x \\|Ax - b\\|$ | QR |
+> | Eigenvalues and eigenvectors of square $A$ | Eigendecomposition |
+> | Best rank-$k$ approximation, pseudo-inverse, all cases | SVD |
 
 ---
 
-## 10. QR Decomposition
+### 8.1 Determinant
 
-### 10.1 Definition
+The determinant $\det(A)$ of a square matrix $A \in \mathbb{R}^{n \times n}$ is a scalar measuring the signed volume-scaling factor of the linear map. When $|\det(A)| > 1$ the map expands volume; when $|\det(A)| < 1$ it compresses; when $\det(A) = 0$ the map is singular — it collapses the full space onto a lower-dimensional subspace, meaning $Ax = b$ has no unique solution.
 
-Let $A \in \mathbb{R}^{m \times n}$ with $m \geq n$. A QR decomposition writes
+The determinant is also the product of all eigenvalues and the reciprocal of the product of the eigenvalues of $A^{-1}$. In practice, explicit determinant computation is rarely done by direct expansion (which costs $O(n!)$) — instead it is read off from an LU or Cholesky factorization as a product of diagonal entries.
 
-$$
-A = QR,
-$$
+**For AI:** Log-determinants appear in Gaussian log-likelihoods $\log p(x) \propto -\tfrac{1}{2}\log\det\Sigma - \tfrac{1}{2}(x-\mu)^\top\Sigma^{-1}(x-\mu)$, in the ELBO of variational inference, and in normalizing flow log-likelihood as the log absolute Jacobian determinant.
 
-where:
-
-- $Q \in \mathbb{R}^{m \times n}$ has orthonormal columns, so $Q^\top Q = I$
-- $R \in \mathbb{R}^{n \times n}$ is upper triangular
-
-This is the thin or economy QR decomposition.
-
-Geometrically, QR separates a matrix into:
-
-- an orthonormal basis for its column space
-- an upper-triangular coordinate transform inside that basis
-
-```text
-QR idea
-
-A = [original columns]
-
-Q = [orthonormal directions]
-R = [how to recombine those directions]
-
-A = Q R
-```
-
-### 10.2 Algorithms
-
-There are several ways to compute QR.
-
-**Classical Gram-Schmidt**
-
-Orthogonalize the columns one by one. This gives intuition, but it is not the most numerically stable version.
-
-**Modified Gram-Schmidt**
-
-This reorganizes the same algebra to improve numerical stability.
-
-**Householder reflections**
-
-This is the standard dense numerical method. A Householder reflector has the form
-
-$$
-H = I - 2\frac{vv^\top}{v^\top v},
-$$
-
-and a sequence of such reflections zeros out entries below the diagonal stably.
-
-**Givens rotations**
-
-A Givens rotation acts on a 2D coordinate plane and zeros one selected entry at a time. It is especially useful in sparse and structured settings.
-
-For dense matrices, Householder QR is usually preferred because it combines stability and performance.
-
-### 10.3 Applications of QR
-
-The most important application is least squares.
-
-Suppose $A \in \mathbb{R}^{m \times n}$ with $m \geq n$ and we want
-
-$$
-\min_x \|Ax - b\|_2.
-$$
-
-If $A = QR$, then
-
-$$
-\|Ax - b\|_2 = \|QRx - b\|_2.
-$$
-
-Because $Q$ has orthonormal columns, the least-squares problem reduces to solving
-
-$$
-Rx = Q^\top b.
-$$
-
-That triangular system can be solved by back substitution.
-
-Why is this better than the normal equations?
-
-- it avoids squaring the condition number
-- it is more numerically stable
-- it uses orthogonality directly
-
-QR also underlies the QR algorithm for eigenvalues.
-
-### 10.4 AI Applications
-
-QR appears in AI in several ways:
-
-- orthogonal initialization of weight matrices
-- maintaining orthogonality constraints
-- stable least-squares fitting
-- basis extraction from activation or feature matrices
-- randomized linear algebra pipelines where QR builds an orthonormal sketch basis
-
-Orthogonality is one of the cleanest geometric tools for preserving signal scale, and QR is one of the main computational tools for enforcing or exposing it.
+> → _Full treatment: [Determinants](../04-Determinants/notes.md)_
 
 ---
 
-## 11. Eigendecomposition
+### 8.2 LU Decomposition
 
-### 11.1 Eigenvalues and Eigenvectors
+LU factorization writes $PA = LU$, where $P$ is a permutation (row-reordering) matrix, $L$ is lower triangular with ones on the diagonal, and $U$ is upper triangular. It is the computational form of Gaussian elimination. Once computed in $O(n^3)$, each new right-hand side $b$ can be solved in $O(n^2)$ via forward substitution on $Ly = Pb$ then back substitution on $Ux = y$.
 
-An eigenvector of a square matrix $A \in \mathbb{R}^{n \times n}$ is a nonzero vector $v$ such that
+**For AI:** LU appears in second-order optimizers (K-FAC, Shampoo), Kalman filter updates, and continuous normalizing flows that require solving stiff ODEs. It is also how `numpy.linalg.solve` and `scipy.linalg.solve` are implemented internally.
 
-$$
-Av = \lambda v
-$$
-
-for some scalar $\lambda$. The scalar is the corresponding eigenvalue.
-
-Rearranging:
-
-$$
-(A - \lambda I)v = 0.
-$$
-
-For a nonzero solution to exist, the matrix $A - \lambda I$ must be singular, so
-
-$$
-\det(A - \lambda I) = 0.
-$$
-
-This equation defines the characteristic polynomial. Its roots are the eigenvalues.
-
-Interpretation:
-
-- most vectors change direction under a linear map
-- eigenvectors keep their direction
-- eigenvalues tell us how much those special directions are stretched, shrunk, or reflected
-
-### 11.2 Eigendecomposition Diagonalisation
-
-A matrix is diagonalizable if it has enough independent eigenvectors to form a basis. In that case:
-
-$$
-A = V \Lambda V^{-1},
-$$
-
-where:
-
-- columns of $V$ are eigenvectors
-- $\Lambda$ is diagonal with eigenvalues on the diagonal
-
-Then
-
-$$
-A^k = V \Lambda^k V^{-1}.
-$$
-
-Instead of multiplying $A$ by itself repeatedly, you power the eigenvalues directly.
-
-Not every matrix is diagonalizable. Some have too few linearly independent eigenvectors. That is one reason SVD is often more robust as a computational tool: it always exists.
-
-### 11.3 Spectral Theorem for Symmetric Matrices
-
-If $A$ is real and symmetric, then the spectral theorem gives
-
-$$
-A = Q \Lambda Q^\top,
-$$
-
-where $Q$ is orthogonal and $\Lambda$ is real diagonal.
-
-Consequences:
-
-- all eigenvalues are real
-- eigenvectors for distinct eigenvalues are orthogonal
-- the matrix is orthogonally diagonalizable
-
-```text
-Symmetric eigendecomposition
-
-Q^T  -> rotate into eigenbasis
-Lambda -> scale independent directions
-Q    -> rotate back
-
-A = Q Lambda Q^T
-```
-
-This is why covariance matrices, Gram matrices, Hessian approximations, and kernel matrices are so pleasant to analyze spectrally.
-
-### 11.4 Powers and Functions of Matrices
-
-Once a matrix is diagonalized, many matrix functions become simple.
-
-**Powers**
-
-$$
-A^k = V \Lambda^k V^{-1}.
-$$
-
-**Matrix exponential**
-
-$$
-e^A = V e^\Lambda V^{-1}.
-$$
-
-**Matrix square root**
-
-For positive semidefinite matrices:
-
-$$
-A^{1/2} = V \Lambda^{1/2} V^{-1}.
-$$
-
-**Matrix logarithm**
-
-For positive definite matrices:
-
-$$
-\log(A) = V \log(\Lambda) V^{-1}.
-$$
-
-These operations matter in AI more than they might first appear:
-
-- covariance whitening uses matrix square roots
-- continuous-time models and flows use matrix exponentials
-- second-order methods can involve matrix functions of curvature operators
-
-### 11.5 Eigenvalues and Matrix Properties
-
-Eigenvalues summarize several important matrix properties:
-
-$$
-\det(A) = \prod_i \lambda_i,
-\qquad
-\mathrm{tr}(A) = \sum_i \lambda_i.
-$$
-
-For symmetric matrices:
-
-- positive definite iff all eigenvalues are positive
-- positive semidefinite iff all eigenvalues are nonnegative
-- the spectral norm is the largest absolute eigenvalue
-
-For symmetric positive definite matrices:
-
-$$
-\kappa_2(A) = \frac{\lambda_{\max}}{\lambda_{\min}}.
-$$
-
-This is especially important in optimization because Hessian eigenvalues describe curvature:
-
-- large eigenvalue -> sharp direction
-- small eigenvalue -> flat direction
-- large ratio -> ill-conditioning
-
-### 11.6 Computing Eigenvalues in Practice
-
-Different algorithms serve different regimes.
-
-**Power iteration**
-
-Repeatedly apply $A$ to a vector and renormalize:
-
-$$
-v_{k+1} = \frac{Av_k}{\|Av_k\|}.
-$$
-
-Under suitable conditions, this converges to the dominant eigenvector.
-
-**Inverse iteration and shifted methods**
-
-Useful for targeting eigenvalues near a chosen shift.
-
-**QR algorithm**
-
-The classical dense algorithm for computing all eigenvalues.
-
-**Lanczos method**
-
-Efficient for large sparse symmetric problems. It builds a Krylov subspace and approximates extreme eigenvalues without dense full decomposition.
-
-In practice:
-
-- dense small-to-medium problems -> QR-based methods
-- large sparse symmetric problems -> Lanczos / ARPACK-style methods
-- one dominant mode -> power iteration
+> → _Full treatment: [Matrix Decompositions](../../03-Advanced-Linear-Algebra/08-Matrix-Decompositions/notes.md)_
 
 ---
 
-## 12. Singular Value Decomposition
+### 8.3 QR Decomposition
 
-### 12.1 Definition
+QR factorization writes $A = QR$ where $Q \in \mathbb{R}^{m \times m}$ is orthogonal ($Q^\top Q = I$) and $R \in \mathbb{R}^{m \times n}$ is upper triangular. It is numerically more stable than LU for least-squares problems because $Q$ preserves norms. The main algorithms are Gram–Schmidt orthogonalization (conceptually clear), Householder reflectors (numerically stable, standard in practice), and Givens rotations (good for sparse matrices).
 
-For any matrix
+**For AI:** Orthogonal weight initialization (Saxe et al. 2013) uses QR. The QR algorithm is the standard method for computing all eigenvalues of a dense matrix. Weight orthogonalization regularizers (Brock et al.) apply QR repeatedly during training.
 
-$$
-A \in \mathbb{R}^{m \times n},
-$$
-
-there exists a singular value decomposition
-
-$$
-A = U \Sigma V^\top,
-$$
-
-where:
-
-- $U \in \mathbb{R}^{m \times m}$ is orthogonal
-- $V \in \mathbb{R}^{n \times n}$ is orthogonal
-- $\Sigma \in \mathbb{R}^{m \times n}$ is diagonal in the rectangular sense, with nonnegative entries
-
-The diagonal entries
-
-$$
-\sigma_1 \geq \sigma_2 \geq \cdots \geq 0
-$$
-
-are the singular values.
-
-The columns of $U$ are left singular vectors. The columns of $V$ are right singular vectors.
-
-SVD always exists. That is one of its greatest strengths.
-
-```text
-SVD geometry
-
-x --V^T--> rotated coordinates --Sigma--> axis-wise scaling --U--> output
-
-A = U Sigma V^T
-```
-
-### 12.2 Thin Economy SVD
-
-If $m \geq n$, the full SVD contains redundant zero-padding. The thin SVD keeps only the essential part:
-
-$$
-A = U_{thin}\Sigma_{thin}V^\top,
-$$
-
-where:
-
-- $U_{thin} \in \mathbb{R}^{m \times n}$
-- $\Sigma_{thin} \in \mathbb{R}^{n \times n}$
-- $V \in \mathbb{R}^{n \times n}$
-
-If the rank of $A$ is $r$, only the first $r$ singular values are nonzero. Then an even more compact expression is
-
-$$
-A = U_r \Sigma_r V_r^\top.
-$$
-
-### 12.3 SVD and the Four Fundamental Subspaces
-
-If $A$ has rank $r$, then the SVD reveals all four fundamental subspaces immediately:
-
-- $\mathrm{col}(A) = \mathrm{span}(u_1, \ldots, u_r)$
-- $\mathrm{null}(A^\top) = \mathrm{span}(u_{r+1}, \ldots, u_m)$
-- $\mathrm{row}(A) = \mathrm{span}(v_1, \ldots, v_r)$
-- $\mathrm{null}(A) = \mathrm{span}(v_{r+1}, \ldots, v_n)$
-
-This is one reason SVD is sometimes called the most complete decomposition.
-
-### 12.4 SVD and Eigendecomposition Connection
-
-Starting from
-
-$$
-A = U \Sigma V^\top,
-$$
-
-we get
-
-$$
-A^\top A = V \Sigma^\top \Sigma V^\top,
-$$
-
-and
-
-$$
-AA^\top = U \Sigma \Sigma^\top U^\top.
-$$
-
-So:
-
-- the right singular vectors are eigenvectors of $A^\top A$
-- the left singular vectors are eigenvectors of $AA^\top$
-- the singular values squared are the eigenvalues of both
-
-It also explains why forming $A^\top A$ can be dangerous numerically: it squares the condition number.
-
-### 12.5 Low-Rank Approximation Eckart-Young
-
-If
-
-$$
-A = \sum_{i=1}^r \sigma_i u_i v_i^\top,
-$$
-
-then the best rank-$k$ approximation to $A$ in both Frobenius norm and spectral norm is obtained by truncating the SVD:
-
-$$
-A_k = \sum_{i=1}^k \sigma_i u_i v_i^\top.
-$$
-
-Moreover:
-
-$$
-A_k
-=
-\arg\min_{\mathrm{rank}(B) \leq k} \|A - B\|_F
-=
-\arg\min_{\mathrm{rank}(B) \leq k} \|A - B\|_2.
-$$
-
-And the error is
-
-$$
-\|A - A_k\|_F^2 = \sum_{i=k+1}^{r} \sigma_i^2,
-$$
-
-$$
-\|A - A_k\|_2 = \sigma_{k+1}.
-$$
-
-This is the mathematical reason low-rank approximation is meaningful.
-
-### 12.6 SVD in AI Applications
-
-SVD is everywhere in AI, even when it is not named explicitly.
-
-**Dimensionality reduction**  
-PCA is SVD applied to a centered data matrix or covariance matrix.
-
-**Latent semantic analysis**  
-Term-document matrices are approximated by low-rank factors to extract latent structure.
-
-**Image and activation compression**  
-Low-rank approximation reduces storage and compute while preserving dominant modes.
-
-**Pseudo-inverse**  
-The numerically canonical construction of $A^+$ uses SVD.
-
-**Condition number**
-
-$$
-\kappa_2(A) = \frac{\sigma_{\max}}{\sigma_{\min}}.
-$$
-
-**LoRA and low-rank adaptation**  
-LoRA (Hu et al., 2022) relies on the observation that many useful parameter updates can be represented well in low rank. That is exactly the setting where truncated-SVD intuition applies.
-
-**Mechanistic interpretability**  
-SVD of weight matrices, attention OV circuits, and activation matrices can reveal dominant directions and effective rank.
-
-### 12.7 Randomised SVD
-
-Exact SVD is expensive for large dense matrices. If we only need the leading singular directions, randomized methods can be much cheaper.
-
-The basic randomized SVD idea (Halko, Martinsson, and Tropp, 2011) is:
-
-1. draw a random sketch matrix $\Omega$
-2. form $Y = A\Omega$
-3. compute an orthonormal basis $Q$ for the columns of $Y$
-4. project to a smaller matrix $B = Q^\top A$
-5. compute the SVD of the smaller matrix
-6. lift the result back
-
-This is useful for:
-
-- large embedding matrices
-- activation analysis
-- top principal components of huge datasets
-- low-rank diagnostics where exact decomposition is too expensive
+> → _Full treatment: [Matrix Decompositions](../../03-Advanced-Linear-Algebra/08-Matrix-Decompositions/notes.md)_
 
 ---
 
-## 13. Cholesky Decomposition
+### 8.4 Eigendecomposition
 
-### 13.1 Definition
+For a diagonalizable matrix $A \in \mathbb{R}^{n \times n}$, the eigendecomposition is $A = V\Lambda V^{-1}$, where columns of $V$ are eigenvectors and $\Lambda = \mathrm{diag}(\lambda_1, \ldots, \lambda_n)$ holds the eigenvalues. It reveals the invariant directions of the linear map and makes matrix powers trivial: $A^k = V\Lambda^k V^{-1}$.
 
-If $A$ is symmetric positive definite, then there exists a unique lower triangular matrix $L$ with positive diagonal such that
+Not every square matrix is diagonalizable. Defective matrices (with repeated eigenvalues and insufficient eigenvectors) require the Jordan normal form. For symmetric real matrices, the spectral theorem guarantees real eigenvalues and an orthonormal eigenbasis, making $V^{-1} = V^\top$ and giving $A = V\Lambda V^\top$.
 
-$$
-A = LL^\top.
-$$
+**For AI:** Eigenspectrum analysis of the Hessian explains sharpness and flat minima. Adam's diagonal preconditioning approximates the Fisher information matrix eigenspectrum. Vanishing and exploding gradients in RNNs are a direct consequence of the dominant eigenvalue of the recurrence matrix exceeding or falling below 1.
 
-This is the Cholesky decomposition.
-
-It exploits exactly the structure many matrices in statistics and ML already have: symmetry and positive definiteness.
-
-### 13.2 Algorithm
-
-The entries of $L$ can be computed recursively.
-
-For the diagonal:
-
-$$
-L_{jj}
-=
-\sqrt{
-A_{jj}
-- \sum_{k=1}^{j-1} L_{jk}^2
-}.
-$$
-
-For the entries below the diagonal:
-
-$$
-L_{ij}
-=
-\frac{
-A_{ij} - \sum_{k=1}^{j-1} L_{ik}L_{jk}
-}{L_{jj}}
-\qquad
-\text{for } i > j.
-$$
-
-The dense cost is about
-
-$$
-\frac{1}{3}n^3,
-$$
-
-roughly half the leading-order cost of LU.
-
-An important diagnostic fact is that Cholesky fails if the matrix is not positive definite.
-
-### 13.3 Properties and Applications
-
-Why is Cholesky so important?
-
-**Fast solves**
-
-If
-
-$$
-A = LL^\top,
-$$
-
-then solving $Ax = b$ becomes:
-
-1. solve $Ly = b$
-2. solve $L^\top x = y$
-
-Both are triangular solves.
-
-**Determinant**
-
-Since
-
-$$
-\det(A) = \det(L)^2,
-$$
-
-we get
-
-$$
-\det(A) = \left(\prod_i L_{ii}\right)^2.
-$$
-
-So log-determinants are easy to obtain from the diagonal of $L$.
-
-**Gaussian processes and multivariate Gaussians**
-
-Covariance matrices are symmetric positive semidefinite, and after regularization often SPD. Cholesky is standard for:
-
-- solving $(K + \epsilon I)x = b$
-- computing log-determinants
-- drawing correlated Gaussian samples via $Lz$
-
-**Second-order optimization**
-
-Near a strict local minimum, a Hessian is positive definite. Cholesky can therefore be part of Newton-style methods and structured preconditioners.
-
-**Kalman filtering and probabilistic numerics**
-
-Square-root forms based on Cholesky improve numerical stability by maintaining covariance structure explicitly.
-
-If the matrix is SPD, Cholesky is usually the decomposition you want first.
+> → _Full treatment: [Eigenvalues and Eigenvectors](../../03-Advanced-Linear-Algebra/01-Eigenvalues-and-Eigenvectors/notes.md)_
 
 ---
 
-## 14. Common Mistakes
+### 8.5 Singular Value Decomposition
+
+The SVD is the universal matrix factorization: for any $A \in \mathbb{R}^{m \times n}$,
+
+$$A = U \Sigma V^\top$$
+
+where $U \in \mathbb{R}^{m \times m}$ and $V \in \mathbb{R}^{n \times n}$ are orthogonal, and $\Sigma \in \mathbb{R}^{m \times n}$ is diagonal with non-negative singular values $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_{\min(m,n)} \geq 0$. Unlike eigendecomposition, SVD exists for every matrix — rectangular, rank-deficient, or otherwise.
+
+Key consequences: the best rank-$k$ approximation is $A_k = U_k \Sigma_k V_k^\top$ (Eckart–Young theorem); the pseudo-inverse is $A^+ = V \Sigma^+ U^\top$; the condition number is $\sigma_1 / \sigma_{\min}$; and the four fundamental subspaces (column space, null space, row space, left null space) are read directly from $U$ and $V$.
+
+**For AI:** LoRA decomposes parameter updates as $\Delta W = BA$ with $B \in \mathbb{R}^{m \times r}$, $A \in \mathbb{R}^{r \times n}$, $r \ll \min(m,n)$ — a direct consequence of the SVD low-rank viewpoint. Mechanistic interpretability uses SVD to decompose attention OV circuits into rank-1 components. Randomised SVD (Halko et al. 2011) makes low-rank approximation tractable for billion-parameter weight matrices.
+
+> → _Full treatment: [Singular Value Decomposition](../../03-Advanced-Linear-Algebra/02-Singular-Value-Decomposition/notes.md)_
+
+---
+
+### 8.6 Cholesky Decomposition
+
+For a symmetric positive definite (SPD) matrix $A$, Cholesky gives $A = LL^\top$ where $L$ is lower triangular with positive diagonal. It is approximately twice as fast as LU for SPD systems (exploiting symmetry), requires no pivoting, and serves as a numerical test of positive definiteness: Cholesky fails if and only if $A$ is not SPD.
+
+**For AI:** Gaussian process inference, Bayesian neural network covariance updates, Kalman filter covariance propagation, and second-order optimizer preconditioning (natural gradient methods) all require efficient SPD linear solves — Cholesky is the standard tool. It also appears in sampling from multivariate Gaussians: to draw $x \sim \mathcal{N}(\mu, \Sigma)$, compute $L = \mathrm{chol}(\Sigma)$ then return $\mu + Lz$ where $z \sim \mathcal{N}(0, I)$.
+
+> → _Full treatment: [Matrix Decompositions](../../03-Advanced-Linear-Algebra/08-Matrix-Decompositions/notes.md)_
+
+## 9. Common Mistakes
 
 | Mistake | Why it is wrong | Better rule |
 | --- | --- | --- |
@@ -2396,7 +1580,7 @@ If the matrix is SPD, Cholesky is usually the decomposition you want first.
 
 ---
 
-## 15. Exercises
+## 10. Exercises
 
 These exercises are designed to force both algebraic fluency and computational interpretation.
 
@@ -2424,66 +1608,29 @@ These exercises are designed to force both algebraic fluency and computational i
    - $(d)$ $\det(A)$, $\det(B)$, and $\det(AB)$
    - $(e)$ $\mathrm{tr}(AB)$ and $\mathrm{tr}(BA)$
 
-2. **Linear systems via LU**  
-   For
+2. **Shape compatibility and broadcasting**
+   Let $A \in \mathbb{R}^{3 \times 4}$, $B \in \mathbb{R}^{4 \times 2}$, $C \in \mathbb{R}^{3 \times 2}$, $u \in \mathbb{R}^4$, $v \in \mathbb{R}^3$.
+   - $(a)$ which of $AB$, $BA$, $AC$, $CA$, $BC$, $CB$ are defined? State each resulting shape.
+   - $(b)$ compute the shape of $(AB)^\top$ and verify it equals $B^\top A^\top$
+   - $(c)$ is $A^\top v$ defined? What about $Au$?
+   - $(d)$ compute $Au$ — what kind of object is the result?
+   - $(e)$ write $AB$ as a sum of $4$ rank-1 outer products (column-of-$A$ times row-of-$B$)
 
-   $$
-   A =
-   \begin{pmatrix}
-   2 & 1 & 1 \\
-   4 & 3 & 3 \\
-   8 & 7 & 9
-   \end{pmatrix},
-   \qquad
-   b =
-   \begin{pmatrix}
-   1 \\ 1 \\ 1
-   \end{pmatrix},
-   $$
+3. **Trace and inner-product identities**
+   Let $A, B \in \mathbb{R}^{n \times n}$.
+   - $(a)$ prove $\mathrm{tr}(AB) = \mathrm{tr}(BA)$ from the definition $\mathrm{tr}(M) = \sum_i M_{ii}$
+   - $(b)$ show that $\mathrm{tr}(A^\top B) = \sum_{i,j} A_{ij} B_{ij}$ (the Frobenius inner product)
+   - $(c)$ use $(b)$ to write $\|A\|_F^2 = \mathrm{tr}(A^\top A)$
+   - $(d)$ for $A = \begin{pmatrix}1&2\\3&4\end{pmatrix}$, $B = \begin{pmatrix}0&1\\1&0\end{pmatrix}$, verify $\mathrm{tr}(AB) = \mathrm{tr}(BA)$ numerically
+   - $(e)$ is $\mathrm{tr}(ABC) = \mathrm{tr}(BAC)$ in general? Prove or give a counterexample.
 
-   do the following:
-   - $(a)$ compute an LU decomposition
-   - $(b)$ solve $Ax=b$ using forward and back substitution
-   - $(c)$ compute $\det(A)$ from the triangular factor
-   - $(d)$ determine the rank of $A$
-   - $(e)$ explain why a second right-hand side can be solved cheaply once LU is known
-
-3. **SVD and low-rank approximation**  
-   For
-
-   $$
-   A =
-   \begin{pmatrix}
-   3 & 2 & 2 \\
-   2 & 3 & -2
-   \end{pmatrix},
-   $$
-
-   perform:
-   - $(a)$ compute $A^\top A$
-   - $(b)$ find the singular values
-   - $(c)$ form the best rank-1 approximation $A_1$
-   - $(d)$ compute $\|A-A_1\|_F$
-   - $(e)$ explain what geometric direction the top right singular vector captures
-   - $(f)$ compute the fraction of total squared singular value mass captured by $A_1$
-
-4. **Eigendecomposition and matrix powers**  
-   For
-
-   $$
-   A =
-   \begin{pmatrix}
-   2 & 1 \\
-   1 & 2
-   \end{pmatrix},
-   $$
-
-   do the following:
-   - $(a)$ find eigenvalues and eigenvectors
-   - $(b)$ write $A = V \Lambda V^{-1}$
-   - $(c)$ compute $A^4$ using the decomposition
-   - $(d)$ compute $e^A$
-   - $(e)$ determine whether $A$ is positive definite and compute its condition number
+4. **Block matrix multiply and the outer-product form**
+   Partition $A \in \mathbb{R}^{4 \times 4}$ and $B \in \mathbb{R}^{4 \times 4}$ as $2 \times 2$ blocks of size $2 \times 2$.
+   - $(a)$ write the block matrix product formula $(AB)_{IJ} = \sum_K A_{IK} B_{KJ}$
+   - $(b)$ for $A = \begin{pmatrix} A_{11} & A_{12} \\ A_{21} & A_{22} \end{pmatrix}$ with $A_{11} = I_2$, $A_{12} = 0$, $A_{21} = 0$, $A_{22} = 2I_2$ and $B = I_4$, compute $AB$ by block multiply and verify it equals $A$
+   - $(c)$ express a rank-2 matrix $M = u_1 v_1^\top + u_2 v_2^\top$ as a matrix product $[u_1\ u_2][v_1\ v_2]^\top$ and state the shapes
+   - $(d)$ explain why every rank-$r$ matrix can be written as a product of an $m \times r$ matrix and an $r \times n$ matrix
+   - $(e)$ for a LoRA update $\Delta W = BA$ with $B \in \mathbb{R}^{512 \times 8}$ and $A \in \mathbb{R}^{8 \times 512}$, compute the parameter count versus full $W \in \mathbb{R}^{512 \times 512}$
 
 5. **Pseudo-inverse and least squares**  
    Let
@@ -2518,13 +1665,13 @@ These exercises are designed to force both algebraic fluency and computational i
    - $(e)$ explain why each row of the attention matrix sums to 1
    - $(f)$ if $Q=K$, determine whether $S$ is symmetric and whether the softmaxed matrix must still be symmetric
 
-7. **Choose the right decomposition**  
-   For each problem, pick the best decomposition and justify:
-   - $(a)$ solving $Ax=b$ for SPD $A$ with many right-hand sides
-   - $(b)$ computing the best rank-5 approximation of a huge dense matrix
-   - $(c)$ computing all eigenvalues of a dense non-symmetric square matrix
-   - $(d)$ computing the pseudo-inverse of a rectangular matrix
-   - $(e)$ testing positive definiteness efficiently
+7. **Conditioning and numerical stability**
+   Let $A = \begin{pmatrix}1 & 1 \\ 1 & 1+\epsilon\end{pmatrix}$ for small $\epsilon > 0$.
+   - $(a)$ compute $\det(A)$ symbolically as a function of $\epsilon$
+   - $(b)$ compute $A^{-1}$ explicitly using the $2 \times 2$ inverse formula
+   - $(c)$ compute the condition number $\kappa(A) = \|A\|\|A^{-1}\|$ using the spectral norm (largest singular value) — describe what happens as $\epsilon \to 0$
+   - $(d)$ explain why a large condition number means that a small perturbation $\delta b$ in $b$ causes a large perturbation in the solution $x$ of $Ax = b$
+   - $(e)$ for $\epsilon = 10^{-8}$, estimate the number of digits of precision lost in the solution relative to 64-bit floating-point (which has $\approx 16$ significant digits)
 
 8. **LoRA and low-rank structure**  
    Let $W \in \mathbb{R}^{512 \times 512}$ and let a LoRA update use rank $r=8$.
@@ -2536,7 +1683,7 @@ These exercises are designed to force both algebraic fluency and computational i
 
 ---
 
-## 16. Why This Matters for AI
+## 11. Why This Matters for AI
 
 | Aspect | Why matrix operations matter |
 | --- | --- |
@@ -2555,7 +1702,7 @@ The short version is that matrix operations are not a chapter you pass through o
 
 ---
 
-## 17. Conceptual Bridge
+## 12. Conceptual Bridge
 
 Vectors and spaces gave us the geometry of linear algebra. Matrix operations gave us the computational rules for acting on that geometry. Every abstract idea from the previous chapter now has an executable form:
 
