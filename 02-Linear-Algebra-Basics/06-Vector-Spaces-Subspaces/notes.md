@@ -25,7 +25,7 @@ This chapter develops vector spaces and subspaces from intuition through rigorou
 
 | Notebook                           | Description                                                                                          |
 | ---------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| [theory.ipynb](theory.ipynb)       | Interactive demonstrations: subspace visualisation, Gram-Schmidt, four fundamental subspaces, PCA   |
+| [theory.ipynb](theory.ipynb)       | Interactive demonstrations: subspace visualisation, Gram-Schmidt, four fundamental subspaces, PCA    |
 | [exercises.ipynb](exercises.ipynb) | Practice problems: axiom verification, subspace proofs, basis computation, Gram-Schmidt, projections |
 
 ## Learning Objectives
@@ -148,7 +148,7 @@ The word "space" is deliberate. A vector space has geometric structure. You can 
 
 For AI, this abstraction is not philosophical — it is practical:
 
-```
+```text
 VECTOR SPACES THAT APPEAR IN EVERY NEURAL NETWORK
 ════════════════════════════════════════════════════════════════════
 
@@ -199,7 +199,7 @@ The update rule makes sense only because $\mathbb{R}^d$ is a vector space — yo
 
 Vector spaces occupy a specific level in a hierarchy of mathematical structures. Each level adds additional structure on top of the previous, enabling more refined geometric notions:
 
-```
+```text
 HIERARCHY OF MATHEMATICAL STRUCTURE
 ════════════════════════════════════════════════════════════════════
 
@@ -258,7 +258,7 @@ A subspace is a vector space living inside a larger vector space — a flat, lin
 
 **Why "flat"?** Take any two vectors in the subspace. Their sum must also be in the subspace. Multiply either by any scalar — must still be in the subspace. This forces the subset to be "straight". There can be no curves, bends, or boundaries. If the subspace contains a vector $\mathbf{v}$, it must contain all scalar multiples $\alpha\mathbf{v}$ for every $\alpha \in \mathbb{R}$ — the entire line through the origin in the direction of $\mathbf{v}$.
 
-```
+```text
 SUBSPACES AND NON-SUBSPACES IN ℝ² AND ℝ³
 ════════════════════════════════════════════════════════════════════
 
@@ -279,7 +279,7 @@ SUBSPACES AND NON-SUBSPACES IN ℝ² AND ℝ³
   If any answer is NO → not a subspace.
 ```
 
-**For AI, the subspace concept is concrete.** The column space of a weight matrix is a subspace of the output space. The null space is a subspace of the input space. The set of all weight updates targeted by LoRA is a subspace of the weight matrix space. The set of all probability vectors (probabilities summing to 1) is *not* a subspace (it does not contain the zero vector and is not closed under vector addition). This distinction matters: arithmetic that is meaningful in a vector space may be meaningless in a non-subspace.
+**For AI, the subspace concept is concrete.** The column space of a weight matrix is a subspace of the output space. The null space is a subspace of the input space. The set of all weight updates targeted by LoRA is a subspace of the weight matrix space. The set of all probability vectors (probabilities summing to 1) is _not_ a subspace (it does not contain the zero vector and is not closed under vector addition). This distinction matters: arithmetic that is meaningful in a vector space may be meaningless in a non-subspace.
 
 ### 1.5 Subspaces That Appear Constantly in AI
 
@@ -303,26 +303,26 @@ The following subspaces recur throughout deep learning theory, practice, and int
 
 The concept of a vector space did not emerge from a single insight — it crystallised gradually over seven decades as mathematicians in different countries, working on different problems, all needed the same abstract structure:
 
-| Year | Person / Event | Significance |
-| ---- | -------------- | ------------ |
-| 1827 | **Möbius** — barycentric coordinates | Linear combinations with fixed coefficient sum; early subspace thinking embedded in geometry |
-| 1844 | **Grassmann** — *Ausdehnungslehre* (Theory of Extension) | Abstract $n$-dimensional linear spaces, vector algebra, exterior products; 50 years ahead of its time; largely ignored until the 1880s |
-| 1858 | **Cayley** — matrix algebra | Matrices as the natural representation of linear maps; implicit use of vector space structure in $\mathbb{R}^n$ |
-| 1888 | **Peano** — *Calcolo Geometrico* | First rigorous axiomatic definition of a vector space (Peano called them "linear systems"); the modern eight axioms are essentially unchanged from his formulation |
-| 1900–10 | **Hilbert** — infinite-dimensional spaces | Spectral theory of operators; sequences as vectors; laid the foundation for quantum mechanics and functional analysis; introduced Hilbert spaces |
-| 1920s | **Banach** — normed complete spaces | Generalised Hilbert spaces to settings without an inner product; functional analysis matures as a discipline |
-| 1929 | **von Neumann** — Hilbert space formalism | Rigorous foundation for quantum mechanics as operators on Hilbert space; spectral theorem in full generality |
-| 1930s–60s | **Bourbaki** — abstract algebra | Vector spaces as modules over fields; categorical perspective; the modern textbook treatment of linear algebra |
-| 1935 | **Whitney** — tangent bundles | A vector space (tangent space) attached to every point of a smooth manifold; modern differential geometry |
-| 1950s–90s | **Krylov subspace methods** | CG, GMRES, Lanczos: iterative solvers that expand a nested sequence of subspaces; subspace geometry as a computational algorithm |
-| 1970s–90s | **LAPACK / numerical linear algebra** | Practical algorithms for computing with subspaces (QR, SVD, Gram-Schmidt); subspace methods become usable at scale |
-| 1901 / 1991 | **Pearson / Turk–Pentland** — PCA | Pearson (1901) defines principal component analysis; Turk and Pentland (1991) apply PCA to face recognition ("eigenfaces"); subspace learning as a machine learning tool |
-| 2013 | **Mikolov et al.** — word2vec | Words as vectors in $\mathbb{R}^d$; semantic arithmetic; gender direction as a 1D subspace; demonstrated that natural language semantics has linear subspace structure |
-| 2018 | **Gur-Ari et al.** — gradient subspace | The "gradient subspace" of LLM training has dimension $\ll p$; gradient updates live in a low-dimensional subspace of parameter space |
-| 2020 | **Aghajanyan et al.** — intrinsic dimensionality | Fine-tuning gradient updates for GPT-2 lie in a subspace of dimension $\approx 200$ out of $p \approx 1.5 \times 10^8$; formal evidence for low-dimensional fine-tuning |
-| 2021 | **Hu et al.** — LoRA | Explicit restriction of weight updates to a rank-$r$ subspace; subspace constraint as an inductive bias; state-of-the-art parameter-efficient fine-tuning |
-| 2022 | **Elhage et al.** — superposition hypothesis | Features in LLMs are represented as directions (1D subspaces) in the residual stream; features outnumber dimensions, forcing non-orthogonal superposition; subspace geometry is the language of mechanistic interpretability |
-| 2024 | **DeepSeek-V2/V3** — MLA | Multi-head Latent Attention: KV projections compressed to a rank-$r$ subspace; the KV information is architecturally constrained to a low-dimensional subspace; 5.75× memory reduction |
+| Year        | Person / Event                                           | Significance                                                                                                                                                                                                                 |
+| ----------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1827        | **Möbius** — barycentric coordinates                     | Linear combinations with fixed coefficient sum; early subspace thinking embedded in geometry                                                                                                                                 |
+| 1844        | **Grassmann** — _Ausdehnungslehre_ (Theory of Extension) | Abstract $n$-dimensional linear spaces, vector algebra, exterior products; 50 years ahead of its time; largely ignored until the 1880s                                                                                       |
+| 1858        | **Cayley** — matrix algebra                              | Matrices as the natural representation of linear maps; implicit use of vector space structure in $\mathbb{R}^n$                                                                                                              |
+| 1888        | **Peano** — _Calcolo Geometrico_                         | First rigorous axiomatic definition of a vector space (Peano called them "linear systems"); the modern eight axioms are essentially unchanged from his formulation                                                           |
+| 1900–10     | **Hilbert** — infinite-dimensional spaces                | Spectral theory of operators; sequences as vectors; laid the foundation for quantum mechanics and functional analysis; introduced Hilbert spaces                                                                             |
+| 1920s       | **Banach** — normed complete spaces                      | Generalised Hilbert spaces to settings without an inner product; functional analysis matures as a discipline                                                                                                                 |
+| 1929        | **von Neumann** — Hilbert space formalism                | Rigorous foundation for quantum mechanics as operators on Hilbert space; spectral theorem in full generality                                                                                                                 |
+| 1930s–60s   | **Bourbaki** — abstract algebra                          | Vector spaces as modules over fields; categorical perspective; the modern textbook treatment of linear algebra                                                                                                               |
+| 1935        | **Whitney** — tangent bundles                            | A vector space (tangent space) attached to every point of a smooth manifold; modern differential geometry                                                                                                                    |
+| 1950s–90s   | **Krylov subspace methods**                              | CG, GMRES, Lanczos: iterative solvers that expand a nested sequence of subspaces; subspace geometry as a computational algorithm                                                                                             |
+| 1970s–90s   | **LAPACK / numerical linear algebra**                    | Practical algorithms for computing with subspaces (QR, SVD, Gram-Schmidt); subspace methods become usable at scale                                                                                                           |
+| 1901 / 1991 | **Pearson / Turk–Pentland** — PCA                        | Pearson (1901) defines principal component analysis; Turk and Pentland (1991) apply PCA to face recognition ("eigenfaces"); subspace learning as a machine learning tool                                                     |
+| 2013        | **Mikolov et al.** — word2vec                            | Words as vectors in $\mathbb{R}^d$; semantic arithmetic; gender direction as a 1D subspace; demonstrated that natural language semantics has linear subspace structure                                                       |
+| 2018        | **Gur-Ari et al.** — gradient subspace                   | The "gradient subspace" of LLM training has dimension $\ll p$; gradient updates live in a low-dimensional subspace of parameter space                                                                                        |
+| 2020        | **Aghajanyan et al.** — intrinsic dimensionality         | Fine-tuning gradient updates for GPT-2 lie in a subspace of dimension $\approx 200$ out of $p \approx 1.5 \times 10^8$; formal evidence for low-dimensional fine-tuning                                                      |
+| 2021        | **Hu et al.** — LoRA                                     | Explicit restriction of weight updates to a rank-$r$ subspace; subspace constraint as an inductive bias; state-of-the-art parameter-efficient fine-tuning                                                                    |
+| 2022        | **Elhage et al.** — superposition hypothesis             | Features in LLMs are represented as directions (1D subspaces) in the residual stream; features outnumber dimensions, forcing non-orthogonal superposition; subspace geometry is the language of mechanistic interpretability |
+| 2024        | **DeepSeek-V2/V3** — MLA                                 | Multi-head Latent Attention: KV projections compressed to a rank-$r$ subspace; the KV information is architecturally constrained to a low-dimensional subspace; 5.75× memory reduction                                       |
 
 The arc of this timeline is clear: what began as abstract geometry became, over 180 years, the core language of AI architecture and efficiency.
 
@@ -343,36 +343,37 @@ satisfying the following eight axioms for all $\mathbf{u}, \mathbf{v}, \mathbf{w
 
 **Axioms for addition:**
 
-| # | Name | Statement |
-|---|------|-----------|
-| 1 | **Commutativity** | $\mathbf{u} + \mathbf{v} = \mathbf{v} + \mathbf{u}$ |
-| 2 | **Associativity** | $(\mathbf{u} + \mathbf{v}) + \mathbf{w} = \mathbf{u} + (\mathbf{v} + \mathbf{w})$ |
-| 3 | **Additive identity** | $\exists\, \mathbf{0} \in V$ such that $\mathbf{v} + \mathbf{0} = \mathbf{v}$ for all $\mathbf{v}$ |
-| 4 | **Additive inverse** | For each $\mathbf{v} \in V$, $\exists\, (-\mathbf{v}) \in V$ such that $\mathbf{v} + (-\mathbf{v}) = \mathbf{0}$ |
+| #   | Name                  | Statement                                                                                                        |
+| --- | --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 1   | **Commutativity**     | $\mathbf{u} + \mathbf{v} = \mathbf{v} + \mathbf{u}$                                                              |
+| 2   | **Associativity**     | $(\mathbf{u} + \mathbf{v}) + \mathbf{w} = \mathbf{u} + (\mathbf{v} + \mathbf{w})$                                |
+| 3   | **Additive identity** | $\exists\, \mathbf{0} \in V$ such that $\mathbf{v} + \mathbf{0} = \mathbf{v}$ for all $\mathbf{v}$               |
+| 4   | **Additive inverse**  | For each $\mathbf{v} \in V$, $\exists\, (-\mathbf{v}) \in V$ such that $\mathbf{v} + (-\mathbf{v}) = \mathbf{0}$ |
 
 **Axioms for scalar multiplication:**
 
-| # | Name | Statement |
-|---|------|-----------|
-| 5 | **Multiplicative identity** | $1 \cdot \mathbf{v} = \mathbf{v}$ |
-| 6 | **Compatibility** | $\alpha(\beta \mathbf{v}) = (\alpha\beta)\mathbf{v}$ |
+| #   | Name                        | Statement                                            |
+| --- | --------------------------- | ---------------------------------------------------- |
+| 5   | **Multiplicative identity** | $1 \cdot \mathbf{v} = \mathbf{v}$                    |
+| 6   | **Compatibility**           | $\alpha(\beta \mathbf{v}) = (\alpha\beta)\mathbf{v}$ |
 
 **Distributivity (linking the two operations):**
 
-| # | Name | Statement |
-|---|------|-----------|
-| 7 | **Scalar over vector sum** | $\alpha(\mathbf{u} + \mathbf{v}) = \alpha\mathbf{u} + \alpha\mathbf{v}$ |
-| 8 | **Vector over scalar sum** | $(\alpha + \beta)\mathbf{v} = \alpha\mathbf{v} + \beta\mathbf{v}$ |
+| #   | Name                       | Statement                                                               |
+| --- | -------------------------- | ----------------------------------------------------------------------- |
+| 7   | **Scalar over vector sum** | $\alpha(\mathbf{u} + \mathbf{v}) = \alpha\mathbf{u} + \alpha\mathbf{v}$ |
+| 8   | **Vector over scalar sum** | $(\alpha + \beta)\mathbf{v} = \alpha\mathbf{v} + \beta\mathbf{v}$       |
 
 These eight axioms are the **complete** definition. Anything satisfying all eight is a vector space; anything failing even one is not. The axioms are minimal: each is independent of the others; removing any one produces a strictly weaker structure.
 
 Notice what the axioms do and do not say:
+
 - They say nothing about what the "vectors" look like. Arrows, polynomials, matrices, functions — all are equally valid.
 - They say nothing about angles, lengths, or orthogonality. Those require additional structure (inner product).
 - They say nothing about convergence. That requires a topology (norm or metric).
 - They require closure under both operations: the result of adding two vectors must be back in $V$; scaling a vector must stay in $V$.
 
-```
+```text
 THE AXIOMS AS CLOSURE CONDITIONS
 ════════════════════════════════════════════════════════════════════
 
@@ -414,7 +415,7 @@ So $(-1)\mathbf{v}$ is the additive inverse of $\mathbf{v}$, i.e., $(-1)\mathbf{
 
 **Cancellation law for scalars.** If $\alpha\mathbf{v} = \mathbf{0}$, then either $\alpha = 0$ or $\mathbf{v} = \mathbf{0}$:
 
-*Proof:* Suppose $\alpha \neq 0$. Then $\alpha$ has a multiplicative inverse $\alpha^{-1}$ in $\mathbb{R}$. Multiply both sides:
+_Proof:_ Suppose $\alpha \neq 0$. Then $\alpha$ has a multiplicative inverse $\alpha^{-1}$ in $\mathbb{R}$. Multiply both sides:
 $$\mathbf{v} = 1 \cdot \mathbf{v} = (\alpha^{-1}\alpha)\mathbf{v} = \alpha^{-1}(\alpha\mathbf{v}) = \alpha^{-1} \cdot \mathbf{0} = \mathbf{0}$$
 
 This last fact is particularly useful in linear independence arguments: if a scalar multiple of a vector is zero, either the scalar is zero or the vector is zero — no third option.
@@ -528,9 +529,9 @@ Fails closure under addition ($\|\mathbf{u} + \mathbf{v}\| \neq 1$ in general) a
 
 **$\Delta^{n-1} = \{\mathbf{p} \in \mathbb{R}^n : p_i \geq 0,\ \sum_i p_i = 1\}$ (probability simplex)**
 
-Fails closure under addition: $\mathbf{p} + \mathbf{q}$ has $\sum_i(p_i + q_i) = 2 \neq 1$. Fails to contain the zero vector. Fails scalar multiplication: $2\mathbf{p}$ has $\sum_i 2p_i = 2 \neq 1$. The simplex is an *affine* subspace (it is a translate of a linear subspace), not a vector subspace.
+Fails closure under addition: $\mathbf{p} + \mathbf{q}$ has $\sum_i(p_i + q_i) = 2 \neq 1$. Fails to contain the zero vector. Fails scalar multiplication: $2\mathbf{p}$ has $\sum_i 2p_i = 2 \neq 1$. The simplex is an _affine_ subspace (it is a translate of a linear subspace), not a vector subspace.
 
-This is a crucial AI pitfall: softmax outputs live in the interior of $\Delta^{|V|}$. Averaging two softmax output vectors does not produce a valid probability distribution in the same parameterisation. Interpolation, averaging, and arithmetic must be done in **logit space** (pre-softmax), which *is* a vector space.
+This is a crucial AI pitfall: softmax outputs live in the interior of $\Delta^{|V|}$. Averaging two softmax output vectors does not produce a valid probability distribution in the same parameterisation. Interpolation, averaging, and arithmetic must be done in **logit space** (pre-softmax), which _is_ a vector space.
 
 **$\mathbb{Z}^n$ (integer vectors)**
 
@@ -540,7 +541,7 @@ Closed under addition (integer + integer = integer) but fails closure under scal
 
 Does not contain the zero vector ($A \cdot \mathbf{0} = \mathbf{0} \neq \mathbf{b}$). Not closed under addition: $A(\mathbf{x} + \mathbf{y}) = A\mathbf{x} + A\mathbf{y} = \mathbf{b} + \mathbf{b} = 2\mathbf{b} \neq \mathbf{b}$. This is an affine subspace (a coset of the null space of $A$), not a vector subspace. The general solution to $A\mathbf{x} = \mathbf{b}$ is $\mathbf{x}_p + \text{null}(A)$, where $\mathbf{x}_p$ is any particular solution — a coset structure, not a subspace structure.
 
-```
+```text
 SUMMARY: WHY COMMON AI SETS FAIL TO BE VECTOR SPACES
 ════════════════════════════════════════════════════════════════════
 
@@ -586,6 +587,7 @@ Checking all eight axioms would be redundant. The operations themselves are inhe
 What can fail is **closure**: the result of an operation on elements of $W$ might fall outside $W$. And the zero vector might not be in $W$. So only three conditions must be verified:
 
 > **Subspace Test.** A subset $W \subseteq V$ is a subspace of $V$ if and only if:
+>
 > 1. **Non-empty / contains zero:** $\mathbf{0} \in W$
 > 2. **Closed under addition:** for all $\mathbf{u}, \mathbf{w} \in W$: $\mathbf{u} + \mathbf{w} \in W$
 > 3. **Closed under scalar multiplication:** for all $\mathbf{w} \in W$ and $\alpha \in \mathbb{R}$: $\alpha\mathbf{w} \in W$
@@ -597,11 +599,13 @@ Equivalently, conditions 2 and 3 can be combined into a single condition:
 This single condition says that $W$ is closed under all linear combinations of its elements. It is often the fastest way to verify that something is a subspace: show that every linear combination of elements of $W$ remains in $W$.
 
 **Strategy for proving subspace:**
+
 1. Show $W$ is non-empty (usually by showing $\mathbf{0} \in W$ directly)
 2. Take arbitrary $\mathbf{u}, \mathbf{w} \in W$ and arbitrary $\alpha, \beta \in \mathbb{R}$
 3. Compute $\alpha\mathbf{u} + \beta\mathbf{w}$ and verify it satisfies the defining property of $W$
 
 **Strategy for disproving subspace:**
+
 - Find a specific counterexample: either $\mathbf{0} \notin W$, or two elements whose sum is not in $W$, or an element whose scalar multiple is not in $W$.
 
 ### 3.2 Why These Three Conditions Suffice
@@ -733,18 +737,18 @@ Condition 1 fails immediately: $\mathbf{0}$ is excluded by definition. Since the
 
 All three conditions fail: no zero vector; not closed under $+$; not closed under scaling. The AI implication: you cannot average, interpolate, or take linear combinations of probability distributions and expect to get another valid probability distribution. Arithmetic must happen in logit space (pre-softmax), where the vector space structure is intact.
 
-```
+```text
 QUICK NON-SUBSPACE CHECK
 ════════════════════════════════════════════════════════════════════
 
   Given a candidate set W, the fastest refutation is usually:
-  
+
   1. Check 0 ∈ W — if the zero vector fails the defining property,
      stop immediately. W is not a subspace.
-  
+
   2. Check negative scalar — find v ∈ W and test −v ∈ W.
      This catches all sets that require positivity or a fixed norm.
-  
+
   3. Check sum of two "extreme" elements — if W has a boundary
      condition, vectors near the boundary often sum outside W.
 ```
@@ -761,6 +765,7 @@ Any subspace $W \subseteq V$ satisfies $\{\mathbf{0}\} \subseteq W \subseteq V$.
 A **proper subspace** is any subspace $W \subsetneq V$ (not the whole space). A **non-trivial subspace** is any subspace $W \neq \{\mathbf{0}\}$ (not just the zero vector). The interesting subspaces are the non-trivial proper ones — the lines, planes, hyperplanes, and higher-dimensional flats that live inside $V$ without being all of $V$.
 
 For AI, interpreting these extremes:
+
 - A layer that writes only the zero vector to the residual stream corresponds to the trivial subspace $\{\mathbf{0}\}$ — it contributes nothing.
 - A layer with full rank that can write anything to $\mathbb{R}^d$ corresponds to the full space $V$ — it has maximum expressive power.
 - Most layers operate in a proper non-trivial subspace: they can produce outputs in a $r$-dimensional subspace of $\mathbb{R}^d$ where $0 < r < d$.
@@ -781,12 +786,12 @@ A linear combination uses only the two vector space operations: scalar multiplic
 
 **Special cases of linear combinations:**
 
-| Coefficients | Name | Meaning |
-|---|---|---|
-| Any $\alpha_i \in \mathbb{R}$ | Linear combination | General; unrestricted |
-| $\sum_i \alpha_i = 1$ | Affine combination | Preserves "position" (stays in affine hull) |
-| $\alpha_i \geq 0$ and $\sum_i \alpha_i = 1$ | Convex combination | Stays in convex hull (interpolation) |
-| $\alpha_i \in \{0, 1\}$ | Subset sum | Used in combinatorics over $\mathbb{F}_2$ |
+| Coefficients                                | Name               | Meaning                                     |
+| ------------------------------------------- | ------------------ | ------------------------------------------- |
+| Any $\alpha_i \in \mathbb{R}$               | Linear combination | General; unrestricted                       |
+| $\sum_i \alpha_i = 1$                       | Affine combination | Preserves "position" (stays in affine hull) |
+| $\alpha_i \geq 0$ and $\sum_i \alpha_i = 1$ | Convex combination | Stays in convex hull (interpolation)        |
+| $\alpha_i \in \{0, 1\}$                     | Subset sum         | Used in combinatorics over $\mathbb{F}_2$   |
 
 For AI, the most important special case is the unconstrained linear combination — it defines the span of a set of vectors, which in turn defines the reachable outputs of a linear layer.
 
@@ -798,14 +803,16 @@ $$\text{span}(S) = \left\{ \sum_{i=1}^k \alpha_i \mathbf{v}_i \;:\; \alpha_1, \l
 
 **Theorem:** $\text{span}(S)$ is always a subspace of $V$.
 
-*Proof:*
+_Proof:_
+
 1. Contains $\mathbf{0}$: set all $\alpha_i = 0$ → $\sum \alpha_i \mathbf{v}_i = \mathbf{0} \in \text{span}(S)$ ✓
 2. Closed under addition: if $\mathbf{u} = \sum \alpha_i \mathbf{v}_i$ and $\mathbf{w} = \sum \beta_i \mathbf{v}_i$, then $\mathbf{u} + \mathbf{w} = \sum (\alpha_i + \beta_i) \mathbf{v}_i \in \text{span}(S)$ ✓
 3. Closed under scalar multiplication: if $\mathbf{u} = \sum \alpha_i \mathbf{v}_i$ then $\gamma \mathbf{u} = \sum (\gamma\alpha_i) \mathbf{v}_i \in \text{span}(S)$ ✓
 
-**Minimality:** $\text{span}(S)$ is the *smallest* subspace containing all vectors in $S$. Any subspace $W$ that contains all vectors $\mathbf{v}_1, \ldots, \mathbf{v}_k$ must also contain all their linear combinations (by closure), and hence must contain $\text{span}(S)$.
+**Minimality:** $\text{span}(S)$ is the _smallest_ subspace containing all vectors in $S$. Any subspace $W$ that contains all vectors $\mathbf{v}_1, \ldots, \mathbf{v}_k$ must also contain all their linear combinations (by closure), and hence must contain $\text{span}(S)$.
 
 **Conventions:**
+
 - $\text{span}(\emptyset) = \{\mathbf{0}\}$ — the span of the empty set is the trivial subspace. (An empty sum equals zero.)
 - The span grows as $S$ grows: if $S \subseteq T$ then $\text{span}(S) \subseteq \text{span}(T)$.
 - Adding a vector already in $\text{span}(S)$ does not increase the span.
@@ -814,7 +821,7 @@ $$\text{span}(S) = \left\{ \sum_{i=1}^k \alpha_i \mathbf{v}_i \;:\; \alpha_1, \l
 
 Geometric intuition for span is crucial and carries directly into AI:
 
-```
+```text
 GEOMETRIC MEANING OF SPAN
 ════════════════════════════════════════════════════════════════════
 
@@ -843,6 +850,7 @@ GEOMETRIC MEANING OF SPAN
 ```
 
 **The key dimension count.** Given $k$ vectors in $\mathbb{R}^n$:
+
 - If $k < n$: span has dimension at most $k$ (a proper subspace)
 - If $k = n$: span has dimension $n$ iff the vectors are independent (iff the matrix is invertible)
 - If $k > n$: span has dimension at most $n$; the vectors must be linearly dependent
@@ -874,6 +882,7 @@ Then:
 $$\text{span}\{\mathbf{v}_1, \ldots, \mathbf{v}_k\} = \{V\boldsymbol{\alpha} : \boldsymbol{\alpha} \in \mathbb{R}^k\} = \text{col}(V)$$
 
 This connects span to:
+
 - **Column space:** $\text{span}$ of the vectors = column space of the matrix they form
 - **Rank:** $\dim(\text{span}\{\mathbf{v}_1,\ldots,\mathbf{v}_k\}) = \text{rank}(V)$
 - **Linear system solvability:** $\mathbf{b} \in \text{span}\{\mathbf{v}_1,\ldots,\mathbf{v}_k\}$ if and only if the system $V\boldsymbol{\alpha} = \mathbf{b}$ is consistent, which by the Rouché–Capelli theorem holds if and only if $\text{rank}(V) = \text{rank}([V \mid \mathbf{b}])$.
@@ -903,7 +912,7 @@ The vectors are **linearly dependent** if the negation holds: there exist coeffi
 
 The contrast is worth making explicit:
 
-```
+```text
 INDEPENDENT vs DEPENDENT
 ════════════════════════════════════════════════════════════════════
 
@@ -973,7 +982,7 @@ $\alpha \mathbf{u} + \beta \mathbf{v} = \mathbf{0}$ with $(\alpha, \beta) \neq (
 
 If $k > n$ for vectors in $\mathbb{R}^n$, they are always linearly dependent. The matrix $A = [\mathbf{v}_1|\cdots|\mathbf{v}_k] \in \mathbb{R}^{n \times k}$ has rank at most $n < k$; by rank-nullity, $\text{null}(A)$ is non-trivial, giving a non-trivial dependence relation.
 
-This has a profound implication: *in $\mathbb{R}^d$, you cannot have more than $d$ linearly independent vectors*. In a $d$-dimensional embedding space, there are at most $d$ independent directions. Any collection of more than $d$ feature vectors must be linearly dependent.
+This has a profound implication: _in $\mathbb{R}^d$, you cannot have more than $d$ linearly independent vectors_. In a $d$-dimensional embedding space, there are at most $d$ independent directions. Any collection of more than $d$ feature vectors must be linearly dependent.
 
 **Subsets of independent sets are independent.**
 
@@ -987,7 +996,7 @@ If $\{\mathbf{v}_1, \ldots, \mathbf{v}_k\}$ are linearly dependent, so is every 
 
 **Attention heads.** If the $H$ attention heads write to linearly independent subspaces of $\mathbb{R}^d$ (their OV circuits have mutually orthogonal column spaces), then each head provides genuinely independent information. Dependent heads write to overlapping subspaces; they interfere and are candidates for pruning. Head redundancy is exactly the linear dependence of the subspaces they write to.
 
-**The superposition hypothesis.** Elhage et al. (2022) observe that large language models appear to represent more features than the embedding dimension $d$ allows. Since more than $d$ linearly independent directions cannot exist in $\mathbb{R}^d$, the features must be stored as *linearly dependent* (non-orthogonal) directions. This is the superposition hypothesis: features are packed into the embedding space at densities exceeding the dimension, using non-orthogonal directions. Each feature "leaks" into the directions of nearby features — a phenomenon called polysemanticity. Linear independence is the threshold: below $d$ features, they can be orthogonal and non-interfering; beyond $d$, interference is inevitable.
+**The superposition hypothesis.** Elhage et al. (2022) observe that large language models appear to represent more features than the embedding dimension $d$ allows. Since more than $d$ linearly independent directions cannot exist in $\mathbb{R}^d$, the features must be stored as _linearly dependent_ (non-orthogonal) directions. This is the superposition hypothesis: features are packed into the embedding space at densities exceeding the dimension, using non-orthogonal directions. Each feature "leaks" into the directions of nearby features — a phenomenon called polysemanticity. Linear independence is the threshold: below $d$ features, they can be orthogonal and non-interfering; beyond $d$, interference is inevitable.
 
 **LoRA rank selection.** In LoRA, the update is $\Delta W = BA^\top$ with $B \in \mathbb{R}^{m \times r}$, $A \in \mathbb{R}^{n \times r}$. The rank of $\Delta W$ equals the number of linearly independent columns in $B$ (equivalently, in $A$). If the columns of $B$ are linearly dependent, the effective rank is less than $r$; some of the $r$ rank budget is wasted. Choosing $r$ large helps only if the corresponding columns of $B$ actually end up spanning an $r$-dimensional space after training.
 
@@ -1013,7 +1022,7 @@ A basis is the most efficient possible spanning set: it spans $V$ with no redund
 
 These three characterisations — (independent + spanning), (minimal spanning), (maximal independent) — are all equivalent. Each one defines the same objects.
 
-```
+```text
 THE ROLE OF A BASIS
 ════════════════════════════════════════════════════════════════════
 
@@ -1062,18 +1071,19 @@ Dimension is the fundamental measure of the "size" of a vector space — the num
 
 **Dimensions of standard spaces:**
 
-| Space | Dimension | Basis |
-|---|---|---|
-| $\mathbb{R}^n$ | $n$ | $\{\mathbf{e}_1, \ldots, \mathbf{e}_n\}$ (standard) |
-| $\mathbb{R}^{m \times n}$ | $mn$ | $\{E_{ij} : 1 \leq i \leq m,\ 1 \leq j \leq n\}$ |
-| $\mathcal{P}_n$ | $n+1$ | $\{1, t, t^2, \ldots, t^n\}$ |
-| $\text{Sym}_n$ (symmetric $n \times n$) | $n(n+1)/2$ | $\{E_{ii}\} \cup \{E_{ij}+E_{ji} : i < j\}$ |
-| $\text{Skew}_n$ (skew-symmetric) | $n(n-1)/2$ | $\{E_{ij} - E_{ji} : i < j\}$ |
-| $\text{Diag}_n$ (diagonal) | $n$ | $\{E_{ii}\}$ |
-| $\{\mathbf{0}\}$ | $0$ | $\emptyset$ |
-| $C([a,b])$, $L^2([a,b])$, $\mathcal{P}$ | $\infty$ | Countably infinite bases exist |
+| Space                                   | Dimension  | Basis                                               |
+| --------------------------------------- | ---------- | --------------------------------------------------- |
+| $\mathbb{R}^n$                          | $n$        | $\{\mathbf{e}_1, \ldots, \mathbf{e}_n\}$ (standard) |
+| $\mathbb{R}^{m \times n}$               | $mn$       | $\{E_{ij} : 1 \leq i \leq m,\ 1 \leq j \leq n\}$    |
+| $\mathcal{P}_n$                         | $n+1$      | $\{1, t, t^2, \ldots, t^n\}$                        |
+| $\text{Sym}_n$ (symmetric $n \times n$) | $n(n+1)/2$ | $\{E_{ii}\} \cup \{E_{ij}+E_{ji} : i < j\}$         |
+| $\text{Skew}_n$ (skew-symmetric)        | $n(n-1)/2$ | $\{E_{ij} - E_{ji} : i < j\}$                       |
+| $\text{Diag}_n$ (diagonal)              | $n$        | $\{E_{ii}\}$                                        |
+| $\{\mathbf{0}\}$                        | $0$        | $\emptyset$                                         |
+| $C([a,b])$, $L^2([a,b])$, $\mathcal{P}$ | $\infty$   | Countably infinite bases exist                      |
 
 **Dimension inequalities.** For subspace $W \subseteq V$:
+
 - $\dim(W) \leq \dim(V)$
 - $\dim(W) = \dim(V)$ and $W \subseteq V$ together imply $W = V$ (in finite dimensions)
 
@@ -1116,6 +1126,7 @@ $$P_{\mathcal{B} \to \mathcal{C}} = \big[[\mathbf{b}_1]_{\mathcal{C}} \mid [\mat
 $$[\mathbf{v}]_{\mathcal{C}} = P_{\mathcal{B} \to \mathcal{C}}\, [\mathbf{v}]_{\mathcal{B}}$$
 
 **Properties:**
+
 - $P_{\mathcal{B} \to \mathcal{C}}$ is always invertible (since both $\mathcal{B}$ and $\mathcal{C}$ are bases)
 - $P_{\mathcal{C} \to \mathcal{B}} = P_{\mathcal{B} \to \mathcal{C}}^{-1}$ — the inverse change-of-basis goes the other way
 - Composition: $P_{\mathcal{A} \to \mathcal{C}} = P_{\mathcal{B} \to \mathcal{C}}\, P_{\mathcal{A} \to \mathcal{B}}$
@@ -1133,6 +1144,7 @@ This is a **similarity transformation**: $M$ and $P M P^{-1}$ represent the same
 **From a spanning set (row reduction).**
 
 Given a spanning set $\{\mathbf{v}_1, \ldots, \mathbf{v}_k\}$ for some subspace $W$:
+
 1. Form the matrix $A = [\mathbf{v}_1 \mid \cdots \mid \mathbf{v}_k]$
 2. Row reduce $A$ to RREF
 3. The **pivot columns** of $A$ (not the RREF, but the original $A$) form a basis for $\text{col}(A) = W$
@@ -1142,6 +1154,7 @@ The non-pivot columns correspond to dependent vectors that can be removed withou
 **From a null space (free variables).**
 
 To find a basis for $\text{null}(A)$:
+
 1. Row reduce $A$ to RREF; identify free variables $x_{j_1}, \ldots, x_{j_k}$
 2. For each free variable $x_{j_\ell}$, set $x_{j_\ell} = 1$ and all other free variables $= 0$; solve for pivot variables
 3. The resulting vector is one basis vector for $\text{null}(A)$
@@ -1154,6 +1167,7 @@ Given $k$ linearly independent vectors $\{\mathbf{v}_1, \ldots, \mathbf{v}_k\}$,
 **Extending a basis.**
 
 Given a basis $\mathcal{B}_W = \{\mathbf{b}_1, \ldots, \mathbf{b}_k\}$ for a subspace $W \subsetneq V$, extend to a basis for all of $V$:
+
 1. Start with $S = \mathcal{B}_W$
 2. Find any $\mathbf{v} \in V \setminus \text{span}(S)$ and add it: $S \leftarrow S \cup \{\mathbf{v}\}$
 3. Repeat until $\text{span}(S) = V$
@@ -1172,9 +1186,10 @@ $$\underbrace{\dim(\text{null}(A))}_{\text{nullity}(A)} + \underbrace{\dim(\text
 
 In words: the number of "invisible" input directions plus the number of "active" input directions equals the total number of input dimensions.
 
-*Proof idea.* Row reduce $A$ to RREF. Let $r = \text{rank}(A)$. There are $r$ pivot columns (corresponding to $r$ independent output directions → $\dim(\text{col}(A)) = r$) and $n - r$ free columns (corresponding to $n - r$ null space basis vectors → $\dim(\text{null}(A)) = n - r$). Total: $r + (n - r) = n$. ∎
+_Proof idea._ Row reduce $A$ to RREF. Let $r = \text{rank}(A)$. There are $r$ pivot columns (corresponding to $r$ independent output directions → $\dim(\text{col}(A)) = r$) and $n - r$ free columns (corresponding to $n - r$ null space basis vectors → $\dim(\text{null}(A)) = n - r$). Total: $r + (n - r) = n$. ∎
 
-*AI application.* For a weight matrix $W \in \mathbb{R}^{m \times n}$ with rank $r$:
+_AI application._ For a weight matrix $W \in \mathbb{R}^{m \times n}$ with rank $r$:
+
 - $r$ input dimensions "pass through" to the output (row space directions)
 - $n - r$ input dimensions are silenced (null space directions)
 - The layer uses $r$ out of $n$ available input dimensions
@@ -1187,7 +1202,7 @@ $$\dim(W_1 + W_2) = \dim(W_1) + \dim(W_2) - \dim(W_1 \cap W_2)$$
 
 This is the **Grassmann formula** or **inclusion-exclusion for dimensions**. It is the direct analogue of $|A \cup B| = |A| + |B| - |A \cap B|$ for finite sets, but for dimensions of subspaces.
 
-*Key consequence.* If $W_1 \cap W_2 = \{\mathbf{0}\}$ (intersection is trivial):
+_Key consequence._ If $W_1 \cap W_2 = \{\mathbf{0}\}$ (intersection is trivial):
 
 $$\dim(W_1 + W_2) = \dim(W_1) + \dim(W_2)$$
 
@@ -1201,7 +1216,7 @@ $$\max(0,\ k_1 + k_2 - n) \leq \dim(W_1 \cap W_2) \leq \min(k_1, k_2)$$
 
 The upper bound: the intersection is contained in both $W_1$ and $W_2$, so its dimension cannot exceed either. The lower bound: from the Grassmann formula and $\dim(W_1 + W_2) \leq n$.
 
-*AI application.* Two attention heads with $d_k$-dimensional subspaces in $\mathbb{R}^d$: their subspace intersection has dimension at least $\max(0, 2d_k - d)$. If $d_k > d/2$, the heads must share at least $2d_k - d$ dimensions; their communication channels overlap inevitably.
+_AI application._ Two attention heads with $d_k$-dimensional subspaces in $\mathbb{R}^d$: their subspace intersection has dimension at least $\max(0, 2d_k - d)$. If $d_k > d/2$, the heads must share at least $2d_k - d$ dimensions; their communication channels overlap inevitably.
 
 ---
 
@@ -1274,12 +1289,12 @@ $$\text{null}(A^\top) = \{\mathbf{y} \in \mathbb{R}^m : A^\top \mathbf{y} = \mat
 
 **Dimension summary:**
 
-| Subspace | Ambient space | Dimension | Complement |
-|---|---|---|---|
-| $\text{row}(A)$ | $\mathbb{R}^n$ | $r$ | $\text{null}(A)$ |
-| $\text{null}(A)$ | $\mathbb{R}^n$ | $n-r$ | $\text{row}(A)$ |
-| $\text{col}(A)$ | $\mathbb{R}^m$ | $r$ | $\text{null}(A^\top)$ |
-| $\text{null}(A^\top)$ | $\mathbb{R}^m$ | $m-r$ | $\text{col}(A)$ |
+| Subspace              | Ambient space  | Dimension | Complement            |
+| --------------------- | -------------- | --------- | --------------------- |
+| $\text{row}(A)$       | $\mathbb{R}^n$ | $r$       | $\text{null}(A)$      |
+| $\text{null}(A)$      | $\mathbb{R}^n$ | $n-r$     | $\text{row}(A)$       |
+| $\text{col}(A)$       | $\mathbb{R}^m$ | $r$       | $\text{null}(A^\top)$ |
+| $\text{null}(A^\top)$ | $\mathbb{R}^m$ | $m-r$     | $\text{col}(A)$       |
 
 ### 7.2 The Orthogonality Relations
 
@@ -1307,7 +1322,7 @@ And $A\mathbf{x} = A\mathbf{x}_r + A\mathbf{x}_n = A\mathbf{x}_r + \mathbf{0} = 
 
 The complete action of $A$ as a linear map $\mathbb{R}^n \to \mathbb{R}^m$ is captured in the following diagram:
 
-```
+```text
 STRANG'S FOUR FUNDAMENTAL SUBSPACES
 ════════════════════════════════════════════════════════════════════
 
@@ -1400,7 +1415,7 @@ The row space is the complement of the null space: input directions in $\text{ro
 
 The left null space $\text{null}(W^\top) \subseteq \mathbb{R}^m$ is orthogonal to $\text{col}(W)$. No input, however crafted, can produce an output with a component in this subspace from this layer. In a transformer with residual connections, the left null space of one layer's output projection is the subspace that must be written by other layers. This is why residual connections are essential: they allow information to flow "around" layers whose column spaces don't reach certain directions.
 
-```
+```text
 AI INTERPRETATION: WEIGHT MATRIX SUBSPACES
 ════════════════════════════════════════════════════════════════════
 
@@ -1438,7 +1453,8 @@ $$W_1 + W_2 = \{\mathbf{w}_1 + \mathbf{w}_2 : \mathbf{w}_1 \in W_1,\ \mathbf{w}_
 
 **Theorem.** $W_1 + W_2$ is a subspace of $V$.
 
-*Proof.*
+_Proof._
+
 1. Contains $\mathbf{0}$: $\mathbf{0} = \mathbf{0} + \mathbf{0} \in W_1 + W_2$ ✓
 2. Closed under $+$: $(\mathbf{w}_1 + \mathbf{w}_2) + (\mathbf{w}_1' + \mathbf{w}_2') = (\mathbf{w}_1 + \mathbf{w}_1') + (\mathbf{w}_2 + \mathbf{w}_2') \in W_1 + W_2$ ✓ (since $W_1$, $W_2$ are closed)
 3. Closed under $\cdot$: $\alpha(\mathbf{w}_1 + \mathbf{w}_2) = \alpha\mathbf{w}_1 + \alpha\mathbf{w}_2 \in W_1 + W_2$ ✓ ∎
@@ -1459,7 +1475,8 @@ $$W_1 \cap W_2 = \{\mathbf{v} \in V : \mathbf{v} \in W_1 \text{ and } \mathbf{v}
 
 **Theorem.** $W_1 \cap W_2$ is a subspace of $V$.
 
-*Proof.*
+_Proof._
+
 1. Contains $\mathbf{0}$: $\mathbf{0} \in W_1$ and $\mathbf{0} \in W_2$, so $\mathbf{0} \in W_1 \cap W_2$ ✓
 2. Closed under $+$: if $\mathbf{v}, \mathbf{w} \in W_1 \cap W_2$, then $\mathbf{v} + \mathbf{w} \in W_1$ (since $W_1$ closed) and $\mathbf{v} + \mathbf{w} \in W_2$ (since $W_2$ closed), so $\mathbf{v} + \mathbf{w} \in W_1 \cap W_2$ ✓
 3. Closed under $\cdot$: $\alpha\mathbf{v} \in W_1$ and $\alpha\mathbf{v} \in W_2$, so $\alpha\mathbf{v} \in W_1 \cap W_2$ ✓ ∎
@@ -1483,7 +1500,7 @@ We write $V = W_1 \oplus W_2$.
 
 **Theorem.** $V = W_1 \oplus W_2$ if and only if every $\mathbf{v} \in V$ has a **unique** decomposition $\mathbf{v} = \mathbf{w}_1 + \mathbf{w}_2$ with $\mathbf{w}_1 \in W_1$ and $\mathbf{w}_2 \in W_2$.
 
-*Proof of uniqueness.* If $\mathbf{v} = \mathbf{w}_1 + \mathbf{w}_2 = \mathbf{w}_1' + \mathbf{w}_2'$, then $\mathbf{w}_1 - \mathbf{w}_1' = \mathbf{w}_2' - \mathbf{w}_2$. The left side is in $W_1$; the right side is in $W_2$. So both sides lie in $W_1 \cap W_2 = \{\mathbf{0}\}$. Hence $\mathbf{w}_1 = \mathbf{w}_1'$ and $\mathbf{w}_2 = \mathbf{w}_2'$. ∎
+_Proof of uniqueness._ If $\mathbf{v} = \mathbf{w}_1 + \mathbf{w}_2 = \mathbf{w}_1' + \mathbf{w}_2'$, then $\mathbf{w}_1 - \mathbf{w}_1' = \mathbf{w}_2' - \mathbf{w}_2$. The left side is in $W_1$; the right side is in $W_2$. So both sides lie in $W_1 \cap W_2 = \{\mathbf{0}\}$. Hence $\mathbf{w}_1 = \mathbf{w}_1'$ and $\mathbf{w}_2 = \mathbf{w}_2'$. ∎
 
 **Dimension:** $\dim(W_1 \oplus W_2) = \dim(W_1) + \dim(W_2)$. This follows from the Grassmann formula with $\dim(W_1 \cap W_2) = 0$.
 
@@ -1534,14 +1551,14 @@ The projection matrix is $P = A(A^\top A)^{-1}A^\top$. The matrix $(A^\top A)^{-
 
 **Properties of an orthogonal projection matrix $P$:**
 
-| Property | Expression | Meaning |
-|---|---|---|
-| Idempotent | $P^2 = P$ | Projecting twice = projecting once |
-| Symmetric | $P^\top = P$ | Projection is self-adjoint |
-| Eigenvalues | $\lambda \in \{0, 1\}$ | Vectors in $W$ map to themselves; vectors in $W^\perp$ map to $\mathbf{0}$ |
-| Rank | $\text{rank}(P) = \dim(W)$ | Rank = dimension of the subspace projected onto |
-| Trace | $\text{tr}(P) = \dim(W)$ | Since eigenvalues are 0s and 1s; trace = sum of eigenvalues |
-| Complement | $I - P$ | Projection onto $W^\perp$ |
+| Property    | Expression                 | Meaning                                                                    |
+| ----------- | -------------------------- | -------------------------------------------------------------------------- |
+| Idempotent  | $P^2 = P$                  | Projecting twice = projecting once                                         |
+| Symmetric   | $P^\top = P$               | Projection is self-adjoint                                                 |
+| Eigenvalues | $\lambda \in \{0, 1\}$     | Vectors in $W$ map to themselves; vectors in $W^\perp$ map to $\mathbf{0}$ |
+| Rank        | $\text{rank}(P) = \dim(W)$ | Rank = dimension of the subspace projected onto                            |
+| Trace       | $\text{tr}(P) = \dim(W)$   | Since eigenvalues are 0s and 1s; trace = sum of eigenvalues                |
+| Complement  | $I - P$                    | Projection onto $W^\perp$                                                  |
 
 **Proof that $P^2 = P$:** $P^2 = (QQ^\top)(QQ^\top) = Q(Q^\top Q)Q^\top = QIQ^\top = QQ^\top = P$ (using $Q^\top Q = I_k$ for orthonormal columns). ∎
 
@@ -1552,6 +1569,7 @@ $$\mathbf{v} = \underbrace{P\mathbf{v}}_{\in W} + \underbrace{(I-P)\mathbf{v}}_{
 The residual $(I-P)\mathbf{v} = \mathbf{v} - P\mathbf{v}$ is the component of $\mathbf{v}$ orthogonal to $W$, and $(I-P)$ is itself an orthogonal projection matrix (onto $W^\perp$).
 
 **AI applications of projection:**
+
 - **Least squares:** the best-fit solution $\hat{\mathbf{x}} = (A^\top A)^{-1} A^\top \mathbf{b}$ projects $\mathbf{b}$ onto $\text{col}(A)$; least squares is orthogonal projection
 - **PCA:** projecting data onto the top-$r$ principal component subspace is a rank-$r$ projection $P = U_r U_r^\top$ where $U_r$ contains the top $r$ left singular vectors
 - **Attention:** (soft) attention can be viewed as a weighted projection of value vectors onto query-determined subspaces
@@ -1572,12 +1590,14 @@ $$Q_1^\top Q_2 = U \Sigma V^\top \qquad (\text{SVD})$$
 Then $\cos\theta_i = \sigma_i$ (the $i$-th singular value of $Q_1^\top Q_2$). The principal angles are the arc-cosines of the singular values.
 
 **Interpretation:**
+
 - $\theta_1 = 0$: the subspaces share a common direction (their intersection is non-trivial)
 - $\theta_k = \pi/2$: the subspaces have a pair of orthogonal directions (they are "partially orthogonal")
 - All $\theta_i = \pi/2$: the subspaces are orthogonal ($W_1 \perp W_2$, i.e., $W_1 \subseteq W_2^\perp$)
 - All $\theta_i = 0$: $W_1 \subseteq W_2$ or $W_2 \subseteq W_1$ (one contains the other)
 
 **AI applications:**
+
 - **Head overlap:** principal angles between two attention heads' OV subspaces measure how much they overlap. If $\theta_1 \approx 0$, the heads share a direction and are partially redundant. If all $\theta_i \approx \pi/2$, the heads write to orthogonal subspaces — they are fully independent.
 - **Gradient similarity across layers:** principal angles between gradient subspaces at different layers measure gradient diversity during training.
 - **Representation similarity:** the CKA (Centered Kernel Alignment) measure of representation similarity between two networks is related to principal angles between their representation subspaces.
@@ -1603,11 +1623,11 @@ The **induced norm** is $\|\mathbf{v}\| = \sqrt{\langle \mathbf{v}, \mathbf{v} \
 
 **Standard inner products:**
 
-| Space | Inner product | Induced norm |
-|---|---|---|
-| $\mathbb{R}^n$ | $\langle \mathbf{u}, \mathbf{v} \rangle = \mathbf{u}^\top \mathbf{v} = \sum_i u_i v_i$ | $\|\mathbf{u}\| = \sqrt{\sum_i u_i^2}$ (Euclidean) |
-| $\mathbb{R}^{m \times n}$ | $\langle A, B \rangle = \text{tr}(A^\top B) = \sum_{i,j} A_{ij} B_{ij}$ | $\|A\|_F = \sqrt{\sum_{i,j} A_{ij}^2}$ (Frobenius) |
-| $C([a,b])$ | $\langle f, g \rangle = \int_a^b f(t) g(t)\, dt$ | $\|f\| = \sqrt{\int_a^b f(t)^2\, dt}$ ($L^2$ norm) |
+| Space                     | Inner product                                                                          | Induced norm                                       |
+| ------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| $\mathbb{R}^n$            | $\langle \mathbf{u}, \mathbf{v} \rangle = \mathbf{u}^\top \mathbf{v} = \sum_i u_i v_i$ | $\|\mathbf{u}\| = \sqrt{\sum_i u_i^2}$ (Euclidean) |
+| $\mathbb{R}^{m \times n}$ | $\langle A, B \rangle = \text{tr}(A^\top B) = \sum_{i,j} A_{ij} B_{ij}$                | $\|A\|_F = \sqrt{\sum_{i,j} A_{ij}^2}$ (Frobenius) |
+| $C([a,b])$                | $\langle f, g \rangle = \int_a^b f(t) g(t)\, dt$                                       | $\|f\| = \sqrt{\int_a^b f(t)^2\, dt}$ ($L^2$ norm) |
 
 **Weighted inner product.** For a symmetric positive definite matrix $M \in \mathbb{R}^{n \times n}$:
 
@@ -1622,6 +1642,7 @@ $$|\langle \mathbf{u}, \mathbf{v} \rangle| \leq \|\mathbf{u}\| \cdot \|\mathbf{v
 with equality if and only if $\mathbf{u}$ and $\mathbf{v}$ are linearly dependent ($\mathbf{u} = \alpha\mathbf{v}$ for some scalar $\alpha$).
 
 This is one of the most important inequalities in mathematics. It implies:
+
 - Cosine similarity $\frac{\langle \mathbf{u},\mathbf{v}\rangle}{\|\mathbf{u}\|\|\mathbf{v}\|}$ is always in $[-1, 1]$ — well-defined as a cosine
 - Triangle inequality $\|\mathbf{u} + \mathbf{v}\| \leq \|\mathbf{u}\| + \|\mathbf{v}\|$ (from Cauchy-Schwarz applied to $\langle\mathbf{u},\mathbf{v}\rangle \leq \|\mathbf{u}\|\|\mathbf{v}\|$)
 - The law of cosines: $\|\mathbf{u}-\mathbf{v}\|^2 = \|\mathbf{u}\|^2 - 2\langle\mathbf{u},\mathbf{v}\rangle + \|\mathbf{v}\|^2$
@@ -1636,7 +1657,7 @@ Orthogonality generalises perpendicularity from Euclidean geometry to any inner 
 
 $$\|\mathbf{u} + \mathbf{v}\|^2 = \|\mathbf{u}\|^2 + \|\mathbf{v}\|^2$$
 
-*Proof:*
+_Proof:_
 $$\|\mathbf{u} + \mathbf{v}\|^2 = \langle\mathbf{u}+\mathbf{v},\mathbf{u}+\mathbf{v}\rangle = \langle\mathbf{u},\mathbf{u}\rangle + 2\langle\mathbf{u},\mathbf{v}\rangle + \langle\mathbf{v},\mathbf{v}\rangle = \|\mathbf{u}\|^2 + 0 + \|\mathbf{v}\|^2 \quad \checkmark$$
 
 More generally, if $\mathbf{v}_1, \ldots, \mathbf{v}_k$ are pairwise orthogonal:
@@ -1645,7 +1666,7 @@ $$\left\|\sum_{i=1}^k \mathbf{v}_i\right\|^2 = \sum_{i=1}^k \|\mathbf{v}_i\|^2$$
 
 **Orthogonal sets and independence.** Any set of non-zero pairwise orthogonal vectors is linearly independent.
 
-*Proof.* Suppose $\sum_{i=1}^k \alpha_i \mathbf{v}_i = \mathbf{0}$ with $\mathbf{v}_i \neq \mathbf{0}$ pairwise orthogonal. Take the inner product of both sides with $\mathbf{v}_j$:
+_Proof._ Suppose $\sum_{i=1}^k \alpha_i \mathbf{v}_i = \mathbf{0}$ with $\mathbf{v}_i \neq \mathbf{0}$ pairwise orthogonal. Take the inner product of both sides with $\mathbf{v}_j$:
 
 $$0 = \left\langle \sum_i \alpha_i \mathbf{v}_i,\ \mathbf{v}_j \right\rangle = \sum_i \alpha_i \langle \mathbf{v}_i, \mathbf{v}_j \rangle = \alpha_j \langle \mathbf{v}_j, \mathbf{v}_j \rangle = \alpha_j \|\mathbf{v}_j\|^2$$
 
@@ -1663,7 +1684,7 @@ The key invariant is that at each step, the orthonormal basis spans the same sub
 
 **Algorithm:**
 
-```
+```text
 Step 1:  u₁ = v₁
          q₁ = u₁ / ‖u₁‖
 
@@ -1719,19 +1740,20 @@ For a subspace $W \subseteq V$, the **orthogonal complement** is:
 $$W^\perp = \{\mathbf{v} \in V : \langle \mathbf{v}, \mathbf{w} \rangle = 0 \text{ for all } \mathbf{w} \in W\}$$
 
 **$W^\perp$ is a subspace** (easy check):
+
 1. $\langle \mathbf{0}, \mathbf{w} \rangle = 0$ for all $\mathbf{w}$ ✓
 2. If $\langle \mathbf{v}, \mathbf{w} \rangle = 0$ and $\langle \mathbf{u}, \mathbf{w} \rangle = 0$ for all $\mathbf{w} \in W$, then $\langle \mathbf{v}+\mathbf{u}, \mathbf{w} \rangle = 0$ ✓
 3. $\langle \alpha\mathbf{v}, \mathbf{w} \rangle = \alpha \langle \mathbf{v},\mathbf{w} \rangle = 0$ ✓
 
 **Properties** (for finite-dimensional inner product spaces):
 
-| Property | Statement |
-|---|---|
-| Double complement | $(W^\perp)^\perp = W$ |
-| Dimension | $\dim(W) + \dim(W^\perp) = \dim(V)$ |
-| Trivial intersection | $W \cap W^\perp = \{\mathbf{0}\}$ |
-| Direct sum decomposition | $V = W \oplus W^\perp$ |
-| Fundamental subspaces | $\text{null}(A) = \text{row}(A)^\perp$;  $\text{null}(A^\top) = \text{col}(A)^\perp$ |
+| Property                 | Statement                                                                           |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| Double complement        | $(W^\perp)^\perp = W$                                                               |
+| Dimension                | $\dim(W) + \dim(W^\perp) = \dim(V)$                                                 |
+| Trivial intersection     | $W \cap W^\perp = \{\mathbf{0}\}$                                                   |
+| Direct sum decomposition | $V = W \oplus W^\perp$                                                              |
+| Fundamental subspaces    | $\text{null}(A) = \text{row}(A)^\perp$; $\text{null}(A^\top) = \text{col}(A)^\perp$ |
 
 **Why $(W^\perp)^\perp = W$:** Clearly $W \subseteq (W^\perp)^\perp$ (every vector in $W$ is orthogonal to everything in $W^\perp$). By the dimension formula: $\dim((W^\perp)^\perp) = \dim(V) - \dim(W^\perp) = \dim(V) - (\dim(V) - \dim(W)) = \dim(W)$. Same dimension and one contains the other → they are equal.
 
@@ -1778,6 +1800,7 @@ $$W + \mathbf{v}_0 = \{\mathbf{w} + \mathbf{v}_0 : \mathbf{w} \in W\}$$
 for a fixed offset vector $\mathbf{v}_0 \in V$ and a linear subspace $W \subseteq V$.
 
 **Geometric picture:**
+
 - If $W$ is a line through the origin, $W + \mathbf{v}_0$ is a parallel line through $\mathbf{v}_0$
 - If $W$ is a plane through the origin, $W + \mathbf{v}_0$ is a parallel plane through $\mathbf{v}_0$
 - The affine subspace is a "shifted" copy of the linear subspace; it has the same "shape" and dimension as $W$, but it generally does not pass through the origin (unless $\mathbf{v}_0 \in W$, in which case $W + \mathbf{v}_0 = W$)
@@ -1791,13 +1814,14 @@ $$\{\mathbf{x} : A\mathbf{x} = \mathbf{b}\} = \mathbf{x}_p + \text{null}(A)$$
 where $\mathbf{x}_p$ is any particular solution and $\text{null}(A)$ is the null space (a linear subspace). The solution set is a translate of the null space. All solutions lie in the same affine subspace parallel to $\text{null}(A)$, offset by $\mathbf{x}_p$.
 
 **Other examples:**
+
 - A line not through the origin in $\mathbb{R}^2$: $\{(1,0) + t(1,2) : t \in \mathbb{R}\}$ — a translate of the span of $(1,2)$
 - The probability simplex $\Delta^{n-1}$: an $(n-1)$-dimensional affine subspace of $\mathbb{R}^n$, defined by $\sum_i p_i = 1$ — a translate of the hyperplane $\sum_i x_i = 0$
 - Batch normalisation output space: after fixing the batch statistics, the normalised output lives in an affine subspace determined by the running mean and variance
 
 **Dimension of an affine subspace.** The affine subspace $W + \mathbf{v}_0$ has the same dimension as the underlying linear subspace $W$. A $k$-dimensional affine subspace in $\mathbb{R}^n$ is sometimes called a **$k$-flat**.
 
-```
+```text
 AFFINE VS LINEAR SUBSPACES
 ════════════════════════════════════════════════════════════════════
 
@@ -1853,6 +1877,7 @@ This is an affine subspace — a translate of $W$ passing through $\mathbf{v}$. 
 The **quotient space** $V / W = \{[\mathbf{v}] : \mathbf{v} \in V\}$ is the collection of all cosets of $W$ in $V$.
 
 **Operations on $V/W$:**
+
 - **Addition:** $[\mathbf{u}] + [\mathbf{v}] = [\mathbf{u} + \mathbf{v}]$ (well-defined: the result does not depend on which representatives $\mathbf{u}, \mathbf{v}$ we choose, as long as the cosets are the same)
 - **Scalar multiplication:** $\alpha[\mathbf{v}] = [\alpha\mathbf{v}]$ (well-defined by the same argument)
 
@@ -1860,7 +1885,7 @@ These operations make $V/W$ a vector space (the quotient space). The zero vector
 
 **Dimension:** $\dim(V/W) = \dim(V) - \dim(W)$.
 
-*Intuition.* $V/W$ "collapses" the $W$ directions to a point (the zero element $[W]$) and retains only the directions perpendicular to $W$. The quotient space has dimension $= \dim(V) - \dim(W)$ because it "forgets" $\dim(W)$ directions.
+_Intuition._ $V/W$ "collapses" the $W$ directions to a point (the zero element $[W]$) and retains only the directions perpendicular to $W$. The quotient space has dimension $= \dim(V) - \dim(W)$ because it "forgets" $\dim(W)$ directions.
 
 **First Isomorphism Theorem.** For a linear map $T: V \to U$:
 
@@ -1885,6 +1910,7 @@ The cosets $\mathbf{v} + W$ partition $V$ into disjoint, equally-shaped affine s
 - **No overlap:** two cosets $\mathbf{u} + W$ and $\mathbf{v} + W$ are either equal (when $\mathbf{u} - \mathbf{v} \in W$) or disjoint
 
 **Solution structure for linear systems.** This is the most immediate application. For $A\mathbf{x} = \mathbf{b}$:
+
 - The solution set (if non-empty) is the coset $\mathbf{x}_p + \text{null}(A)$ for any particular solution $\mathbf{x}_p$
 - All solutions in this coset produce the same output: $A(\mathbf{x}_p + \mathbf{z}) = A\mathbf{x}_p + A\mathbf{z} = \mathbf{b} + \mathbf{0} = \mathbf{b}$ for any $\mathbf{z} \in \text{null}(A)$
 - The minimum-norm solution (the "pseudoinverse solution") is $\mathbf{x}^+ = A^\dagger \mathbf{b} = A^\top(AA^\top)^{-1}\mathbf{b}$, which lies in $\text{row}(A)$ (the orthogonal complement of $\text{null}(A)$ within the coset)
@@ -1902,17 +1928,20 @@ In finite dimensions, every subspace is automatically closed (in the topological
 **Closed subspace.** A subspace $W$ of a Hilbert space $H$ is **closed** if every Cauchy sequence in $W$ converges to a limit that remains in $W$. Equivalently, $W$ is closed if it equals its topological closure $\bar{W}$.
 
 **Why closedness matters.** In infinite dimensions:
+
 - The projection theorem ($H = W \oplus W^\perp$) holds only for **closed** subspaces
 - The best approximation in $W$ exists only if $W$ is closed
 - The spectral theorem and other key results require closed invariant subspaces
 
 **Examples of closed subspaces:**
+
 - $\mathcal{P}_n \subset L^2([0,1])$: polynomials of degree $\leq n$; finite-dimensional, hence closed
 - $\text{null}(T)$ for a bounded linear operator $T$: always closed (because $T$ is continuous and $\{0\}$ is closed)
 - $L^2_{\text{even}}([−\pi,\pi]) = \{f \in L^2 : f(-x) = f(x)\}$: the even functions; closed under limits
 - The span of any finite set of vectors in a Hilbert space: always closed (finite-dimensional subspace)
 
 **Examples of non-closed subspaces in infinite dimensions:**
+
 - $\mathcal{P} \subset L^2([0,1])$: all polynomials (of any degree); algebraically a subspace, but not closed — the sequence $f_n(x) = \sum_{k=0}^n x^k / k!$ converges in $L^2$ to $e^x$, which is not a polynomial. The closure $\overline{\mathcal{P}} = L^2([0,1])$ (by the Weierstrass approximation theorem in $L^2$)
 - Finitely supported sequences in $\ell^2$: sequences with only finitely many non-zero entries; algebraically a subspace, but limit of $\mathbf{e}_1, \mathbf{e}_1 + (1/2)\mathbf{e}_2, \mathbf{e}_1 + (1/2)\mathbf{e}_2 + (1/3)\mathbf{e}_3, \ldots$ is $(1, 1/2, 1/3, \ldots) \in \ell^2$ but not finitely supported
 
@@ -1923,6 +1952,7 @@ In finite dimensions, every subspace is automatically closed (in the topological
 **$L^2(\mathbb{R}^d)$ — square-integrable functions on $\mathbb{R}^d$.**
 
 The space of functions $f: \mathbb{R}^d \to \mathbb{R}$ with $\int_{\mathbb{R}^d} f(\mathbf{x})^2 \, d\mathbf{x} < \infty$, equipped with inner product $\langle f, g \rangle = \int f(\mathbf{x}) g(\mathbf{x}) \, d\mathbf{x}$. This is a separable Hilbert space. It is the natural setting for:
+
 - Kernel methods: the RKHS of a translation-invariant kernel is a subspace of $L^2$
 - Probability: densities of probability distributions with finite second moment live here
 - Signal processing: finite-energy signals are in $L^2(\mathbb{R})$
@@ -1931,6 +1961,7 @@ The space of functions $f: \mathbb{R}^d \to \mathbb{R}$ with $\int_{\mathbb{R}^d
 **Sobolev spaces $W^{k,p}(\Omega)$.**
 
 Functions with $k$ weak derivatives all lying in $L^p(\Omega)$, equipped with norms that account for function values and derivative values. They specify "smoothness":
+
 - $W^{0,2} = L^2$ (no smoothness condition beyond square integrability)
 - $W^{1,2} = H^1$ (square-integrable function with square-integrable first derivative): relevant for PDEs and PINNs
 - $W^{2,2} = H^2$ (second derivatives in $L^2$): relevant for spline regression, Gaussian processes with Matérn kernels
@@ -1954,6 +1985,7 @@ $$\min_{f \in \mathcal{H}_k} \sum_{i=1}^n \ell(y_i, f(\mathbf{x}_i)) + \lambda \
 the optimal $f^*$ lies in the **finite-dimensional subspace** $\text{span}\{k(\cdot, \mathbf{x}_1), \ldots, k(\cdot, \mathbf{x}_n)\} \subseteq \mathcal{H}_k$. This is a subspace result: despite the infinite-dimensional function space, the optimal solution lies in an $n$-dimensional subspace spanned by the kernel functions at the training points. SVMs, Gaussian process regression, and kernel ridge regression all instantiate this theorem.
 
 **Common kernels and their RKHS subspaces:**
+
 - **Linear kernel** $k(\mathbf{x}, \mathbf{x}') = \mathbf{x}^\top \mathbf{x}'$: RKHS = $\mathbb{R}^d$ (linear functions); finite-dimensional subspace
 - **RBF / Gaussian kernel** $k(\mathbf{x}, \mathbf{x}') = \exp(-\|\mathbf{x}-\mathbf{x}'\|^2 / 2\sigma^2)$: RKHS is a dense subspace of $L^2(\mathbb{R}^d)$; infinite-dimensional
 - **Matérn kernel**: RKHS is the Sobolev space $W^{\nu+d/2, 2}$; smoothness parameter $\nu$ controls which Sobolev subspace
@@ -1999,12 +2031,12 @@ The sequence stabilises at some $r \leq n$: $\mathcal{K}_r = \mathcal{K}_{r+1} =
 
 **Krylov methods.** Iterative solvers based on Krylov subspaces find the best approximate solution within $\mathcal{K}_k$ at step $k$, then expand the subspace:
 
-| Method | Problem | Optimisation in $\mathcal{K}_k$ |
-|---|---|---|
-| **Conjugate Gradients (CG)** | $A\mathbf{x} = \mathbf{b}$, $A$ SPD | Minimises $\|\mathbf{x} - \mathbf{x}^*\|_A$ over $\mathcal{K}_k$ |
-| **GMRES** | $A\mathbf{x} = \mathbf{b}$, general $A$ | Minimises $\|A\mathbf{x} - \mathbf{b}\|_2$ over $\mathcal{K}_k$ |
-| **Lanczos** | Eigenvalues of $A$ symmetric | Finds best rank-$k$ approximation to spectrum |
-| **Arnoldi** | Eigenvalues of general $A$ | Orthogonalises $\mathcal{K}_k$ via Gram-Schmidt |
+| Method                       | Problem                                 | Optimisation in $\mathcal{K}_k$                                  |
+| ---------------------------- | --------------------------------------- | ---------------------------------------------------------------- |
+| **Conjugate Gradients (CG)** | $A\mathbf{x} = \mathbf{b}$, $A$ SPD     | Minimises $\|\mathbf{x} - \mathbf{x}^*\|_A$ over $\mathcal{K}_k$ |
+| **GMRES**                    | $A\mathbf{x} = \mathbf{b}$, general $A$ | Minimises $\|A\mathbf{x} - \mathbf{b}\|_2$ over $\mathcal{K}_k$  |
+| **Lanczos**                  | Eigenvalues of $A$ symmetric            | Finds best rank-$k$ approximation to spectrum                    |
+| **Arnoldi**                  | Eigenvalues of general $A$              | Orthogonalises $\mathcal{K}_k$ via Gram-Schmidt                  |
 
 Each step costs one matrix-vector product with $A$ and $O(k \cdot n)$ work for orthogonalisation. For a sparse $A$ with $\text{nnz}$ non-zeros, each step costs $O(\text{nnz})$. Contrast with direct methods (Gaussian elimination): $O(n^3)$ cost regardless of sparsity.
 
@@ -2037,6 +2069,7 @@ $$W^* = \arg\min_{\substack{W \subseteq \mathbb{R}^d \\ \dim(W) = r}} \frac{1}{n
 The minimum reconstruction error equals the sum of the discarded eigenvalues: $\frac{1}{n}\sum_{i=1}^n \|\mathbf{x}_i - P_{W^*}\mathbf{x}_i\|^2 = \sum_{j=r+1}^d \lambda_j$.
 
 **Equivalences.** PCA can be described four equivalent ways, all pointing to the same subspace:
+
 1. **Maximum variance:** find the $r$-dimensional subspace on which projected data has maximum variance
 2. **Minimum reconstruction error:** find the $r$-dimensional subspace minimising projection error (the formulation above)
 3. **SVD:** compute $\frac{1}{\sqrt{n}}X = U\Sigma V^\top$; the top-$r$ right singular vectors $\{v_1,\ldots,v_r\}$ span $W^*$
@@ -2060,6 +2093,7 @@ $$G_T = \text{span}\{\nabla_\theta \mathcal{L}(\theta_1), \nabla_\theta \mathcal
 or more precisely, the leading eigenspace of the gradient covariance matrix $\sum_{t=1}^T \nabla_t \nabla_t^\top$.
 
 **Empirical finding: the gradient subspace is small.** Gur-Ari, Bar-On, and Shashua (2018) showed that for large neural networks, the gradient vectors observed during training effectively lie in a subspace of dimension much smaller than $p$. For models with $p \sim 10^7$ to $10^9$ parameters, the effective gradient subspace has dimension in the thousands or tens of thousands. This means:
+
 - Gradient descent traverses a low-dimensional "groove" in the high-dimensional parameter space
 - The $p - k$ directions orthogonal to the gradient subspace are never updated
 - A $k$-dimensional update rule (where $k \ll p$) can achieve nearly the same performance
@@ -2081,6 +2115,7 @@ Evidence: probing classifiers (linear models predicting a concept from an embedd
 **Multi-dimensional concept subspaces.** Some concepts are not well-represented by a single direction. "Colour" might involve multiple hues; "grammatical role" might involve multiple positions. In these cases, the concept corresponds to a subspace of dimension $> 1$. The **concept subspace** $C \subseteq \mathbb{R}^d$ contains all directions relevant to the concept.
 
 **LEACE (Least-squares Concept Erasure)** (Belrose et al. 2023). Given two sets of representations — one with concept present, one absent — LEACE finds the minimal subspace $W$ such that projecting onto $W^\perp$ makes the concept undetectable by any linear probe. This is explicitly a subspace computation:
+
 1. Compute the within-class covariance $\Sigma_W$ and between-class difference $\boldsymbol{\mu}_1 - \boldsymbol{\mu}_0$
 2. Find the projection direction that maximally separates classes (Fisher discriminant direction)
 3. Project onto the orthogonal complement: $\mathbf{x} \leftarrow (I - P_{\text{concept}})\mathbf{x}$
@@ -2088,6 +2123,7 @@ Evidence: probing classifiers (linear models predicting a concept from an embedd
 Concept erasure = projection onto the orthogonal complement of the concept subspace.
 
 **Distributed representations.** A single concept may activate many neurons, and a single neuron may respond to many concepts. This is distributed representation, and it is the normal state in large networks:
+
 - **Distributed over neurons:** each neuron contributes a little to many concepts; the concept is "smeared" across many dimensions
 - **Superposition:** many concepts share the same dimensions (polysemanticity); the concept subspaces are non-orthogonal
 
@@ -2113,6 +2149,7 @@ Both the QK and OV circuits are low-rank (rank $\leq d_k$) operations in $\mathb
 **Induction heads.** An induction head (Olsson et al. 2022) is an attention head that implements in-context learning by attending to previous occurrences of the current token. It works via two components: a "previous token head" that shifts information one position back (writing to a specific subspace), and an "induction head" that looks for matches in that subspace. The circuit is: head A writes "what came before position $t$" to a subspace $S_A$; head B reads from $S_A$ and attends accordingly. The communication between heads A and B happens through a shared subspace of the residual stream.
 
 **Superposition and polysemanticity.** Toy models of superposition (Elhage et al. 2022) show that:
+
 - With $F \leq d$ features: each feature can be stored in its own orthogonal direction; no interference; polysemanticity unnecessary
 - With $F > d$ features (superposition regime): features are stored as nearly-orthogonal non-orthogonal directions; each direction contains a weighted sum of multiple features; individual neurons are polysemantic (they respond to multiple distinct features)
 - The "geometry" of superposition: features are arranged as vertices of polytopes inscribed in the unit sphere; the maximum number of nearly-orthogonal unit vectors in $\mathbb{R}^d$ that have pairwise inner products $\leq \epsilon$ is approximately $e^{c \cdot d}$ for some constant $c > 0$ depending on $\epsilon$ — exponential in the dimension
@@ -2145,7 +2182,7 @@ Decompose the weight matrix as $W = \|W\|_c \cdot (W / \|W\|_c)$ (magnitude time
 
 After standard fine-tuning, randomly prune $\delta W = W_{\text{FT}} - W_0$ with probability $p$ (set to zero) and rescale the remainder by $1/(1-p)$ to maintain expectation. The effect is to project the fine-tuning update onto a sparse "subspace" (sparse in the coordinate basis). Pruned updates can be summed across multiple fine-tuned models (model merging) with reduced interference, since the non-zero coordinates are less likely to overlap.
 
-```
+```text
 SUBSPACE FINE-TUNING: COMPARISON
 ════════════════════════════════════════════════════════════════════
 
@@ -2203,10 +2240,11 @@ Block diagonalisation is the goal of spectral theory: decompose $V$ into invaria
 The **real spectral theorem** is the most important result about invariant subspaces. It applies to symmetric matrices (or more generally, self-adjoint operators on inner product spaces).
 
 **Theorem (Real Spectral Theorem).** For a symmetric matrix $A = A^\top \in \mathbb{R}^{n \times n}$:
+
 1. All eigenvalues of $A$ are real
 2. Eigenvectors corresponding to distinct eigenvalues are orthogonal
 3. $\mathbb{R}^n$ decomposes as an orthogonal direct sum of eigenspaces:
-$$\mathbb{R}^n = E(\lambda_1) \oplus E(\lambda_2) \oplus \cdots \oplus E(\lambda_k)$$
+   $$\mathbb{R}^n = E(\lambda_1) \oplus E(\lambda_2) \oplus \cdots \oplus E(\lambda_k)$$
 4. $A = Q \Lambda Q^\top$ where $Q$ is orthogonal (eigenvectors as columns) and $\Lambda$ is diagonal (eigenvalues)
 
 **Why eigenvalues are real.** For symmetric $A$: $\langle A\mathbf{u}, \mathbf{v} \rangle = (A\mathbf{u})^\top \mathbf{v} = \mathbf{u}^\top A^\top \mathbf{v} = \mathbf{u}^\top A \mathbf{v} = \langle \mathbf{u}, A\mathbf{v} \rangle$. Such an operator is called **self-adjoint**. If $A\mathbf{v} = \lambda\mathbf{v}$ (over $\mathbb{C}$):
@@ -2224,6 +2262,7 @@ $$A = \sum_{i=1}^k \lambda_i P_i, \qquad I = \sum_{i=1}^k P_i, \qquad P_i P_j = 
 The action of $A$ decomposes into independent scalings of orthogonal subspaces: $A$ scales $E(\lambda_i)$ by $\lambda_i$ and acts on each eigenspace independently.
 
 **AI relevance.** Symmetric matrices appear constantly in deep learning:
+
 - **Covariance matrices** $C = \frac{1}{n}X^\top X$: PCA = spectral decomposition of $C$; eigenspaces = principal component subspaces; eigenvalues = variances in each direction
 - **Gram matrices** $G = XX^\top$ (dual of covariance): non-zero eigenvalues of $G$ = non-zero eigenvalues of $C$; eigenvectors related by $X$
 - **Hessian** $H = \nabla^2 \mathcal{L}(\theta)$: curvature of loss landscape; eigenspaces = directions of different curvature; positive eigenvalues = directions curving up (need small learning rate); near-zero eigenvalues = flat directions (optimisation easy in these directions)
@@ -2250,7 +2289,7 @@ The $\sigma_i$ are the **singular values**, $\mathbf{u}_i$ (columns of $U$) are 
   - $\text{null}(A^\top) = \text{span}\{\mathbf{u}_{r+1}, \ldots, \mathbf{u}_m\}$ (left singular vectors for zero singular values)
 
 - **The action of $A$:** $A$ maps the $i$-th right singular direction to the $i$-th left singular direction, with scaling $\sigma_i$:
-$$A \mathbf{v}_i = \sigma_i \mathbf{u}_i \quad \text{for } i = 1, \ldots, r, \qquad A \mathbf{v}_i = \mathbf{0} \quad \text{for } i > r$$
+  $$A \mathbf{v}_i = \sigma_i \mathbf{u}_i \quad \text{for } i = 1, \ldots, r, \qquad A \mathbf{v}_i = \mathbf{0} \quad \text{for } i > r$$
 
 **Rank-$k$ approximation.** The best rank-$k$ approximation to $A$ (in Frobenius or operator norm) is:
 
@@ -2298,20 +2337,20 @@ Each subspace in the chain is invariant under $A$. The Schur form is the "stairc
 
 ## 14. Common Mistakes
 
-| # | Mistake | Why It's Wrong | Correct Understanding |
-|---|---|---|---|
-| 1 | **"The union of two subspaces is a subspace"** | $W_1 \cup W_2$ fails closure under addition: take $\mathbf{u} \in W_1 \setminus W_2$ and $\mathbf{v} \in W_2 \setminus W_1$; their sum $\mathbf{u} + \mathbf{v}$ need not lie in $W_1$ or $W_2$. Concrete example: $W_1 = \text{span}\{(1,0)\}$ (x-axis) and $W_2 = \text{span}\{(0,1)\}$ (y-axis) in $\mathbb{R}^2$; $(1,0) + (0,1) = (1,1) \notin W_1 \cup W_2$. | The **sum** $W_1 + W_2$ is a subspace; the union is generally not. Use $W_1 + W_2$ when you need the subspace generated by both. |
-| 2 | **"An affine subspace is a subspace"** | The solution set $\{A\mathbf{x} = \mathbf{b}\}$ with $\mathbf{b} \neq \mathbf{0}$ does not contain the zero vector ($A \cdot \mathbf{0} = \mathbf{0} \neq \mathbf{b}$) and is not closed under addition ($A(\mathbf{x}+\mathbf{y}) = 2\mathbf{b} \neq \mathbf{b}$). The probability simplex $\Delta^n$ is an affine subspace — not a vector subspace. | An affine subspace = coset of a linear subspace = linear subspace shifted off the origin. It shares the same dimension and "shape" but is NOT a vector space. Subspaces must contain $\mathbf{0}$. |
-| 3 | **"Closure under addition is sufficient for a subspace"** | Closure under addition alone (without scalar multiplication) is insufficient. The set $\mathbb{Z}^n \subset \mathbb{R}^n$ is closed under addition but $\pi \cdot (1,0,\ldots,0) = (\pi, 0, \ldots, 0) \notin \mathbb{Z}^n$, so it fails the scalar multiplication axiom. | All three conditions are required: (1) contains $\mathbf{0}$, (2) closed under addition, (3) closed under scalar multiplication. All three are independent of each other. |
-| 4 | **"$\text{span}\{\mathbf{v}_1,\ldots,\mathbf{v}_k\} = \text{span}\{\mathbf{v}_1,\ldots,\mathbf{v}_{k+1}\}$ implies $\mathbf{v}_{k+1} = \mathbf{0}$"** | The spans being equal means $\mathbf{v}_{k+1}$ is linearly dependent on $\mathbf{v}_1,\ldots,\mathbf{v}_k$ — it can be expressed as a linear combination of the earlier vectors. But it need not be zero. For example: $\text{span}\{(1,0),(0,1)\} = \text{span}\{(1,0),(0,1),(1,1)\}$; $(1,1)$ is not zero. | Equal spans means $\mathbf{v}_{k+1} \in \text{span}\{\mathbf{v}_1,\ldots,\mathbf{v}_k\}$ — redundant, not zero. |
-| 5 | **"$\dim(W_1 \cap W_2) = \dim(W_1) + \dim(W_2) - \dim(V)$"** | This formula is wrong. The correct formula involves the sum: $\dim(W_1 + W_2) = \dim(W_1) + \dim(W_2) - \dim(W_1 \cap W_2)$. The dimension of $W_1 \cap W_2$ ranges between $\max(0, \dim(W_1)+\dim(W_2)-n)$ and $\min(\dim(W_1),\dim(W_2))$. | Correct formula: $\dim(W_1 \cap W_2) = \dim(W_1) + \dim(W_2) - \dim(W_1 + W_2)$. You cannot determine $\dim(W_1 \cap W_2)$ from dimensions alone without knowing $\dim(W_1 + W_2)$. |
-| 6 | **"The complement of a subspace is a subspace"** | The **set complement** $V \setminus W$ is never a subspace: it does not contain $\mathbf{0}$ (since $\mathbf{0} \in W$) and is not closed under addition or scalar multiplication. | The **orthogonal complement** $W^\perp$ IS a subspace. Always say "orthogonal complement $W^\perp$", never just "complement". The orthogonal complement is the canonical linear-algebraic complement of $W$. |
-| 7 | **"All bases for $V$ have the same vectors"** | Bases are not unique. Any set of $n$ linearly independent spanning vectors is a basis for an $n$-dimensional space. For $\mathbb{R}^2$, $\{(1,0),(0,1)\}$, $\{(1,1),(1,-1)\}$, and $\{(2,3),(1,2)\}$ are three distinct bases. | All bases for $V$ have the same **number** of vectors (= $\dim(V)$). The actual vectors can be anything linearly independent and spanning. The choice of basis is a choice of coordinate system. |
-| 8 | **"$\text{null}(AB) = \text{null}(B)$"** | $\text{null}(B) \subseteq \text{null}(AB)$ always (if $B\mathbf{x} = \mathbf{0}$ then $AB\mathbf{x} = \mathbf{0}$). But $\text{null}(AB)$ can be strictly larger: if $A$ maps some $B\mathbf{x} \neq \mathbf{0}$ to zero ($B\mathbf{x} \in \text{null}(A)$), then $\mathbf{x} \in \text{null}(AB)$ but $\mathbf{x} \notin \text{null}(B)$. | $\text{null}(AB) \supseteq \text{null}(B)$. Equality holds iff $\text{null}(A) \cap \text{col}(B) = \{\mathbf{0}\}$, i.e., $A$ is injective on the column space of $B$. |
-| 9 | **"Two subspaces with the same dimension are equal"** | Dimension only describes the "size" of a subspace, not its orientation. The x-axis $\text{span}\{(1,0)\}$ and y-axis $\text{span}\{(0,1)\}$ in $\mathbb{R}^2$ both have dimension 1 but are completely different subspaces (they share only the origin). | Equal dimension means **isomorphic** as abstract vector spaces. Actual equality as subsets requires showing every vector in one is in the other — or equivalently, that each spans the other. |
-| 10 | **"Gram-Schmidt always produces a basis from a spanning set"** | Gram-Schmidt fails (division by zero) when it encounters a vector already in the span of the previously constructed orthonormal vectors. The intermediate vector $\mathbf{u}_j = \mathbf{v}_j - \sum_{i<j}\langle\mathbf{v}_j,\mathbf{q}_i\rangle\mathbf{q}_i$ becomes $\mathbf{0}$, which cannot be normalised. | Apply Gram-Schmidt **only to linearly independent vectors**. For a spanning set, first extract an independent subset via row reduction, then apply Gram-Schmidt. A zero intermediate vector signals linear dependence — discard that vector and continue. |
-| 11 | **"The pivot columns of the RREF give a basis for the column space"** | Row operations change the column space. The RREF of $A$ has different columns than $A$ itself. The pivot positions (column indices) are correct, but the actual basis vectors must be taken from the **original** matrix $A$, not from the RREF. | Identify pivot positions from the RREF, but extract the corresponding columns from the **original** $A$. The pivot columns of $A$ (not its RREF) form a basis for $\text{col}(A)$. |
-| 12 | **"$A\mathbf{x} = \mathbf{0}$ has only the trivial solution implies $A$ is invertible"** | For $A \in \mathbb{R}^{m \times n}$: if $m \neq n$, $A$ cannot be invertible regardless. The trivial null space means $A$ is injective ($\text{rank}(A) = n$), but invertibility requires square and $\text{rank}(A) = n = m$. | For square $A \in \mathbb{R}^{n \times n}$: $\text{null}(A) = \{\mathbf{0}\}$ iff $A$ is invertible. For rectangular $A$: $\text{null}(A) = \{\mathbf{0}\}$ means $A$ is injective (left-invertible) but not invertible. |
+| #   | Mistake                                                                                                                                               | Why It's Wrong                                                                                                                                                                                                                                                                                                                                                     | Correct Understanding                                                                                                                                                                                                                                     |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **"The union of two subspaces is a subspace"**                                                                                                        | $W_1 \cup W_2$ fails closure under addition: take $\mathbf{u} \in W_1 \setminus W_2$ and $\mathbf{v} \in W_2 \setminus W_1$; their sum $\mathbf{u} + \mathbf{v}$ need not lie in $W_1$ or $W_2$. Concrete example: $W_1 = \text{span}\{(1,0)\}$ (x-axis) and $W_2 = \text{span}\{(0,1)\}$ (y-axis) in $\mathbb{R}^2$; $(1,0) + (0,1) = (1,1) \notin W_1 \cup W_2$. | The **sum** $W_1 + W_2$ is a subspace; the union is generally not. Use $W_1 + W_2$ when you need the subspace generated by both.                                                                                                                          |
+| 2   | **"An affine subspace is a subspace"**                                                                                                                | The solution set $\{A\mathbf{x} = \mathbf{b}\}$ with $\mathbf{b} \neq \mathbf{0}$ does not contain the zero vector ($A \cdot \mathbf{0} = \mathbf{0} \neq \mathbf{b}$) and is not closed under addition ($A(\mathbf{x}+\mathbf{y}) = 2\mathbf{b} \neq \mathbf{b}$). The probability simplex $\Delta^n$ is an affine subspace — not a vector subspace.              | An affine subspace = coset of a linear subspace = linear subspace shifted off the origin. It shares the same dimension and "shape" but is NOT a vector space. Subspaces must contain $\mathbf{0}$.                                                        |
+| 3   | **"Closure under addition is sufficient for a subspace"**                                                                                             | Closure under addition alone (without scalar multiplication) is insufficient. The set $\mathbb{Z}^n \subset \mathbb{R}^n$ is closed under addition but $\pi \cdot (1,0,\ldots,0) = (\pi, 0, \ldots, 0) \notin \mathbb{Z}^n$, so it fails the scalar multiplication axiom.                                                                                          | All three conditions are required: (1) contains $\mathbf{0}$, (2) closed under addition, (3) closed under scalar multiplication. All three are independent of each other.                                                                                 |
+| 4   | **"$\text{span}\{\mathbf{v}_1,\ldots,\mathbf{v}_k\} = \text{span}\{\mathbf{v}_1,\ldots,\mathbf{v}_{k+1}\}$ implies $\mathbf{v}_{k+1} = \mathbf{0}$"** | The spans being equal means $\mathbf{v}_{k+1}$ is linearly dependent on $\mathbf{v}_1,\ldots,\mathbf{v}_k$ — it can be expressed as a linear combination of the earlier vectors. But it need not be zero. For example: $\text{span}\{(1,0),(0,1)\} = \text{span}\{(1,0),(0,1),(1,1)\}$; $(1,1)$ is not zero.                                                       | Equal spans means $\mathbf{v}_{k+1} \in \text{span}\{\mathbf{v}_1,\ldots,\mathbf{v}_k\}$ — redundant, not zero.                                                                                                                                           |
+| 5   | **"$\dim(W_1 \cap W_2) = \dim(W_1) + \dim(W_2) - \dim(V)$"**                                                                                          | This formula is wrong. The correct formula involves the sum: $\dim(W_1 + W_2) = \dim(W_1) + \dim(W_2) - \dim(W_1 \cap W_2)$. The dimension of $W_1 \cap W_2$ ranges between $\max(0, \dim(W_1)+\dim(W_2)-n)$ and $\min(\dim(W_1),\dim(W_2))$.                                                                                                                      | Correct formula: $\dim(W_1 \cap W_2) = \dim(W_1) + \dim(W_2) - \dim(W_1 + W_2)$. You cannot determine $\dim(W_1 \cap W_2)$ from dimensions alone without knowing $\dim(W_1 + W_2)$.                                                                       |
+| 6   | **"The complement of a subspace is a subspace"**                                                                                                      | The **set complement** $V \setminus W$ is never a subspace: it does not contain $\mathbf{0}$ (since $\mathbf{0} \in W$) and is not closed under addition or scalar multiplication.                                                                                                                                                                                 | The **orthogonal complement** $W^\perp$ IS a subspace. Always say "orthogonal complement $W^\perp$", never just "complement". The orthogonal complement is the canonical linear-algebraic complement of $W$.                                              |
+| 7   | **"All bases for $V$ have the same vectors"**                                                                                                         | Bases are not unique. Any set of $n$ linearly independent spanning vectors is a basis for an $n$-dimensional space. For $\mathbb{R}^2$, $\{(1,0),(0,1)\}$, $\{(1,1),(1,-1)\}$, and $\{(2,3),(1,2)\}$ are three distinct bases.                                                                                                                                     | All bases for $V$ have the same **number** of vectors (= $\dim(V)$). The actual vectors can be anything linearly independent and spanning. The choice of basis is a choice of coordinate system.                                                          |
+| 8   | **"$\text{null}(AB) = \text{null}(B)$"**                                                                                                              | $\text{null}(B) \subseteq \text{null}(AB)$ always (if $B\mathbf{x} = \mathbf{0}$ then $AB\mathbf{x} = \mathbf{0}$). But $\text{null}(AB)$ can be strictly larger: if $A$ maps some $B\mathbf{x} \neq \mathbf{0}$ to zero ($B\mathbf{x} \in \text{null}(A)$), then $\mathbf{x} \in \text{null}(AB)$ but $\mathbf{x} \notin \text{null}(B)$.                         | $\text{null}(AB) \supseteq \text{null}(B)$. Equality holds iff $\text{null}(A) \cap \text{col}(B) = \{\mathbf{0}\}$, i.e., $A$ is injective on the column space of $B$.                                                                                   |
+| 9   | **"Two subspaces with the same dimension are equal"**                                                                                                 | Dimension only describes the "size" of a subspace, not its orientation. The x-axis $\text{span}\{(1,0)\}$ and y-axis $\text{span}\{(0,1)\}$ in $\mathbb{R}^2$ both have dimension 1 but are completely different subspaces (they share only the origin).                                                                                                           | Equal dimension means **isomorphic** as abstract vector spaces. Actual equality as subsets requires showing every vector in one is in the other — or equivalently, that each spans the other.                                                             |
+| 10  | **"Gram-Schmidt always produces a basis from a spanning set"**                                                                                        | Gram-Schmidt fails (division by zero) when it encounters a vector already in the span of the previously constructed orthonormal vectors. The intermediate vector $\mathbf{u}_j = \mathbf{v}_j - \sum_{i<j}\langle\mathbf{v}_j,\mathbf{q}_i\rangle\mathbf{q}_i$ becomes $\mathbf{0}$, which cannot be normalised.                                                   | Apply Gram-Schmidt **only to linearly independent vectors**. For a spanning set, first extract an independent subset via row reduction, then apply Gram-Schmidt. A zero intermediate vector signals linear dependence — discard that vector and continue. |
+| 11  | **"The pivot columns of the RREF give a basis for the column space"**                                                                                 | Row operations change the column space. The RREF of $A$ has different columns than $A$ itself. The pivot positions (column indices) are correct, but the actual basis vectors must be taken from the **original** matrix $A$, not from the RREF.                                                                                                                   | Identify pivot positions from the RREF, but extract the corresponding columns from the **original** $A$. The pivot columns of $A$ (not its RREF) form a basis for $\text{col}(A)$.                                                                        |
+| 12  | **"$A\mathbf{x} = \mathbf{0}$ has only the trivial solution implies $A$ is invertible"**                                                              | For $A \in \mathbb{R}^{m \times n}$: if $m \neq n$, $A$ cannot be invertible regardless. The trivial null space means $A$ is injective ($\text{rank}(A) = n$), but invertibility requires square and $\text{rank}(A) = n = m$.                                                                                                                                     | For square $A \in \mathbb{R}^{n \times n}$: $\text{null}(A) = \{\mathbf{0}\}$ iff $A$ is invertible. For rectangular $A$: $\text{null}(A) = \{\mathbf{0}\}$ means $A$ is injective (left-invertible) but not invertible.                                  |
 
 ---
 
@@ -2331,7 +2370,7 @@ For each of the following, determine whether it is a vector space with the given
 
 (e) $V = \{f : \mathbb{R} \to \mathbb{R} : f(0) = 1\}$ with the same standard operations.
 
-*Hints for (b):* Verify all eight axioms carefully with the non-standard operations. The zero element of the vector space (if it exists) is the identity for $\oplus$, not the number 0. For (d) and (e), think about which evaluation constraint is compatible with the zero function.
+_Hints for (b):_ Verify all eight axioms carefully with the non-standard operations. The zero element of the vector space (if it exists) is the identity for $\oplus$, not the number 0. For (d) and (e), think about which evaluation constraint is compatible with the zero function.
 
 ---
 
@@ -2479,18 +2518,18 @@ Let $A = \begin{pmatrix} 2 & 1 \\ 0 & 3 \end{pmatrix}$ and $\mathbf{b} = (1, 1)^
 
 ## 16. Why This Matters for AI (2026 Perspective)
 
-| Aspect | Impact |
-|---|---|
-| **Residual stream as shared vector space** | The residual stream $\mathbf{x} \in \mathbb{R}^d$ in a transformer is the central shared vector space. Every attention head, MLP layer, and positional encoding adds vectors to this space via the residual connection. All components communicate through this one $d$-dimensional space — nothing else is shared. Understanding the subspace decomposition of $\mathbb{R}^d$ (which subspaces are written by which components, which are read by which) is literally the same as understanding how information flows through a transformer. There is no higher-level description. |
-| **LoRA rank = subspace dimension** | LoRA's entire design is a subspace constraint. The update $\Delta W = BA^\top$ is a rank-$r$ matrix, living in an $r(m+n)/(mn)$-fraction of the full parameter space. Choosing $r$ is choosing the dimension of the subspace to search in. Too small: the subspace doesn't contain the optimal update direction, and performance suffers. Too large: you are searching a subspace larger than necessary, wasting parameters and potentially overfitting. The right $r$ is the intrinsic dimension of the fine-tuning task — a subspace dimension. |
-| **Superposition and polysemanticity** | The superposition hypothesis says LLMs represent more features than their embedding dimension allows. Since more than $d$ linearly independent directions cannot exist in $\mathbb{R}^d$, features beyond $d$ must share dimensions through non-orthogonal superposition. Each neuron becomes polysemantic — it responds to multiple features. This limits interpretability (you cannot read off features from individual dimensions) and causes interference between features. Solving superposition is one of the central unsolved problems in mechanistic interpretability, and the solution must be phrased in the language of subspace geometry. |
-| **MLA and KV subspace compression** | DeepSeek-V3's Multi-head Latent Attention compresses KV projections to a rank-$r$ subspace with $r \ll d$. The KV cache stores only the $r$-dimensional compressed representation; at inference, it is decompressed back to $\mathbb{R}^d$. The rank $r$ is the architectural bottleneck that enables a $5.75\times$ reduction in KV cache memory. The subspace dimension $r$ is the design variable that trades memory against expressiveness. This is subspace thinking at the architecture level: the architecture is designed around a low-dimensional subspace constraint. |
-| **Mechanistic interpretability circuits** | Every circuit found in mechanistic interpretability is a composition of subspace operations. A "previous token head" reads from a specific subspace of the residual stream (via its $W_Q$, $W_K$ row spaces) and writes to a specific subspace (via its $W_O$ column space). An "induction head" communicates with the previous token head through a shared subspace. Superposition of features happens in specific subspaces. The "language" of mechanistic interpretability is entirely the language of subspaces: read, write, rotate, project, in $\mathbb{R}^d$. |
-| **Representation collapse prevention** | In self-supervised learning, representation collapse means all embeddings converge to a low-dimensional (or 0-dimensional) subspace — the network learns to output the same or similar vectors for all inputs. VICReg, Barlow Twins, and BYOL all prevent collapse by adding losses that penalise low-dimensional representations. VICReg's variance loss requires that the covariance matrix of batch embeddings has high trace (high average variance), which prevents the embeddings from collapsing to a subspace. Collapse = subspace dimension $\to 0$; the loss explicitly maximises subspace dimension. |
-| **Implicit bias and minimum-norm solutions** | Gradient descent on overparameterised linear models (and, empirically, on large neural networks) converges to minimum-norm solutions. The minimum-norm solution lies in the row space of the data matrix — it is the unique solution in the subspace $\text{row}(X)$, the orthogonal complement of the null space. The implicit bias of gradient descent is a subspace selection: it selects the solution in $\text{row}(X)$ rather than any other coset representative. This subspace selection is what enables generalisation in overparameterised models. |
-| **Orthogonality and head diversity** | If attention heads write to mutually orthogonal subspaces of the residual stream, they do not interfere with each other — each head has an independent information channel. Head redundancy is equivalent to subspace overlap: if head $A$'s column space is a subspace of head $B$'s column space, head $A$ is redundant. Pruning heads that write to subspaces already covered by remaining heads preserves expressiveness while reducing computation. Orthogonality between head subspaces is the precise mathematical criterion for head independence. |
-| **Function space universality** | The universal approximation theorem says that neural networks with nonlinear activations can approximate any continuous function to arbitrary accuracy. In subspace language: the set of functions representable by a sufficiently large network is dense in $C([0,1]^n)$ — it is not a subspace (the network family is non-linear), but its closure is the entire function space. The depth and nonlinearity of the architecture determine which function-space "directions" are accessible. Width and depth determine the "dimensionality" of the accessible function subspace. |
-| **Second-order optimisation** | The Hessian $H = \nabla^2 \mathcal{L}(\theta)$ of the training loss is a $p \times p$ matrix with most of its spectral mass concentrated in a low-dimensional subspace (the "bulk" subspace where curvature is large). The remaining $p - k$ directions have near-zero curvature (flat directions). K-FAC, Shampoo, and SOAP all identify and exploit this curvature subspace by approximating the inverse Hessian in the curved subspace and using the identity in the flat directions. Natural gradient preconditions updates by the inverse Fisher (a positive semidefinite matrix): it aligns updates with the geometry of the curved subspace and suppresses movement in the flat directions. |
+| Aspect                                       | Impact                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Residual stream as shared vector space**   | The residual stream $\mathbf{x} \in \mathbb{R}^d$ in a transformer is the central shared vector space. Every attention head, MLP layer, and positional encoding adds vectors to this space via the residual connection. All components communicate through this one $d$-dimensional space — nothing else is shared. Understanding the subspace decomposition of $\mathbb{R}^d$ (which subspaces are written by which components, which are read by which) is literally the same as understanding how information flows through a transformer. There is no higher-level description.                                                                                                                |
+| **LoRA rank = subspace dimension**           | LoRA's entire design is a subspace constraint. The update $\Delta W = BA^\top$ is a rank-$r$ matrix, living in an $r(m+n)/(mn)$-fraction of the full parameter space. Choosing $r$ is choosing the dimension of the subspace to search in. Too small: the subspace doesn't contain the optimal update direction, and performance suffers. Too large: you are searching a subspace larger than necessary, wasting parameters and potentially overfitting. The right $r$ is the intrinsic dimension of the fine-tuning task — a subspace dimension.                                                                                                                                                  |
+| **Superposition and polysemanticity**        | The superposition hypothesis says LLMs represent more features than their embedding dimension allows. Since more than $d$ linearly independent directions cannot exist in $\mathbb{R}^d$, features beyond $d$ must share dimensions through non-orthogonal superposition. Each neuron becomes polysemantic — it responds to multiple features. This limits interpretability (you cannot read off features from individual dimensions) and causes interference between features. Solving superposition is one of the central unsolved problems in mechanistic interpretability, and the solution must be phrased in the language of subspace geometry.                                              |
+| **MLA and KV subspace compression**          | DeepSeek-V3's Multi-head Latent Attention compresses KV projections to a rank-$r$ subspace with $r \ll d$. The KV cache stores only the $r$-dimensional compressed representation; at inference, it is decompressed back to $\mathbb{R}^d$. The rank $r$ is the architectural bottleneck that enables a $5.75\times$ reduction in KV cache memory. The subspace dimension $r$ is the design variable that trades memory against expressiveness. This is subspace thinking at the architecture level: the architecture is designed around a low-dimensional subspace constraint.                                                                                                                    |
+| **Mechanistic interpretability circuits**    | Every circuit found in mechanistic interpretability is a composition of subspace operations. A "previous token head" reads from a specific subspace of the residual stream (via its $W_Q$, $W_K$ row spaces) and writes to a specific subspace (via its $W_O$ column space). An "induction head" communicates with the previous token head through a shared subspace. Superposition of features happens in specific subspaces. The "language" of mechanistic interpretability is entirely the language of subspaces: read, write, rotate, project, in $\mathbb{R}^d$.                                                                                                                              |
+| **Representation collapse prevention**       | In self-supervised learning, representation collapse means all embeddings converge to a low-dimensional (or 0-dimensional) subspace — the network learns to output the same or similar vectors for all inputs. VICReg, Barlow Twins, and BYOL all prevent collapse by adding losses that penalise low-dimensional representations. VICReg's variance loss requires that the covariance matrix of batch embeddings has high trace (high average variance), which prevents the embeddings from collapsing to a subspace. Collapse = subspace dimension $\to 0$; the loss explicitly maximises subspace dimension.                                                                                    |
+| **Implicit bias and minimum-norm solutions** | Gradient descent on overparameterised linear models (and, empirically, on large neural networks) converges to minimum-norm solutions. The minimum-norm solution lies in the row space of the data matrix — it is the unique solution in the subspace $\text{row}(X)$, the orthogonal complement of the null space. The implicit bias of gradient descent is a subspace selection: it selects the solution in $\text{row}(X)$ rather than any other coset representative. This subspace selection is what enables generalisation in overparameterised models.                                                                                                                                       |
+| **Orthogonality and head diversity**         | If attention heads write to mutually orthogonal subspaces of the residual stream, they do not interfere with each other — each head has an independent information channel. Head redundancy is equivalent to subspace overlap: if head $A$'s column space is a subspace of head $B$'s column space, head $A$ is redundant. Pruning heads that write to subspaces already covered by remaining heads preserves expressiveness while reducing computation. Orthogonality between head subspaces is the precise mathematical criterion for head independence.                                                                                                                                         |
+| **Function space universality**              | The universal approximation theorem says that neural networks with nonlinear activations can approximate any continuous function to arbitrary accuracy. In subspace language: the set of functions representable by a sufficiently large network is dense in $C([0,1]^n)$ — it is not a subspace (the network family is non-linear), but its closure is the entire function space. The depth and nonlinearity of the architecture determine which function-space "directions" are accessible. Width and depth determine the "dimensionality" of the accessible function subspace.                                                                                                                  |
+| **Second-order optimisation**                | The Hessian $H = \nabla^2 \mathcal{L}(\theta)$ of the training loss is a $p \times p$ matrix with most of its spectral mass concentrated in a low-dimensional subspace (the "bulk" subspace where curvature is large). The remaining $p - k$ directions have near-zero curvature (flat directions). K-FAC, Shampoo, and SOAP all identify and exploit this curvature subspace by approximating the inverse Hessian in the curved subspace and using the identity in the flat directions. Natural gradient preconditions updates by the inverse Fisher (a positive semidefinite matrix): it aligns updates with the geometry of the curved subspace and suppresses movement in the flat directions. |
 
 ---
 
@@ -2502,7 +2541,7 @@ The abstract framework is what makes the theory universal. The same theorems tha
 
 For AI in 2026, subspaces are not abstract. They are the architectural primitives of transformers (the residual stream, the attention subspace, the MLP subspace), the design variables of efficient fine-tuning (LoRA rank = subspace dimension), the diagnostic language of interpretability (which subspace does this head write to?), and the theoretical foundation of generalisation (gradient updates live in a low-dimensional subspace; the implicit bias selects the minimum-norm solution in the row space).
 
-```
+```text
 WHERE THIS MODULE SITS IN THE CURRICULUM
 ════════════════════════════════════════════════════════════════════
 
@@ -2549,7 +2588,7 @@ WHERE THIS MODULE SITS IN THE CURRICULUM
 
 **What comes next: Eigenvalues, Eigenvectors, and Matrix Decompositions.**
 
-The next module reveals the *internal* subspace structure of a linear map — the invariant subspaces that a matrix preserves, revealed through its eigenvalues and eigenvectors. An eigenvector spans a 1-dimensional invariant subspace; the spectral theorem decomposes any symmetric matrix into orthogonal 1-dimensional invariant subspaces; the SVD extends this to the complete subspace structure of any rectangular matrix. The four fundamental subspaces are decomposed even further — into singular subspaces aligned with singular values. All of this is the continuation of the subspace story begun in this module.
+The next module reveals the _internal_ subspace structure of a linear map — the invariant subspaces that a matrix preserves, revealed through its eigenvalues and eigenvectors. An eigenvector spans a 1-dimensional invariant subspace; the spectral theorem decomposes any symmetric matrix into orthogonal 1-dimensional invariant subspaces; the SVD extends this to the complete subspace structure of any rectangular matrix. The four fundamental subspaces are decomposed even further — into singular subspaces aligned with singular values. All of this is the continuation of the subspace story begun in this module.
 
 ---
 

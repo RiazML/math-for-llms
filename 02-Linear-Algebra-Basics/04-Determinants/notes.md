@@ -52,9 +52,9 @@ The goal is not to memorize formulas in isolation. It is to understand why all d
 
 ## Companion Notebooks
 
-| Notebook | Description |
-| --- | --- |
-| [theory.ipynb](theory.ipynb) | Interactive determinant computation, geometric volume intuition, log-det examples, and AI-motivated demos |
+| Notebook                           | Description                                                                                                                   |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive determinant computation, geometric volume intuition, log-det examples, and AI-motivated demos                     |
 | [exercises.ipynb](exercises.ipynb) | Guided practice on cofactor expansion, characteristic polynomials, determinant identities, log-determinants, and applications |
 
 ## Learning Objectives
@@ -251,8 +251,8 @@ then $|\det(A)|$ is exactly the area of the parallelogram spanned by $u$ and $v$
 
 v
 ^
-|      / 
-|     / 
+|      /
+|     /
 |    /    parallelogram area = |det([u v])|
 |   /___
 |  /   /
@@ -442,6 +442,7 @@ such that:
 
 1. **Multilinearity**  
    For each column separately,
+
    $$
    \det(\dots, \alpha u + \beta v, \dots)
    =
@@ -452,13 +453,14 @@ such that:
 
 2. **Alternating property**  
    Swapping any two columns changes the sign:
+
    $$
    \det(\dots, c_i, \dots, c_j, \dots)
    =
    -\det(\dots, c_j, \dots, c_i, \dots)
    $$
 
-3. **Normalization**  
+3. **Normalization**
    $$
    \det(I) = 1
    $$
@@ -1896,13 +1898,13 @@ This is why orthogonal and unitary constructions are associated with stable sign
 
 In practice, determinant computation is not about formulas first. It is about choosing the right factorisation for the matrix class.
 
-| Method | Cost | Stability | Best use |
-| --- | --- | --- | --- |
-| Leibniz formula | $O(n!)$ | Exact but combinatorial | Only tiny symbolic cases |
-| Cofactor expansion | Exponential in general | Fine for hand work | Small matrices, many zeros |
-| LU factorisation | $O(n^3)$ | Good with pivoting | General dense square matrices |
-| Cholesky | $O(n^3)$ setup, cheap log-det after | Excellent for SPD | Covariance and kernel matrices |
-| Eigenvalue product | $O(n^3)$ | Fine if spectrum already needed | Spectral analysis |
+| Method             | Cost                                | Stability                       | Best use                       |
+| ------------------ | ----------------------------------- | ------------------------------- | ------------------------------ |
+| Leibniz formula    | $O(n!)$                             | Exact but combinatorial         | Only tiny symbolic cases       |
+| Cofactor expansion | Exponential in general              | Fine for hand work              | Small matrices, many zeros     |
+| LU factorisation   | $O(n^3)$                            | Good with pivoting              | General dense square matrices  |
+| Cholesky           | $O(n^3)$ setup, cheap log-det after | Excellent for SPD               | Covariance and kernel matrices |
+| Eigenvalue product | $O(n^3)$                            | Fine if spectrum already needed | Spectral analysis              |
 
 The practical rule is simple:
 
@@ -2073,18 +2075,18 @@ That is the bridge to the next chapter:
 
 ## 14. Common Mistakes
 
-| Mistake | Why it is wrong | Fix |
-| --- | --- | --- |
-| `det(A + B) = det(A) + det(B)` | Determinant is not linear in the whole matrix | Use multilinearity one row/column at a time only |
-| `det(AB) = det(A) + det(B)` | Determinant is multiplicative, not additive | Remember `det(AB) = det(A)det(B)` |
-| `det(2A) = 2 det(A)` | Scaling every row by 2 scales determinant by $2^n$ | Use `det(alpha A) = alpha^n det(A)` |
-| `det(A) approximately 0 means numerically singular` | Determinant magnitude depends on scale and dimension | Use condition number to diagnose near-singularity |
-| `Sarrus' rule works for 4x4` | It only works for 3x3 matrices | Use cofactor expansion or LU beyond 3x3 |
-| `det(A) > 0 means all eigenvalues are positive` | Only the product is positive; negative eigenvalues can come in pairs | Check all eigenvalues or SPD criteria |
-| `Adding a multiple of one row changes determinant` | Row replacement leaves determinant unchanged | Track only swaps and scalings |
-| `det(A) = 0 tells me whether Ax=b has no solution or infinitely many` | It only tells you the matrix is singular | Use rank of `A` and `[A|b]` for classification |
-| `log(det(A))` is always real | Not if determinant is negative or matrix is not SPD | Use `log|det(A)|` or `slogdet` unless SPD is guaranteed |
-| `A large determinant always means good conditioning` | Conditioning depends on singular value ratio, not product alone | Use singular values or condition number |
+| Mistake                                                               | Why it is wrong                                                      | Fix                                               |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------- | ---------------------- | ------------------------------------- |
+| `det(A + B) = det(A) + det(B)`                                        | Determinant is not linear in the whole matrix                        | Use multilinearity one row/column at a time only  |
+| `det(AB) = det(A) + det(B)`                                           | Determinant is multiplicative, not additive                          | Remember `det(AB) = det(A)det(B)`                 |
+| `det(2A) = 2 det(A)`                                                  | Scaling every row by 2 scales determinant by $2^n$                   | Use `det(alpha A) = alpha^n det(A)`               |
+| `det(A) approximately 0 means numerically singular`                   | Determinant magnitude depends on scale and dimension                 | Use condition number to diagnose near-singularity |
+| `Sarrus' rule works for 4x4`                                          | It only works for 3x3 matrices                                       | Use cofactor expansion or LU beyond 3x3           |
+| `det(A) > 0 means all eigenvalues are positive`                       | Only the product is positive; negative eigenvalues can come in pairs | Check all eigenvalues or SPD criteria             |
+| `Adding a multiple of one row changes determinant`                    | Row replacement leaves determinant unchanged                         | Track only swaps and scalings                     |
+| `det(A) = 0 tells me whether Ax=b has no solution or infinitely many` | It only tells you the matrix is singular                             | Use the ranks of $A$ and $[A \mid b]$ for classification |
+| `log(det(A))` is always real                                          | Not if determinant is negative or matrix is not SPD                  | Use $\log |\det(A)|$ or `slogdet` unless SPD is guaranteed |
+| `A large determinant always means good conditioning`                  | Conditioning depends on singular value ratio, not product alone      | Use singular values or condition number           |
 
 ## 15. Exercises
 
@@ -2098,11 +2100,13 @@ That is the bridge to the next chapter:
 
 2. **Property verification**
    Let
+
    $$
    A=\begin{pmatrix}2&1\\1&3\end{pmatrix},
    \qquad
    B=\begin{pmatrix}1&-1\\2&0\end{pmatrix}.
    $$
+
    Verify:
    - $\det(AB)=\det(A)\det(B)=\det(BA)$
    - $\det(A+B)\neq \det(A)+\det(B)$
@@ -2111,9 +2115,11 @@ That is the bridge to the next chapter:
 
 3. **Characteristic polynomial**
    For
+
    $$
    A=\begin{pmatrix}4&2\\1&3\end{pmatrix},
    $$
+
    compute:
    - the characteristic polynomial
    - the eigenvalues
@@ -2122,21 +2128,25 @@ That is the bridge to the next chapter:
 
 4. **Geometric interpretation**
    In $\mathbb{R}^2$, let
+
    $$
    u=\begin{pmatrix}3\\1\end{pmatrix},\qquad
    v=\begin{pmatrix}1\\2\end{pmatrix}.
    $$
+
    Find the area of the spanned parallelogram, then apply:
    - a rotation
    - a reflection
    - a scaling by factor 3
-   and track what happens to the determinant and orientation in each case.
+     and track what happens to the determinant and orientation in each case.
 
 5. **Cofactors and adjugate**
    For
+
    $$
    A=\begin{pmatrix}1&2&0\\3&1&1\\0&2&1\end{pmatrix},
    $$
+
    compute:
    - $\det(A)$ by two different cofactor expansions
    - the full cofactor matrix
@@ -2162,22 +2172,22 @@ That is the bridge to the next chapter:
    Compare:
    - direct determinant computation of $0.1 I_{50}$
    - stable sign/log-determinant computation
-   Explain why the raw determinant is a poor numerical representation.
+     Explain why the raw determinant is a poor numerical representation.
 
 ## 16. Why This Matters for AI (2026 Edition)
 
-| Aspect | Impact |
-| --- | --- |
-| Normalising flows | The log-determinant of the Jacobian is the core term in the likelihood |
-| Multivariate Gaussians | Covariance normalization and entropy both depend on log-det |
-| Gaussian processes | Marginal likelihood combines linear solves and log-determinants |
-| Eigenvalue theory | The characteristic equation is a determinant equation |
-| Invertible networks | Local and global invertibility are determinant statements |
-| Information geometry | Fisher-metric volume terms involve determinants and log-determinants |
-| DPP-based diversity | Determinants score subset diversity via spanned volume |
-| Stability analysis | Determinants summarize total volume expansion or contraction of dynamics |
-| Low-rank updates | Determinant lemmas turn expensive recomputation into small auxiliary problems |
-| Numerical ML systems | Stable `slogdet`, Cholesky log-det, and stochastic estimators are production tools |
+| Aspect                 | Impact                                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| Normalising flows      | The log-determinant of the Jacobian is the core term in the likelihood             |
+| Multivariate Gaussians | Covariance normalization and entropy both depend on log-det                        |
+| Gaussian processes     | Marginal likelihood combines linear solves and log-determinants                    |
+| Eigenvalue theory      | The characteristic equation is a determinant equation                              |
+| Invertible networks    | Local and global invertibility are determinant statements                          |
+| Information geometry   | Fisher-metric volume terms involve determinants and log-determinants               |
+| DPP-based diversity    | Determinants score subset diversity via spanned volume                             |
+| Stability analysis     | Determinants summarize total volume expansion or contraction of dynamics           |
+| Low-rank updates       | Determinant lemmas turn expensive recomputation into small auxiliary problems      |
+| Numerical ML systems   | Stable `slogdet`, Cholesky log-det, and stochastic estimators are production tools |
 
 The bigger picture is that determinants are one of the places where algebra and probability truly lock together. In deep learning you often care less about a matrix entry-by-entry and more about what the matrix does globally: does it preserve information, collapse dimensions, distort probability mass, or amplify uncertainty? Determinants answer precisely those questions.
 
@@ -2214,9 +2224,9 @@ Next: **Eigenvalues, Eigenvectors, and Matrix Decompositions**.
 
 ## References
 
-- Gilbert Strang, *Introduction to Linear Algebra*, Wellesley-Cambridge Press.
-- Lloyd N. Trefethen and David Bau III, *Numerical Linear Algebra*, SIAM.
-- Gene H. Golub and Charles F. Van Loan, *Matrix Computations*, Johns Hopkins University Press.
+- Gilbert Strang, _Introduction to Linear Algebra_, Wellesley-Cambridge Press.
+- Lloyd N. Trefethen and David Bau III, _Numerical Linear Algebra_, SIAM.
+- Gene H. Golub and Charles F. Van Loan, _Matrix Computations_, Johns Hopkins University Press.
 - [MIT 18.06 Linear Algebra](https://web.mit.edu/18.06/www/)
 - [Stanford EE263: Introduction to Linear Dynamical Systems](https://stanford.edu/class/ee263/)
 - [Vaswani et al. (2017), "Attention Is All You Need"](https://arxiv.org/abs/1706.03762)
@@ -2227,5 +2237,5 @@ Next: **Eigenvalues, Eigenvectors, and Matrix Decompositions**.
 - [Gardner et al. (2018), "GPyTorch: Blackbox Matrix-Matrix Gaussian Process Inference with GPU Acceleration"](https://proceedings.neurips.cc/paper/2018/hash/27e8e17134dd7083b050476733207ea1-Abstract.html)
 - [GPyTorch documentation: stochastic log-likelihood and Lanczos settings](https://docs.gpytorch.ai/en/v1.8.1/settings.html)
 - [GPyTorch `StochasticLQ` implementation notes](https://docs.gpytorch.ai/en/v1.7.0/_modules/gpytorch/utils/stochastic_lq.html)
-- [Kulesza and Taskar (2012), *Determinantal Point Processes for Machine Learning*](https://www.nowpublishers.com/article/Details/MAL-044)
+- [Kulesza and Taskar (2012), _Determinantal Point Processes for Machine Learning_](https://www.nowpublishers.com/article/Details/MAL-044)
 - [Chen, Trogdon, and Ubaru (2021), "Analysis of stochastic Lanczos quadrature for spectrum approximation"](https://proceedings.mlr.press/v139/chen21s.html)

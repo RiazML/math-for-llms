@@ -243,18 +243,18 @@ That is why hardware and libraries are optimized around GEMM.
 
 It helps to translate abstract language directly into computational language.
 
-| Abstract concept | Computational object |
-| --- | --- |
-| Linear map $T : \mathbb{R}^n \to \mathbb{R}^m$ | Matrix $A \in \mathbb{R}^{m \times n}$ |
-| Composition $T_2 \circ T_1$ | Matrix product $A_2 A_1$ |
-| Identity map | Identity matrix $I$ |
-| Inverse map | Matrix inverse $A^{-1}$ |
-| Adjoint in the real case | Transpose $A^\top$ |
-| Projection onto a subspace | Projection matrix $P$ |
-| Change of basis | Similarity transform $B^{-1}AB$ |
-| Orthonormal basis | Orthogonal matrix $Q$ with $Q^\top Q = I$ |
-| Spectral decomposition | Eigendecomposition $A = V \Lambda V^{-1}$ |
-| Best rank-$r$ approximation | Truncated SVD |
+| Abstract concept                               | Computational object                      |
+| ---------------------------------------------- | ----------------------------------------- |
+| Linear map $T : \mathbb{R}^n \to \mathbb{R}^m$ | Matrix $A \in \mathbb{R}^{m \times n}$    |
+| Composition $T_2 \circ T_1$                    | Matrix product $A_2 A_1$                  |
+| Identity map                                   | Identity matrix $I$                       |
+| Inverse map                                    | Matrix inverse $A^{-1}$                   |
+| Adjoint in the real case                       | Transpose $A^\top$                        |
+| Projection onto a subspace                     | Projection matrix $P$                     |
+| Change of basis                                | Similarity transform $B^{-1}AB$           |
+| Orthonormal basis                              | Orthogonal matrix $Q$ with $Q^\top Q = I$ |
+| Spectral decomposition                         | Eigendecomposition $A = V \Lambda V^{-1}$ |
+| Best rank-$r$ approximation                    | Truncated SVD                             |
 
 This dictionary is the bridge between theory and implementation. It explains why so many later algorithms are specialized ways of multiplying, factoring, or solving with matrices.
 
@@ -305,19 +305,19 @@ These categories overlap, but the split is useful. It separates simple entrywise
 
 Matrix operations did not appear all at once. The modern subject is the result of several centuries of algebra, geometry, and numerical computation.
 
-| Period | Development | Why it matters |
-| --- | --- | --- |
-| Ancient China | Elimination methods in *Nine Chapters on the Mathematical Art* | Proto-Gaussian elimination |
-| 17th-18th centuries | Determinants, Cramer's rule, linear systems | Early algebraic treatment of systems |
-| 1809 | Gauss formalizes least squares and elimination | Linear systems and approximation become computational sciences |
-| 1850s | Cayley and Sylvester develop matrix algebra | Matrices become algebraic objects |
-| Late 19th century | Frobenius and spectral ideas | Eigenvalues and structure become central |
-| Early 20th century | Gram-Schmidt and orthogonalization | Stable basis construction emerges |
-| Mid 20th century | Householder, Golub, Reinsch, Wilkinson | Modern numerical linear algebra is born |
-| 1990s | LAPACK | Reference dense linear algebra software stack |
-| 2000s onward | cuBLAS and GPU linear algebra | Matrix operations move to accelerators |
-| 2017 onward | Transformers and attention | GEMM becomes the dominant workload in AI |
-| 2020s | FlashAttention, Tensor Cores, FP8 | Matrix arithmetic is co-designed with hardware |
+| Period              | Development                                                    | Why it matters                                                 |
+| ------------------- | -------------------------------------------------------------- | -------------------------------------------------------------- |
+| Ancient China       | Elimination methods in _Nine Chapters on the Mathematical Art_ | Proto-Gaussian elimination                                     |
+| 17th-18th centuries | Determinants, Cramer's rule, linear systems                    | Early algebraic treatment of systems                           |
+| 1809                | Gauss formalizes least squares and elimination                 | Linear systems and approximation become computational sciences |
+| 1850s               | Cayley and Sylvester develop matrix algebra                    | Matrices become algebraic objects                              |
+| Late 19th century   | Frobenius and spectral ideas                                   | Eigenvalues and structure become central                       |
+| Early 20th century  | Gram-Schmidt and orthogonalization                             | Stable basis construction emerges                              |
+| Mid 20th century    | Householder, Golub, Reinsch, Wilkinson                         | Modern numerical linear algebra is born                        |
+| 1990s               | LAPACK                                                         | Reference dense linear algebra software stack                  |
+| 2000s onward        | cuBLAS and GPU linear algebra                                  | Matrix operations move to accelerators                         |
+| 2017 onward         | Transformers and attention                                     | GEMM becomes the dominant workload in AI                       |
+| 2020s               | FlashAttention, Tensor Cores, FP8                              | Matrix arithmetic is co-designed with hardware                 |
 
 The historical arc is instructive. Matrix operations began as abstract mathematics, matured into numerical algorithms, and then became the central workload of modern AI hardware.
 
@@ -1476,7 +1476,6 @@ $$
 
 The pseudo-inverse behaves like inverse in some ways, but not all.
 
-
 ---
 
 ## 8. Matrix Decompositions — Preview
@@ -1485,13 +1484,13 @@ Matrix decompositions factor $A$ into structured products that expose different 
 
 > **Decomposition decision table**
 >
-> | Goal | Use |
-> | ---- | --- |
-> | Solve $Ax = b$ for general square $A$ | LU (Gaussian elimination) |
-> | Solve $Ax = b$ for symmetric positive definite $A$ | Cholesky |
-> | Least squares: $\min_x \\|Ax - b\\|$ | QR |
-> | Eigenvalues and eigenvectors of square $A$ | Eigendecomposition |
-> | Best rank-$k$ approximation, pseudo-inverse, all cases | SVD |
+> | Goal                                                   | Use                       |
+> | ------------------------------------------------------ | ------------------------- | --- | --- |
+> | Solve $Ax = b$ for general square $A$                  | LU (Gaussian elimination) |
+> | Solve $Ax = b$ for symmetric positive definite $A$     | Cholesky                  |
+> | Least squares: $\min_x \\                              | Ax - b\\                  | $   | QR  |
+> | Eigenvalues and eigenvectors of square $A$             | Eigendecomposition        |
+> | Best rank-$k$ approximation, pseudo-inverse, all cases | SVD                       |
 
 ---
 
@@ -1565,18 +1564,18 @@ For a symmetric positive definite (SPD) matrix $A$, Cholesky gives $A = LL^\top$
 
 ## 9. Common Mistakes
 
-| Mistake | Why it is wrong | Better rule |
-| --- | --- | --- |
-| "Matrix multiplication is commutative." | In general $AB \neq BA$, and sometimes only one product is even defined. | Track order carefully. |
-| "$AB = 0$ means one factor must be zero." | Matrices have zero divisors. | Zero product does not imply zero factor. |
-| "$(AB)^{-1} = A^{-1}B^{-1}$." | Inverse reverses order. | $(AB)^{-1} = B^{-1}A^{-1}$. |
-| "If $A^2 = 0$, then $A=0$." | Nilpotent matrices exist. | Matrix powers do not behave like scalar powers. |
-| "Product of symmetric matrices is symmetric." | $(AB)^\top = BA$, which equals $AB$ only if $A$ and $B$ commute. | $AB$ is symmetric iff $AB=BA$ when both are symmetric. |
-| "Every square matrix has an inverse." | A square matrix can still be singular. | Check rank, determinant, or null space first. |
-| "To solve $Ax=b$, compute $A^{-1}b$." | Explicit inversion is usually slower and less stable than solving directly. | Use a linear solver or factorization. |
-| "Row rank and column rank may differ." | They are always equal. | Rank is one number, not two competing ones. |
-| "Every square matrix has an eigendecomposition." | Some matrices are defective and not diagonalizable. | SVD always exists; eigendecomposition does not. |
-| "Hadamard and matrix product are basically the same." | One is entrywise, one contracts over an index. | Treat them as different operations. |
+| Mistake                                               | Why it is wrong                                                             | Better rule                                            |
+| ----------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------ |
+| "Matrix multiplication is commutative."               | In general $AB \neq BA$, and sometimes only one product is even defined.    | Track order carefully.                                 |
+| "$AB = 0$ means one factor must be zero."             | Matrices have zero divisors.                                                | Zero product does not imply zero factor.               |
+| "$(AB)^{-1} = A^{-1}B^{-1}$."                         | Inverse reverses order.                                                     | $(AB)^{-1} = B^{-1}A^{-1}$.                            |
+| "If $A^2 = 0$, then $A=0$."                           | Nilpotent matrices exist.                                                   | Matrix powers do not behave like scalar powers.        |
+| "Product of symmetric matrices is symmetric."         | $(AB)^\top = BA$, which equals $AB$ only if $A$ and $B$ commute.            | $AB$ is symmetric iff $AB=BA$ when both are symmetric. |
+| "Every square matrix has an inverse."                 | A square matrix can still be singular.                                      | Check rank, determinant, or null space first.          |
+| "To solve $Ax=b$, compute $A^{-1}b$."                 | Explicit inversion is usually slower and less stable than solving directly. | Use a linear solver or factorization.                  |
+| "Row rank and column rank may differ."                | They are always equal.                                                      | Rank is one number, not two competing ones.            |
+| "Every square matrix has an eigendecomposition."      | Some matrices are defective and not diagonalizable.                         | SVD always exists; eigendecomposition does not.        |
+| "Hadamard and matrix product are basically the same." | One is entrywise, one contracts over an index.                              | Treat them as different operations.                    |
 
 ---
 
@@ -1685,18 +1684,18 @@ These exercises are designed to force both algebraic fluency and computational i
 
 ## 11. Why This Matters for AI
 
-| Aspect | Why matrix operations matter |
-| --- | --- |
-| Every forward pass | Transformer layers are dominated by matrix multiplies: projections, attention scores, attention outputs, and feed-forward blocks. |
-| Hardware efficiency | GPU and accelerator utilization is largely a GEMM scheduling problem. Batching, tiling, and layout determine whether tensor units are actually used well. |
-| Backpropagation | Gradient formulas are matrix operations with transposes, outer products, and reductions. Reverse-order transpose rules are built directly into reverse-mode differentiation. |
-| Low-rank adaptation | LoRA is matrix factorization applied to parameter updates. Its practicality is a direct consequence of low-rank structure and the SVD viewpoint. |
+| Aspect              | Why matrix operations matter                                                                                                                                                                       |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Every forward pass  | Transformer layers are dominated by matrix multiplies: projections, attention scores, attention outputs, and feed-forward blocks.                                                                  |
+| Hardware efficiency | GPU and accelerator utilization is largely a GEMM scheduling problem. Batching, tiling, and layout determine whether tensor units are actually used well.                                          |
+| Backpropagation     | Gradient formulas are matrix operations with transposes, outer products, and reductions. Reverse-order transpose rules are built directly into reverse-mode differentiation.                       |
+| Low-rank adaptation | LoRA is matrix factorization applied to parameter updates. Its practicality is a direct consequence of low-rank structure and the SVD viewpoint.                                                   |
 | MLA-style attention | DeepSeek-V2 reports that Multi-head Latent Attention compresses KV cache heavily and increases generation throughput by caching a low-rank latent representation instead of full key-value states. |
-| Numerical stability | Condition number, decomposition choice, and matrix norms affect whether optimization remains stable or blows up. |
-| Quantization | Post-training quantization, compensation, and calibration all rely on matrix norms, least squares, and low-rank corrections. |
-| Optimizers | Methods such as K-FAC and Shampoo are explicitly matrix-based, using structured curvature approximations, matrix roots, or Kronecker factors. |
-| Interpretability | SVD and eigenspectral analysis of weight matrices, OV circuits, and activations expose dominant directions and effective rank. |
-| Inference latency | Training is GEMM-heavy and compute-dense, while single-sequence decoding often behaves more like bandwidth-limited GEMV. Understanding the matrix regime explains the performance difference. |
+| Numerical stability | Condition number, decomposition choice, and matrix norms affect whether optimization remains stable or blows up.                                                                                   |
+| Quantization        | Post-training quantization, compensation, and calibration all rely on matrix norms, least squares, and low-rank corrections.                                                                       |
+| Optimizers          | Methods such as K-FAC and Shampoo are explicitly matrix-based, using structured curvature approximations, matrix roots, or Kronecker factors.                                                      |
+| Interpretability    | SVD and eigenspectral analysis of weight matrices, OV circuits, and activations expose dominant directions and effective rank.                                                                     |
+| Inference latency   | Training is GEMM-heavy and compute-dense, while single-sequence decoding often behaves more like bandwidth-limited GEMV. Understanding the matrix regime explains the performance difference.      |
 
 The short version is that matrix operations are not a chapter you pass through on the way to AI. They are the operational core of AI itself.
 
@@ -1733,25 +1732,25 @@ If this chapter leaves you with one durable mental model, let it be this:
 
 ### Core Linear Algebra and Numerical Linear Algebra
 
-- Sheldon Axler, *Linear Algebra Done Right*: [https://linear.axler.net/](https://linear.axler.net/)
+- Sheldon Axler, _Linear Algebra Done Right_: [https://linear.axler.net/](https://linear.axler.net/)
 - MIT 18.06 Linear Algebra materials: [https://web.mit.edu/18.06/www/](https://web.mit.edu/18.06/www/)
 - LAPACK official site: [https://www.netlib.org/lapack/](https://www.netlib.org/lapack/)
 - NVIDIA cuBLAS documentation: [https://docs.nvidia.com/cuda/cublas/](https://docs.nvidia.com/cuda/cublas/)
-- Halko, Martinsson, and Tropp (2011), *Finding Structure with Randomness: Probabilistic Algorithms for Constructing Approximate Matrix Decompositions*: [https://authors.library.caltech.edu/27399/](https://authors.library.caltech.edu/27399/)
+- Halko, Martinsson, and Tropp (2011), _Finding Structure with Randomness: Probabilistic Algorithms for Constructing Approximate Matrix Decompositions_: [https://authors.library.caltech.edu/27399/](https://authors.library.caltech.edu/27399/)
 
 ### Transformers, Attention, and Low-Rank Adaptation
 
-- Ashish Vaswani et al. (2017), *Attention Is All You Need*: [https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762)
-- Tri Dao et al. (2022), *FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness*: [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
-- Tri Dao et al. (2024), *FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision*: [https://arxiv.org/abs/2407.08608](https://arxiv.org/abs/2407.08608)
-- Edward J. Hu et al. (2021/2022), *LoRA: Low-Rank Adaptation of Large Language Models*: [https://arxiv.org/abs/2106.09685](https://arxiv.org/abs/2106.09685)
+- Ashish Vaswani et al. (2017), _Attention Is All You Need_: [https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762)
+- Tri Dao et al. (2022), _FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness_: [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
+- Tri Dao et al. (2024), _FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision_: [https://arxiv.org/abs/2407.08608](https://arxiv.org/abs/2407.08608)
+- Edward J. Hu et al. (2021/2022), _LoRA: Low-Rank Adaptation of Large Language Models_: [https://arxiv.org/abs/2106.09685](https://arxiv.org/abs/2106.09685)
 
 ### Large-Model Systems and Hardware
 
 - NVIDIA H100 product specifications: [https://www.nvidia.com/en-eu/data-center/h100/](https://www.nvidia.com/en-eu/data-center/h100/)
 - NVIDIA Hopper architecture overview: [https://www.nvidia.com/en-us/data-center/technologies/hopper-architecture/](https://www.nvidia.com/en-us/data-center/technologies/hopper-architecture/)
-- DeepSeek-AI (2024), *DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model*: [https://arxiv.org/abs/2405.04434](https://arxiv.org/abs/2405.04434)
-- DeepSeek-AI (2024/2025), *DeepSeek-V3 Technical Report*: [https://arxiv.org/abs/2412.19437](https://arxiv.org/abs/2412.19437)
+- DeepSeek-AI (2024), _DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model_: [https://arxiv.org/abs/2405.04434](https://arxiv.org/abs/2405.04434)
+- DeepSeek-AI (2024/2025), _DeepSeek-V3 Technical Report_: [https://arxiv.org/abs/2412.19437](https://arxiv.org/abs/2412.19437)
 
 ---
 

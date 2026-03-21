@@ -26,10 +26,10 @@ The treatment connects every mathematical concept to its concrete role in modern
 
 ## Companion Notebooks
 
-| Notebook | Description |
-| --- | --- |
-| [theory.ipynb](theory.ipynb) | Interactive demos: attention as kernel smoother, variance scaling proof, RoPE rotation visualisation, FlashAttention tiling, attention head patterns, scaling laws |
-| [exercises.ipynb](exercises.ipynb) | 8 graded problems: dot-product attention, multi-head from scratch, RoPE implementation, causal masking, parameter counting, FlashAttention, LoRA, induction heads |
+| Notebook                           | Description                                                                                                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [theory.ipynb](theory.ipynb)       | Interactive demos: attention as kernel smoother, variance scaling proof, RoPE rotation visualisation, FlashAttention tiling, attention head patterns, scaling laws |
+| [exercises.ipynb](exercises.ipynb) | 8 graded problems: dot-product attention, multi-head from scratch, RoPE implementation, causal masking, parameter counting, FlashAttention, LoRA, induction heads  |
 
 ## Learning Objectives
 
@@ -152,6 +152,7 @@ This quantitative argument shows the bottleneck is real, not merely theoretical.
 The key insight of the attention mechanism is to bypass the sequential chain entirely. Instead of forcing information through a bottleneck, attention allows the model to **directly access** any position in the input sequence.
 
 The analogy is a database query. Given:
+
 - A **query** $\mathbf{q}$: "what information do I need right now?"
 - A set of **keys** $\{\mathbf{k}_1, \ldots, \mathbf{k}_n\}$: "what does each position contain?"
 - A set of **values** $\{\mathbf{v}_1, \ldots, \mathbf{v}_n\}$: "the actual content at each position"
@@ -168,11 +169,11 @@ This is a **soft** lookup because it returns a weighted combination of all value
 
 **The parallel processing advantage.** Attention computes all pairwise interactions in a single matrix multiplication $QK^\top$. For a sequence of length $n$, this requires $O(1)$ sequential steps (parallelised across the $n^2$ pairs), compared to $O(n)$ sequential steps for an RNN. On modern GPUs with thousands of cores, this parallelism translates directly to wall-clock speedup:
 
-| Model type | Sequential steps | Parallelism | Training speed |
-| --- | --- | --- | --- |
-| RNN | $O(n)$ | None across time | Slow for long sequences |
-| LSTM | $O(n)$ | None across time | Slow, but better gradients |
-| Transformer | $O(1)$ | $O(n^2)$ pairs in parallel | Fast — limited by memory |
+| Model type  | Sequential steps | Parallelism                | Training speed             |
+| ----------- | ---------------- | -------------------------- | -------------------------- |
+| RNN         | $O(n)$           | None across time           | Slow for long sequences    |
+| LSTM        | $O(n)$           | None across time           | Slow, but better gradients |
+| Transformer | $O(1)$           | $O(n^2)$ pairs in parallel | Fast — limited by memory   |
 
 This is the practical reason Transformers won: not just better quality, but orders-of-magnitude faster training through parallelism.
 
@@ -198,7 +199,7 @@ The Transformer paper introduced all three simultaneously. The subsequent histor
 
 ### 1.4 Historical Timeline
 
-```
+```text
 TRANSFORMER TIMELINE
 ════════════════════════════════════════════════════════════════════════
 
@@ -257,13 +258,13 @@ When queries and keys are approximately unit-norm (which normalisation layers en
 
 **Attention score comparison:**
 
-| Score function | Formula | Complexity | Used in |
-| --- | --- | --- | --- |
-| Dot product | $\mathbf{q}^\top \mathbf{k}$ | $O(d)$ | Transformer (Vaswani) |
-| Scaled dot product | $\mathbf{q}^\top \mathbf{k} / \sqrt{d_k}$ | $O(d)$ | All modern Transformers |
-| Additive (Bahdanau) | $\mathbf{v}^\top \tanh(W_1 \mathbf{q} + W_2 \mathbf{k})$ | $O(d^2)$ | Seq2seq attention |
-| Cosine | $\mathbf{q}^\top \mathbf{k} / (\lVert \mathbf{q} \rVert \lVert \mathbf{k} \rVert)$ | $O(d)$ | Some retrieval models |
-| Bilinear | $\mathbf{q}^\top W \mathbf{k}$ | $O(d^2)$ | Luong attention |
+| Score function      | Formula                                                                            | Complexity | Used in                 |
+| ------------------- | ---------------------------------------------------------------------------------- | ---------- | ----------------------- |
+| Dot product         | $\mathbf{q}^\top \mathbf{k}$                                                       | $O(d)$     | Transformer (Vaswani)   |
+| Scaled dot product  | $\mathbf{q}^\top \mathbf{k} / \sqrt{d_k}$                                          | $O(d)$     | All modern Transformers |
+| Additive (Bahdanau) | $\mathbf{v}^\top \tanh(W_1 \mathbf{q} + W_2 \mathbf{k})$                           | $O(d^2)$   | Seq2seq attention       |
+| Cosine              | $\mathbf{q}^\top \mathbf{k} / (\lVert \mathbf{q} \rVert \lVert \mathbf{k} \rVert)$ | $O(d)$     | Some retrieval models   |
+| Bilinear            | $\mathbf{q}^\top W \mathbf{k}$                                                     | $O(d^2)$   | Luong attention         |
 
 ### 2.3 The Variance Problem and Scaling
 
@@ -271,7 +272,7 @@ When queries and keys are approximately unit-norm (which normalisation layers en
 
 $$\mathbb{E}[\mathbf{q}^\top \mathbf{k}] = 0, \qquad \operatorname{Var}(\mathbf{q}^\top \mathbf{k}) = d_k$$
 
-*Proof.* We have $\mathbf{q}^\top \mathbf{k} = \sum_{i=1}^{d_k} q_i k_i$. Since the components are independent with $\mathbb{E}[q_i] = \mathbb{E}[k_i] = 0$:
+_Proof._ We have $\mathbf{q}^\top \mathbf{k} = \sum_{i=1}^{d_k} q_i k_i$. Since the components are independent with $\mathbb{E}[q_i] = \mathbb{E}[k_i] = 0$:
 
 $$\mathbb{E}[q_i k_i] = \mathbb{E}[q_i]\mathbb{E}[k_i] = 0$$
 
@@ -341,12 +342,12 @@ This means attention is a **learned kernel smoother**: queries define the points
 
 **Other kernel choices.** The softmax kernel is not the only option:
 
-| Kernel | Formula | Properties |
-| --- | --- | --- |
-| Softmax (standard) | $k(\mathbf{q}, \mathbf{k}) = \exp(\mathbf{q}^\top \mathbf{k} / \sqrt{d})$ | Sharp; non-decomposable; $O(n^2)$ |
-| RBF (Gaussian) | $k(\mathbf{q}, \mathbf{k}) = \exp(-\lVert \mathbf{q} - \mathbf{k} \rVert^2 / 2)$ | Translation-invariant; equivalent to softmax up to normalisation |
-| Polynomial | $k(\mathbf{q}, \mathbf{k}) = (\mathbf{q}^\top \mathbf{k})^p$ | Decomposable for fixed $p$; linear attention variant |
-| Random features (Performers) | $k(\mathbf{q}, \mathbf{k}) \approx \phi(\mathbf{q})^\top \phi(\mathbf{k})$ | Approximates softmax; $O(nd)$; quality gap |
+| Kernel                       | Formula                                                                          | Properties                                                       |
+| ---------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Softmax (standard)           | $k(\mathbf{q}, \mathbf{k}) = \exp(\mathbf{q}^\top \mathbf{k} / \sqrt{d})$        | Sharp; non-decomposable; $O(n^2)$                                |
+| RBF (Gaussian)               | $k(\mathbf{q}, \mathbf{k}) = \exp(-\lVert \mathbf{q} - \mathbf{k} \rVert^2 / 2)$ | Translation-invariant; equivalent to softmax up to normalisation |
+| Polynomial                   | $k(\mathbf{q}, \mathbf{k}) = (\mathbf{q}^\top \mathbf{k})^p$                     | Decomposable for fixed $p$; linear attention variant             |
+| Random features (Performers) | $k(\mathbf{q}, \mathbf{k}) \approx \phi(\mathbf{q})^\top \phi(\mathbf{k})$       | Approximates softmax; $O(nd)$; quality gap                       |
 
 The softmax kernel's non-decomposability is precisely what creates the $O(n^2)$ cost — and also what makes attention so effective at sharp, selective retrieval.
 
@@ -368,7 +369,7 @@ The attention matrix $A = \operatorname{softmax}(QK^\top / \sqrt{d_k}) \in \math
 
 **Attention sink phenomenon.** Xiao et al. (2024) observed that in autoregressive LLMs, the first few tokens receive extremely high attention weights regardless of content. These positions act as "attention sinks" — the model uses them as a default when no other position is clearly relevant. This has practical implications for KV cache management: the initial tokens must always be kept in cache even during streaming.
 
-```
+```text
 ATTENTION MATRIX STRUCTURE
 ════════════════════════════════════════════════════════════════════════
 
@@ -470,7 +471,7 @@ $$K = XW_K, \quad V = XW_V \qquad \text{(shared across all heads)}$$
 
 **Grouped-Query Attention (GQA, Ainslie et al. 2023):** A middle ground — $h$ query heads are divided into $g$ groups, and each group shares one set of K/V. LLaMA-2 70B uses GQA with 8 KV heads and 64 query heads ($g = 8$).
 
-```
+```text
 ATTENTION HEAD SHARING
 ════════════════════════════════════════════════════════════════════════
 
@@ -498,7 +499,7 @@ ATTENTION HEAD SHARING
 
 **Theorem.** Self-attention (without positional encodings) is permutation-equivariant: if we permute the input sequence, the output is permuted in the same way.
 
-*Proof.* Let $\Pi \in \{0,1\}^{n \times n}$ be a permutation matrix. The permuted input is $\tilde{X} = \Pi X$. Then:
+_Proof._ Let $\Pi \in \{0,1\}^{n \times n}$ be a permutation matrix. The permuted input is $\tilde{X} = \Pi X$. Then:
 
 $$\tilde{Q}\tilde{K}^\top = (\Pi X W_Q)(\Pi X W_K)^\top = \Pi (X W_Q)(X W_K)^\top \Pi^\top = \Pi S \Pi^\top$$
 
@@ -593,29 +594,29 @@ A critical question: can a model trained on sequences of length $L_{\text{train}
 4. **Length generalisation:** The encoding should work for sequences longer than those seen during training.
 5. **Efficiency:** Minimal additional parameters and compute.
 
-| Method | Unique | Bounded | Relative | Generalisation | Params |
-| --- | --- | --- | --- | --- | --- |
-| Sinusoidal | Yes | Yes | Yes (linear) | Poor | 0 |
-| Learned absolute | Yes | Trained | No | None | $n \cdot d$ |
-| RoPE | Yes | Yes | Yes (rotation) | Moderate → good with scaling | 0 |
-| ALiBi | N/A (bias) | Yes | Yes (linear decay) | Good | 0 |
+| Method           | Unique     | Bounded | Relative           | Generalisation               | Params      |
+| ---------------- | ---------- | ------- | ------------------ | ---------------------------- | ----------- |
+| Sinusoidal       | Yes        | Yes     | Yes (linear)       | Poor                         | 0           |
+| Learned absolute | Yes        | Trained | No                 | None                         | $n \cdot d$ |
+| RoPE             | Yes        | Yes     | Yes (rotation)     | Moderate → good with scaling | 0           |
+| ALiBi            | N/A (bias) | Yes     | Yes (linear decay) | Good                         | 0           |
 
 No method perfectly satisfies all desiderata, which is why positional encoding remains an active research area.
 
 **Context length evolution (enabled by positional encoding advances):**
 
-| Year | Model | Context length | Positional encoding |
-| --- | --- | --- | --- |
-| 2017 | Transformer | 512 | Sinusoidal |
-| 2018 | GPT-1 | 512 | Learned absolute |
-| 2019 | GPT-2 | 1024 | Learned absolute |
-| 2020 | GPT-3 | 2048 | Learned absolute |
-| 2023 | LLaMA-1 | 2048 | RoPE |
-| 2023 | LLaMA-2 | 4096 | RoPE |
-| 2023 | Mistral | 8192 (32K effective) | RoPE + sliding window |
-| 2024 | LLaMA-3 | 8192 → 128K | RoPE + NTK-aware scaling |
-| 2024 | Claude-3 | 200K | Proprietary |
-| 2025 | Gemini-1.5 | 1M+ | Proprietary |
+| Year | Model       | Context length       | Positional encoding      |
+| ---- | ----------- | -------------------- | ------------------------ |
+| 2017 | Transformer | 512                  | Sinusoidal               |
+| 2018 | GPT-1       | 512                  | Learned absolute         |
+| 2019 | GPT-2       | 1024                 | Learned absolute         |
+| 2020 | GPT-3       | 2048                 | Learned absolute         |
+| 2023 | LLaMA-1     | 2048                 | RoPE                     |
+| 2023 | LLaMA-2     | 4096                 | RoPE                     |
+| 2023 | Mistral     | 8192 (32K effective) | RoPE + sliding window    |
+| 2024 | LLaMA-3     | 8192 → 128K          | RoPE + NTK-aware scaling |
+| 2024 | Claude-3    | 200K                 | Proprietary              |
+| 2025 | Gemini-1.5  | 1M+                  | Proprietary              |
 
 The 2000× increase in context length (512 → 1M) over 8 years was enabled by three advances: (1) RoPE replacing learned absolute positions, (2) FlashAttention making long sequences computationally feasible, (3) NTK-aware and YaRN scaling extending RoPE beyond training length.
 
@@ -702,12 +703,12 @@ FFN AS KEY-VALUE MEMORY
 
 **Activation function comparison for FFN:**
 
-| Activation | Formula | Derivative | Properties |
-| --- | --- | --- | --- |
-| ReLU | $\max(0, z)$ | $\mathbb{1}[z > 0]$ | Sparse; dead neurons; fast |
-| GELU | $z \Phi(z)$ | $\Phi(z) + z\phi(z)$ | Smooth; used in BERT, GPT-2 |
-| Swish | $z \cdot \sigma(\beta z)$ | $\sigma(\beta z)(1 + \beta z(1 - \sigma(\beta z)))$ | Smooth; $\beta = 1$ for SiLU |
-| SwiGLU | $\operatorname{Swish}(W_1 \mathbf{x}) \odot W_3 \mathbf{x}$ | Product rule + Swish derivative | Gated; best empirical performance |
+| Activation | Formula                                                     | Derivative                                          | Properties                        |
+| ---------- | ----------------------------------------------------------- | --------------------------------------------------- | --------------------------------- |
+| ReLU       | $\max(0, z)$                                                | $\mathbb{1}[z > 0]$                                 | Sparse; dead neurons; fast        |
+| GELU       | $z \Phi(z)$                                                 | $\Phi(z) + z\phi(z)$                                | Smooth; used in BERT, GPT-2       |
+| Swish      | $z \cdot \sigma(\beta z)$                                   | $\sigma(\beta z)(1 + \beta z(1 - \sigma(\beta z)))$ | Smooth; $\beta = 1$ for SiLU      |
+| SwiGLU     | $\operatorname{Swish}(W_1 \mathbf{x}) \odot W_3 \mathbf{x}$ | Product rule + Swish derivative                     | Gated; best empirical performance |
 
 **Non-examples (what the FFN is NOT):**
 
@@ -803,11 +804,11 @@ where $\alpha = (2L)^{1/4}$ for a network with $L$ layers, and the sublayer weig
 
 **Normalisation comparison:**
 
-| Method | Formula | Params | Compute | Used in |
-| --- | --- | --- | --- | --- |
-| LayerNorm | $\gamma \odot (\mathbf{x} - \mu) / \sqrt{\sigma^2 + \epsilon} + \beta$ | $2d$ | 2 reductions | Original Transformer, BERT |
-| RMSNorm | $\gamma \odot \mathbf{x} / \sqrt{\frac{1}{d}\sum x_i^2 + \epsilon}$ | $d$ | 1 reduction | LLaMA, Mistral, PaLM-2 |
-| DeepNorm | $\operatorname{Norm}(\alpha \mathbf{x} + \text{Sublayer}(\mathbf{x}))$ | $d$ or $2d$ | +1 scalar mult | Very deep models (100+ layers) |
+| Method    | Formula                                                                | Params      | Compute        | Used in                        |
+| --------- | ---------------------------------------------------------------------- | ----------- | -------------- | ------------------------------ |
+| LayerNorm | $\gamma \odot (\mathbf{x} - \mu) / \sqrt{\sigma^2 + \epsilon} + \beta$ | $2d$        | 2 reductions   | Original Transformer, BERT     |
+| RMSNorm   | $\gamma \odot \mathbf{x} / \sqrt{\frac{1}{d}\sum x_i^2 + \epsilon}$    | $d$         | 1 reduction    | LLaMA, Mistral, PaLM-2         |
+| DeepNorm  | $\operatorname{Norm}(\alpha \mathbf{x} + \text{Sublayer}(\mathbf{x}))$ | $d$ or $2d$ | +1 scalar mult | Very deep models (100+ layers) |
 
 **Non-examples (what is NOT normalisation):**
 
@@ -855,7 +856,7 @@ $$\text{logits} = \operatorname{LMHead}(\operatorname{RMSNorm}(\mathbf{x}^{(L)})
 
 where $\operatorname{LMHead}$ is a linear projection to vocabulary size $V$: $\text{logits} \in \mathbb{R}^{n \times V}$.
 
-```
+```text
 TRANSFORMER BLOCK (PRE-NORM, LLaMA STYLE)
 ════════════════════════════════════════════════════════════════════════
 
@@ -904,6 +905,7 @@ $$\mathcal{L}(\theta) = -\frac{1}{T} \sum_{t=1}^{T} \log P_\theta(x_t \mid x_1, 
 This is simply the negative log-likelihood of the data under an autoregressive factorisation. By the chain rule of probability: $P(x_1, \ldots, x_T) = \prod_{t=1}^T P(x_t \mid x_{<t})$. Minimising the loss is equivalent to maximum likelihood estimation of the joint distribution — the most natural and theoretically grounded training objective. No task-specific design decisions are needed.
 
 **The LLaMA recipe (2023):** The specific combination that became the open-source standard:
+
 - Pre-Norm with RMSNorm
 - SwiGLU activation in FFN
 - RoPE positional embeddings
@@ -927,6 +929,7 @@ where $\mathcal{M}$ is the set of masked positions and $x_{\setminus \mathcal{M}
 ### 7.4 Encoder–Decoder (T5, Whisper)
 
 The encoder–decoder architecture has two stacks:
+
 1. **Encoder:** bidirectional self-attention (like BERT)
 2. **Decoder:** causal self-attention + cross-attention to encoder
 
@@ -959,15 +962,15 @@ TRANSFORMER ARCHITECTURAL VARIANTS
 
 For a decoder-only Transformer with $L$ layers, $d_{\text{model}} = d$, $h$ heads, $d_{ff} = 4d$ (ReLU) or $\frac{8}{3}d$ (SwiGLU), and vocabulary $V$:
 
-| Component | Parameters | Notes |
-| --- | --- | --- |
-| Token embedding | $V \cdot d$ | Often tied with LM head |
-| Per-layer attention ($W_Q, W_K, W_V, W_O$) | $4d^2$ | Same for any $h$ |
-| Per-layer FFN (ReLU, $4\times$) | $8d^2 + 5d$ | Or $8d^2$ ignoring bias |
-| Per-layer FFN (SwiGLU, $\frac{8}{3}\times$) | $8d^2$ | Three matrices |
-| Per-layer norms (2 RMSNorm) | $2d$ | Just $\gamma$ vectors |
-| Final norm | $d$ | Before LM head |
-| LM head | $V \cdot d$ | Often tied with embedding |
+| Component                                   | Parameters  | Notes                     |
+| ------------------------------------------- | ----------- | ------------------------- |
+| Token embedding                             | $V \cdot d$ | Often tied with LM head   |
+| Per-layer attention ($W_Q, W_K, W_V, W_O$)  | $4d^2$      | Same for any $h$          |
+| Per-layer FFN (ReLU, $4\times$)             | $8d^2 + 5d$ | Or $8d^2$ ignoring bias   |
+| Per-layer FFN (SwiGLU, $\frac{8}{3}\times$) | $8d^2$      | Three matrices            |
+| Per-layer norms (2 RMSNorm)                 | $2d$        | Just $\gamma$ vectors     |
+| Final norm                                  | $d$         | Before LM head            |
+| LM head                                     | $V \cdot d$ | Often tied with embedding |
 
 **Total (approximate):** $\text{params} \approx 12 L d^2 + V d$ (ignoring small terms).
 
@@ -977,25 +980,25 @@ For LLaMA-7B: $L = 32$, $d = 4096$, $V = 32000$: $12 \cdot 32 \cdot 4096^2 + 320
 
 **Concrete parameter counts for major models:**
 
-| Model | $L$ | $d$ | $h$ | $d_{ff}$ | Vocab $V$ | Total params |
-| --- | --- | --- | --- | --- | --- | --- |
-| GPT-2 Small | 12 | 768 | 12 | 3072 | 50257 | 124M |
-| BERT-Base | 12 | 768 | 12 | 3072 | 30522 | 110M |
-| GPT-3 | 96 | 12288 | 96 | 49152 | 50257 | 175B |
-| LLaMA-7B | 32 | 4096 | 32 | 11008 | 32000 | 6.7B |
-| LLaMA-70B | 80 | 8192 | 64 | 28672 | 32000 | 70B |
-| Mistral-7B | 32 | 4096 | 32 | 14336 | 32000 | 7.2B |
+| Model       | $L$ | $d$   | $h$ | $d_{ff}$ | Vocab $V$ | Total params |
+| ----------- | --- | ----- | --- | -------- | --------- | ------------ |
+| GPT-2 Small | 12  | 768   | 12  | 3072     | 50257     | 124M         |
+| BERT-Base   | 12  | 768   | 12  | 3072     | 30522     | 110M         |
+| GPT-3       | 96  | 12288 | 96  | 49152    | 50257     | 175B         |
+| LLaMA-7B    | 32  | 4096  | 32  | 11008    | 32000     | 6.7B         |
+| LLaMA-70B   | 80  | 8192  | 64  | 28672    | 32000     | 70B          |
+| Mistral-7B  | 32  | 4096  | 32  | 14336    | 32000     | 7.2B         |
 
 **Memory budget during training (fp32 master + bf16 forward + AdamW):**
 
-| Component | Bytes per param | 7B model | 70B model |
-| --- | --- | --- | --- |
-| bf16 weights (forward) | 2 | 14 GB | 140 GB |
-| fp32 master weights | 4 | 28 GB | 280 GB |
-| fp32 first moment ($m$) | 4 | 28 GB | 280 GB |
-| fp32 second moment ($v$) | 4 | 28 GB | 280 GB |
-| Activations (estimate) | ~10–20 | ~70–140 GB | ~700 GB+ |
-| **Total** | **~24+** | **~170 GB+** | **~1.7 TB+** |
+| Component                | Bytes per param | 7B model     | 70B model    |
+| ------------------------ | --------------- | ------------ | ------------ |
+| bf16 weights (forward)   | 2               | 14 GB        | 140 GB       |
+| fp32 master weights      | 4               | 28 GB        | 280 GB       |
+| fp32 first moment ($m$)  | 4               | 28 GB        | 280 GB       |
+| fp32 second moment ($v$) | 4               | 28 GB        | 280 GB       |
+| Activations (estimate)   | ~10–20          | ~70–140 GB   | ~700 GB+     |
+| **Total**                | **~24+**        | **~170 GB+** | **~1.7 TB+** |
 
 This is why training a 7B model requires at least 2× A100-80GB (for model parallelism), and 70B requires a full node of 8× A100s with tensor/pipeline parallelism.
 
@@ -1008,6 +1011,7 @@ This is why training a 7B model requires at least 2× A100-80GB (for model paral
 The dominant operations in a Transformer forward pass are matrix multiplications. For sequence length $n$, model dimension $d$, and $L$ layers:
 
 **Attention FLOPs per layer:**
+
 1. Compute $Q, K, V$: three matrix multiplications of $(n \times d) \cdot (d \times d)$ = $3 \times 2nd^2$ FLOPs
 2. Compute $QK^\top$: $(n \times d) \cdot (d \times n)$ = $2n^2 d$ FLOPs
 3. Compute $AV$: $(n \times n) \cdot (n \times d)$ = $2n^2 d$ FLOPs
@@ -1036,6 +1040,7 @@ For LLaMA-70B ($L = 80$, $d = 8192$) with fp16 and $n = 4096$: $2 \times 80 \tim
 **FlashAttention** (Dao et al., 2022) is an IO-aware algorithm that computes **exact** attention without materialising the full $n \times n$ attention matrix. The key insight: the bottleneck is not compute (FLOPs) but memory bandwidth — reading and writing the attention matrix to GPU HBM.
 
 **Tiling strategy:** FlashAttention partitions $Q$, $K$, $V$ into blocks that fit in SRAM (on-chip memory, ~20 MB on an A100). For each block of queries:
+
 1. Load a block of $K$ and $V$ into SRAM
 2. Compute local attention scores and values in SRAM
 3. Accumulate using the online softmax trick (Milakov & Gimelshein, 2018)
@@ -1195,12 +1200,12 @@ Modern Transformers train in **mixed precision** (Micikevicius et al., 2018): th
 
 **Number format comparison:**
 
-| Format | Bits | Exponent | Mantissa | Range | Precision | Use |
-| --- | --- | --- | --- | --- | --- | --- |
-| fp32 | 32 | 8 | 23 | $\pm 3.4 \times 10^{38}$ | ~7 digits | Master weights, optimiser |
-| bf16 | 16 | 8 | 7 | $\pm 3.4 \times 10^{38}$ | ~3 digits | Forward/backward pass |
-| fp16 | 16 | 5 | 10 | $\pm 65504$ | ~4 digits | Older training; overflow risk |
-| fp8 (E4M3) | 8 | 4 | 3 | $\pm 448$ | ~2 digits | H100 matmuls |
+| Format     | Bits | Exponent | Mantissa | Range                    | Precision | Use                           |
+| ---------- | ---- | -------- | -------- | ------------------------ | --------- | ----------------------------- |
+| fp32       | 32   | 8        | 23       | $\pm 3.4 \times 10^{38}$ | ~7 digits | Master weights, optimiser     |
+| bf16       | 16   | 8        | 7        | $\pm 3.4 \times 10^{38}$ | ~3 digits | Forward/backward pass         |
+| fp16       | 16   | 5        | 10       | $\pm 65504$              | ~4 digits | Older training; overflow risk |
+| fp8 (E4M3) | 8    | 4        | 3        | $\pm 448$                | ~2 digits | H100 matmuls                  |
 
 ### 9.5 Scaling Laws
 
@@ -1214,13 +1219,13 @@ where $N$ = parameters, $D$ = training tokens, $\alpha \approx 0.34$, $\beta \ap
 
 **Scaling law predictions — concrete examples:**
 
-| Model | Params $N$ | Tokens $D$ | $D/N$ ratio | Compute $\approx 6ND$ | Notes |
-| --- | --- | --- | --- | --- | --- |
-| GPT-3 | 175B | 300B | 1.7 | $3.1 \times 10^{23}$ | Undertrained |
-| Chinchilla | 70B | 1.4T | 20 | $5.9 \times 10^{23}$ | Optimal by Chinchilla |
-| LLaMA-1 7B | 7B | 1T | 143 | $4.2 \times 10^{22}$ | Inference-optimal |
-| LLaMA-2 70B | 70B | 2T | 29 | $8.4 \times 10^{23}$ | Slightly overtrained |
-| LLaMA-3 8B | 8B | 15T | 1875 | $7.2 \times 10^{23}$ | Massively overtrained |
+| Model       | Params $N$ | Tokens $D$ | $D/N$ ratio | Compute $\approx 6ND$ | Notes                 |
+| ----------- | ---------- | ---------- | ----------- | --------------------- | --------------------- |
+| GPT-3       | 175B       | 300B       | 1.7         | $3.1 \times 10^{23}$  | Undertrained          |
+| Chinchilla  | 70B        | 1.4T       | 20          | $5.9 \times 10^{23}$  | Optimal by Chinchilla |
+| LLaMA-1 7B  | 7B         | 1T         | 143         | $4.2 \times 10^{22}$  | Inference-optimal     |
+| LLaMA-2 70B | 70B        | 2T         | 29          | $8.4 \times 10^{23}$  | Slightly overtrained  |
+| LLaMA-3 8B  | 8B         | 15T        | 1875        | $7.2 \times 10^{23}$  | Massively overtrained |
 
 The trend since 2023 has been to **overtrain** relative to Chinchilla — training on far more tokens than the compute-optimal ratio. The reason: at inference time, a smaller model is cheaper to serve, and the extra training compute is a one-time cost. LLaMA-3 trains an 8B model on 15T tokens, achieving performance competitive with larger models at a fraction of the inference cost.
 
@@ -1330,11 +1335,11 @@ A circuit is **complete** for a task if ablating (zeroing out) all components ou
 
 **Known circuits in GPT-2 scale models:**
 
-| Circuit | Function | Components | Reference |
-| --- | --- | --- | --- |
-| Induction heads | In-context pattern completion | 2 attention heads across 2 layers | Olsson et al. (2022) |
-| IOI (Indirect Object ID) | "Mary gave the book to John. John gave..." → "Mary" | 26 heads across 10 layers | Wang et al. (2022) |
-| Greater-than | "The war lasted from 1732 to 17..." → digit > 32 | 5 attention heads + MLPs | Hanna et al. (2023) |
+| Circuit                  | Function                                            | Components                        | Reference            |
+| ------------------------ | --------------------------------------------------- | --------------------------------- | -------------------- |
+| Induction heads          | In-context pattern completion                       | 2 attention heads across 2 layers | Olsson et al. (2022) |
+| IOI (Indirect Object ID) | "Mary gave the book to John. John gave..." → "Mary" | 26 heads across 10 layers         | Wang et al. (2022)   |
+| Greater-than             | "The war lasted from 1732 to 17..." → digit > 32    | 5 attention heads + MLPs          | Hanna et al. (2023)  |
 
 ---
 
@@ -1411,13 +1416,13 @@ where $\bar{A}, \bar{B}$ are **input-dependent** (this is the "selective" part �
 
 **The Transformer–SSM duality.** Both architectures implement a function $y_i = \sum_j w_{ij} v_j$:
 
-| Property | Transformer attention | SSM |
-| --- | --- | --- |
+| Property         | Transformer attention                                                       | SSM                                           |
+| ---------------- | --------------------------------------------------------------------------- | --------------------------------------------- |
 | Weights $w_{ij}$ | Content-dependent: $\operatorname{softmax}(\mathbf{q}_i^\top \mathbf{k}_j)$ | Position-dependent: $C \bar{A}^{i-j} \bar{B}$ |
-| Complexity | $O(n^2 d)$ — quadratic | $O(n d s)$ — linear ($s$ = state dim) |
-| Sharp retrieval | Excellent (softmax can concentrate) | Poor (exponential decay) |
-| Long-range | Good but expensive | Excellent and cheap |
-| Parallelisable | Yes (matrix multiply) | Yes (parallel scan) |
+| Complexity       | $O(n^2 d)$ — quadratic                                                      | $O(n d s)$ — linear ($s$ = state dim)         |
+| Sharp retrieval  | Excellent (softmax can concentrate)                                         | Poor (exponential decay)                      |
+| Long-range       | Good but expensive                                                          | Excellent and cheap                           |
+| Parallelisable   | Yes (matrix multiply)                                                       | Yes (parallel scan)                           |
 
 The weakness of SSMs (poor sharp retrieval) is exactly the strength of attention, and vice versa. This complementarity is why hybrid architectures work: use SSM layers for cheap long-range context and attention layers for precise information retrieval.
 
@@ -1452,32 +1457,32 @@ EVOLUTION OF EFFICIENT ATTENTION (2017-2026)
 
 **Positional encoding comparison summary:**
 
-| Method | Type | Learned? | Relative position? | Length generalisation | Used in |
-| --- | --- | --- | --- | --- | --- |
-| Sinusoidal | Additive to input | No | Via rotation matrix | Poor | Original Transformer |
-| Learned absolute | Additive to input | Yes ($n \times d$ params) | No | None (fixed $n$) | GPT-2, BERT |
-| RoPE | Multiplicative on Q,K | No (freq. only) | Yes (rotation group) | Moderate + extensible | LLaMA, PaLM, Mistral |
-| ALiBi | Additive bias on scores | No ($h$ slopes only) | Yes (linear decay) | Good | BLOOM, MPT |
-| NoPE | None | — | Via causal structure | Depends on task | Some small models |
+| Method           | Type                    | Learned?                  | Relative position?   | Length generalisation | Used in              |
+| ---------------- | ----------------------- | ------------------------- | -------------------- | --------------------- | -------------------- |
+| Sinusoidal       | Additive to input       | No                        | Via rotation matrix  | Poor                  | Original Transformer |
+| Learned absolute | Additive to input       | Yes ($n \times d$ params) | No                   | None (fixed $n$)      | GPT-2, BERT          |
+| RoPE             | Multiplicative on Q,K   | No (freq. only)           | Yes (rotation group) | Moderate + extensible | LLaMA, PaLM, Mistral |
+| ALiBi            | Additive bias on scores | No ($h$ slopes only)      | Yes (linear decay)   | Good                  | BLOOM, MPT           |
+| NoPE             | None                    | —                         | Via causal structure | Depends on task       | Some small models    |
 
 ---
 
 ## 12. Common Mistakes
 
-| # | Mistake | Why It's Wrong | Fix |
-| --- | --- | --- | --- |
-| 1 | Forgetting the $1/\sqrt{d_k}$ scaling | Softmax saturates, gradients vanish | Always divide by $\sqrt{d_k}$ before softmax |
-| 2 | Applying softmax column-wise instead of row-wise | Each query must produce a distribution over keys | Row-wise: each row of $QK^\top$ is a query's scores |
-| 3 | Adding positional encoding to keys/values (not input) | RoPE modifies Q/K; sinusoidal adds to input before projection | Follow the specific scheme exactly |
-| 4 | Using BatchNorm instead of LayerNorm | Batch statistics are noisy for variable-length sequences | Use LayerNorm or RMSNorm |
-| 5 | Placing norm after residual (Post-Norm) without warmup | Post-Norm is unstable at depth without careful scheduling | Use Pre-Norm (default for LLMs) |
-| 6 | Ignoring the causal mask during training | Model sees future tokens, learns to cheat | Add $-\infty$ mask to upper triangle of score matrix |
-| 7 | Counting parameters wrong for MHA | Thinking more heads = more params | Total is $4d^2$ regardless of head count |
-| 8 | Confusing attention FLOPs ($O(n^2 d)$) with FFN FLOPs ($O(nd^2)$) | For short sequences, FFN dominates; for long, attention dominates | Account for both terms when estimating compute |
-| 9 | Materialising the $n \times n$ attention matrix for long sequences | $O(n^2)$ memory; OOM for large $n$ | Use FlashAttention |
-| 10 | Applying LoRA to all weight matrices indiscriminately | Some matrices benefit more than others | Start with $W_Q, W_V$; ablate from there |
-| 11 | Thinking attention is $O(n^2)$ in all regimes | For short sequences, FFN ($O(nd^2)$) dominates | Account for crossover at $n \approx 6d$ |
-| 12 | Using learned positional embeddings for long contexts | Cannot extrapolate beyond training length | Use RoPE or ALiBi for length generalisation |
+| #   | Mistake                                                            | Why It's Wrong                                                    | Fix                                                  |
+| --- | ------------------------------------------------------------------ | ----------------------------------------------------------------- | ---------------------------------------------------- |
+| 1   | Forgetting the $1/\sqrt{d_k}$ scaling                              | Softmax saturates, gradients vanish                               | Always divide by $\sqrt{d_k}$ before softmax         |
+| 2   | Applying softmax column-wise instead of row-wise                   | Each query must produce a distribution over keys                  | Row-wise: each row of $QK^\top$ is a query's scores  |
+| 3   | Adding positional encoding to keys/values (not input)              | RoPE modifies Q/K; sinusoidal adds to input before projection     | Follow the specific scheme exactly                   |
+| 4   | Using BatchNorm instead of LayerNorm                               | Batch statistics are noisy for variable-length sequences          | Use LayerNorm or RMSNorm                             |
+| 5   | Placing norm after residual (Post-Norm) without warmup             | Post-Norm is unstable at depth without careful scheduling         | Use Pre-Norm (default for LLMs)                      |
+| 6   | Ignoring the causal mask during training                           | Model sees future tokens, learns to cheat                         | Add $-\infty$ mask to upper triangle of score matrix |
+| 7   | Counting parameters wrong for MHA                                  | Thinking more heads = more params                                 | Total is $4d^2$ regardless of head count             |
+| 8   | Confusing attention FLOPs ($O(n^2 d)$) with FFN FLOPs ($O(nd^2)$)  | For short sequences, FFN dominates; for long, attention dominates | Account for both terms when estimating compute       |
+| 9   | Materialising the $n \times n$ attention matrix for long sequences | $O(n^2)$ memory; OOM for large $n$                                | Use FlashAttention                                   |
+| 10  | Applying LoRA to all weight matrices indiscriminately              | Some matrices benefit more than others                            | Start with $W_Q, W_V$; ablate from there             |
+| 11  | Thinking attention is $O(n^2)$ in all regimes                      | For short sequences, FFN ($O(nd^2)$) dominates                    | Account for crossover at $n \approx 6d$              |
+| 12  | Using learned positional embeddings for long contexts              | Cannot extrapolate beyond training length                         | Use RoPE or ALiBi for length generalisation          |
 
 ---
 
@@ -1542,20 +1547,20 @@ For a single Transformer block with $d_{\text{model}} = 512$, $h = 8$, $d_{ff} =
 
 ## 14. Why This Matters for AI (2026)
 
-| Concept | AI Impact |
-| --- | --- |
-| Scaled dot-product attention | Core compute primitive of every LLM — GPT-4, Claude, Gemini, LLaMA-3 |
-| Multi-head attention | Enables parallel processing of syntactic, semantic, and positional relations |
-| RoPE | Standard positional encoding for open-source LLMs; enables context extension to 128K+ |
-| SwiGLU FFN | 1–3% perplexity improvement over ReLU; standard in all 2023+ LLMs |
-| RMSNorm | Replaced LayerNorm for efficiency; universal in LLaMA-family models |
-| FlashAttention | Made long-context training practical; 2–4x speedup is load-bearing for 128K context |
-| GQA/MQA | Reduces KV cache by 8–64x; critical for high-throughput inference serving |
-| LoRA | Enables fine-tuning 70B+ models on a single GPU; standard for adaptation |
-| MoE | Mixtral, DeepSeek-V2: more capacity at lower compute cost |
-| Scaling laws | Guide optimal allocation of training compute budget |
-| Induction heads | Mechanistic explanation of in-context learning |
-| Superposition | Fundamental challenge for AI safety and interpretability |
+| Concept                      | AI Impact                                                                             |
+| ---------------------------- | ------------------------------------------------------------------------------------- |
+| Scaled dot-product attention | Core compute primitive of every LLM — GPT-4, Claude, Gemini, LLaMA-3                  |
+| Multi-head attention         | Enables parallel processing of syntactic, semantic, and positional relations          |
+| RoPE                         | Standard positional encoding for open-source LLMs; enables context extension to 128K+ |
+| SwiGLU FFN                   | 1–3% perplexity improvement over ReLU; standard in all 2023+ LLMs                     |
+| RMSNorm                      | Replaced LayerNorm for efficiency; universal in LLaMA-family models                   |
+| FlashAttention               | Made long-context training practical; 2–4x speedup is load-bearing for 128K context   |
+| GQA/MQA                      | Reduces KV cache by 8–64x; critical for high-throughput inference serving             |
+| LoRA                         | Enables fine-tuning 70B+ models on a single GPU; standard for adaptation              |
+| MoE                          | Mixtral, DeepSeek-V2: more capacity at lower compute cost                             |
+| Scaling laws                 | Guide optimal allocation of training compute budget                                   |
+| Induction heads              | Mechanistic explanation of in-context learning                                        |
+| Superposition                | Fundamental challenge for AI safety and interpretability                              |
 
 ---
 
@@ -1597,7 +1602,7 @@ The following papers form the essential reading list for the mathematics of Tran
 9. **Olsson et al. (2022)** — Induction heads. In-context learning mechanism.
 10. **Elhage et al. (2022)** — Superposition. Features packed into lower-dimensional spaces.
 
-```
+```text
 CONCEPTUAL POSITION
 ════════════════════════════════════════════════════════════════════════
 

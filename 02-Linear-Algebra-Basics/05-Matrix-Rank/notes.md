@@ -42,9 +42,9 @@ So rank is not merely one more chapter after determinants. It is the language of
 
 ## Companion Notebooks
 
-| Notebook | Description |
-| --- | --- |
-| [theory.ipynb](theory.ipynb) | Interactive exploration of rank, row reduction, SVD-based rank, low-rank approximation, and AI examples |
+| Notebook                           | Description                                                                                                    |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive exploration of rank, row reduction, SVD-based rank, low-rank approximation, and AI examples        |
 | [exercises.ipynb](exercises.ipynb) | Practice on rank computation, null spaces, low-rank approximation, LoRA analysis, and attention-rank reasoning |
 
 ## Learning Objectives
@@ -1816,18 +1816,18 @@ That is the right engineering formulation.
 
 ## 14. Common Mistakes
 
-| Mistake | Why It's Wrong | Fix |
-| --- | --- | --- |
-| "Rank equals the number of non-zero entries" | A matrix can have many non-zero entries and still have rank 1 | Count independent rows/columns, not non-zero positions |
-| "Full rank means invertible" | Only true for square matrices | For rectangular matrices, full rank means max possible rank, not two-sided invertibility |
-| "rank(A+B) = rank(A)+rank(B)" | Rank is subadditive, not additive in general | Use $\operatorname{rank}(A+B)\le \operatorname{rank}(A)+\operatorname{rank}(B)$ |
-| "If A and B have rank r, then AB has rank r" | Product rank can drop drastically | Use $\operatorname{rank}(AB)\le \min(\operatorname{rank}(A),\operatorname{rank}(B))$ |
-| "Tiny determinant means tiny rank" | Determinant and rank are different objects | Use singular values or pivots to assess rank |
-| "Exact rank is the right practical notion in floating point" | Near-zero singular values blur exact rank | Use numerical rank with thresholds |
-| "More LoRA rank is always better" | Extra rank can waste budget or overfit | Match rank to task complexity and spectral decay |
-| "A matrix with large Frobenius norm must have high rank" | Magnitude and rank are different concepts | Separate scale from dimensionality |
-| "rank(A^TA) can exceed rank(A)" | They are always equal | Remember $\operatorname{null}(A^TA)=\operatorname{null}(A)$ |
-| "Low-rank means useless" | Many important signals live in low-dimensional structure | Judge approximation quality by spectral decay, not by rank alone |
+| Mistake                                                      | Why It's Wrong                                                | Fix                                                                                      |
+| ------------------------------------------------------------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| "Rank equals the number of non-zero entries"                 | A matrix can have many non-zero entries and still have rank 1 | Count independent rows/columns, not non-zero positions                                   |
+| "Full rank means invertible"                                 | Only true for square matrices                                 | For rectangular matrices, full rank means max possible rank, not two-sided invertibility |
+| "rank(A+B) = rank(A)+rank(B)"                                | Rank is subadditive, not additive in general                  | Use $\operatorname{rank}(A+B)\le \operatorname{rank}(A)+\operatorname{rank}(B)$          |
+| "If A and B have rank r, then AB has rank r"                 | Product rank can drop drastically                             | Use $\operatorname{rank}(AB)\le \min(\operatorname{rank}(A),\operatorname{rank}(B))$     |
+| "Tiny determinant means tiny rank"                           | Determinant and rank are different objects                    | Use singular values or pivots to assess rank                                             |
+| "Exact rank is the right practical notion in floating point" | Near-zero singular values blur exact rank                     | Use numerical rank with thresholds                                                       |
+| "More LoRA rank is always better"                            | Extra rank can waste budget or overfit                        | Match rank to task complexity and spectral decay                                         |
+| "A matrix with large Frobenius norm must have high rank"     | Magnitude and rank are different concepts                     | Separate scale from dimensionality                                                       |
+| "rank(A^TA) can exceed rank(A)"                              | They are always equal                                         | Remember $\operatorname{null}(A^TA)=\operatorname{null}(A)$                              |
+| "Low-rank means useless"                                     | Many important signals live in low-dimensional structure      | Judge approximation quality by spectral decay, not by rank alone                         |
 
 ---
 
@@ -1847,9 +1847,11 @@ That is the right engineering formulation.
 
 3. **SVD and low-rank approximation**
    For
+
    $$
    A=\begin{pmatrix}3&2&2\\2&3&-2\end{pmatrix},
    $$
+
    compute the SVD and the best rank-1 approximation. Measure the Frobenius error and compare it with the discarded singular value.
 
 4. **LoRA parameter analysis**
@@ -1877,18 +1879,18 @@ That is the right engineering formulation.
 
 ## 16. Why This Matters for AI (2026 Perspective)
 
-| Aspect | Impact |
-| --- | --- |
-| LoRA and PEFT | Rank is the core budget variable controlling memory, compute, and expressiveness |
-| MLA and KV compression | Low-rank bottlenecks reduce cache cost without full dense storage |
-| Attention subspaces | Rank explains why attention operates through a limited projection lens |
-| Model compression | Truncated SVD and related methods are rank engineering in practice |
-| Representation collapse | Stable rank and covariance rank expose collapse early |
-| Generalisation | Low-rank structure acts as both explicit and implicit complexity control |
-| Second-order optimisation | Curvature approximations often exploit low-rank or Kronecker structure |
-| Spectral diagnostics | Singular value decay, stable rank, and effective rank are now routine model-analysis tools |
-| Embedding bottlenecks | Embedding width sets a hard linear rank cap regardless of vocabulary size |
-| Future architectures | Low-rank structure is increasingly designed in, not merely discovered later |
+| Aspect                    | Impact                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------ |
+| LoRA and PEFT             | Rank is the core budget variable controlling memory, compute, and expressiveness           |
+| MLA and KV compression    | Low-rank bottlenecks reduce cache cost without full dense storage                          |
+| Attention subspaces       | Rank explains why attention operates through a limited projection lens                     |
+| Model compression         | Truncated SVD and related methods are rank engineering in practice                         |
+| Representation collapse   | Stable rank and covariance rank expose collapse early                                      |
+| Generalisation            | Low-rank structure acts as both explicit and implicit complexity control                   |
+| Second-order optimisation | Curvature approximations often exploit low-rank or Kronecker structure                     |
+| Spectral diagnostics      | Singular value decay, stable rank, and effective rank are now routine model-analysis tools |
+| Embedding bottlenecks     | Embedding width sets a hard linear rank cap regardless of vocabulary size                  |
+| Future architectures      | Low-rank structure is increasingly designed in, not merely discovered later                |
 
 Rank matters for AI because deep learning is full of large matrices that are far less independent than they first appear. The question is almost never "how big is this matrix?" It is "how many directions inside it actually matter?" Rank is the mathematically precise version of that question.
 
@@ -1927,9 +1929,9 @@ compression, stability, and spectral analysis
 
 ## References
 
-- Gilbert Strang, *Introduction to Linear Algebra*, Wellesley-Cambridge Press.
-- Lloyd N. Trefethen and David Bau III, *Numerical Linear Algebra*, SIAM.
-- Gene H. Golub and Charles F. Van Loan, *Matrix Computations*, Johns Hopkins University Press.
+- Gilbert Strang, _Introduction to Linear Algebra_, Wellesley-Cambridge Press.
+- Lloyd N. Trefethen and David Bau III, _Numerical Linear Algebra_, SIAM.
+- Gene H. Golub and Charles F. Van Loan, _Matrix Computations_, Johns Hopkins University Press.
 - [MIT 18.06 Linear Algebra](https://web.mit.edu/18.06/www/)
 - [Stanford EE263](https://stanford.edu/class/ee263/)
 - [Hu et al. (2021), "LoRA: Low-Rank Adaptation of Large Language Models"](https://arxiv.org/abs/2106.09685)

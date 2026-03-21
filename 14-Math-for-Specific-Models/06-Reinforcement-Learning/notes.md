@@ -27,9 +27,9 @@ This section develops the full mathematical theory from first principles, culmin
 
 ## Companion Notebooks
 
-| Notebook | Description |
-| --- | --- |
-| [theory.ipynb](theory.ipynb) | Interactive demos: gridworld value iteration, Q-learning convergence, policy gradient landscapes, TD vs MC comparison, PPO clipping visualisation, RLHF reward modelling |
+| Notebook                           | Description                                                                                                                                                                              |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive demos: gridworld value iteration, Q-learning convergence, policy gradient landscapes, TD vs MC comparison, PPO clipping visualisation, RLHF reward modelling                 |
 | [exercises.ipynb](exercises.ipynb) | 10 graded problems: Bellman equations, value iteration, Q-learning, SARSA(λ), REINFORCE with baseline, actor-critic, DQN with replay, Double Q-learning, PPO clipping, experience replay |
 
 ## Learning Objectives
@@ -88,7 +88,7 @@ After completing this section, you will:
   - [7.2 The TD Error as Surprise](#72-the-td-error-as-surprise)
   - [7.3 TD vs MC: Bias-Variance Tradeoff](#73-td-vs-mc-bias-variance-tradeoff)
   - [7.4 N-Step TD Returns](#74-n-step-td-returns)
-  - [7.5 TD(λ) and Eligibility Traces](#75-tdlambda-and-eligibility-traces)
+  - [7.5 TD(λ) and Eligibility Traces](#75-tdλ-and-eligibility-traces)
   - [7.6 Forward and Backward Views](#76-forward-and-backward-views)
 - [8. Q-Learning and SARSA](#8-q-learning-and-sarsa)
   - [8.1 SARSA: On-Policy TD Control](#81-sarsa-on-policy-td-control)
@@ -178,14 +178,14 @@ The **reward hypothesis** is the foundational assumption of RL: that all goals c
 
 ### 1.3 From Supervised to Reinforcement Learning
 
-| Aspect | Supervised Learning | Reinforcement Learning |
-| --- | --- | --- |
-| Training signal | Correct label for each input | Scalar reward, possibly delayed |
-| Data distribution | Fixed (i.i.d. from dataset) | Changes with policy (non-stationary) |
-| Feedback | Instructive ("the answer is X") | Evaluative ("that was +3 good") |
-| Exploration | Not needed (data is given) | Essential (must try actions to learn) |
-| Credit assignment | Immediate (loss per example) | Temporal (which actions caused reward?) |
-| Objective | Minimise empirical risk | Maximise expected cumulative reward |
+| Aspect            | Supervised Learning             | Reinforcement Learning                  |
+| ----------------- | ------------------------------- | --------------------------------------- |
+| Training signal   | Correct label for each input    | Scalar reward, possibly delayed         |
+| Data distribution | Fixed (i.i.d. from dataset)     | Changes with policy (non-stationary)    |
+| Feedback          | Instructive ("the answer is X") | Evaluative ("that was +3 good")         |
+| Exploration       | Not needed (data is given)      | Essential (must try actions to learn)   |
+| Credit assignment | Immediate (loss per example)    | Temporal (which actions caused reward?) |
+| Objective         | Minimise empirical risk         | Maximise expected cumulative reward     |
 
 The key mathematical distinction: in supervised learning, the loss gradient $\nabla_\theta \mathcal{L}$ is straightforward because the data does not depend on $\theta$. In RL, the trajectory distribution $p_\theta(\tau)$ depends on the policy $\pi_\theta$, so the gradient of expected return requires the **log-derivative trick**:
 
@@ -195,7 +195,7 @@ This is the policy gradient — the mathematical bridge from RL to optimisation.
 
 ### 1.4 Historical Timeline
 
-```
+```text
 REINFORCEMENT LEARNING TIMELINE
 ════════════════════════════════════════════════════════════════════════
 
@@ -282,12 +282,12 @@ This recursive decomposition is what makes the Bellman equations possible. Every
 
 **Effective horizon.** The discount factor $\gamma$ defines an effective planning horizon of $\frac{1}{1 - \gamma}$ steps. For $\gamma = 0.99$, the effective horizon is 100 steps — rewards beyond 100 steps are attenuated by a factor $> e^{-1}$. For $\gamma = 0.999$, the horizon extends to 1000 steps. Choosing $\gamma$ is choosing how far ahead the agent plans.
 
-| $\gamma$ | Effective horizon | Character |
-| --- | --- | --- |
-| 0.9 | 10 steps | Myopic — focuses on immediate rewards |
-| 0.99 | 100 steps | Moderate — balances near and far |
-| 0.999 | 1000 steps | Far-sighted — plans over long sequences |
-| 1.0 | $\infty$ | Undiscounted — only finite episodes |
+| $\gamma$ | Effective horizon | Character                               |
+| -------- | ----------------- | --------------------------------------- |
+| 0.9      | 10 steps          | Myopic — focuses on immediate rewards   |
+| 0.99     | 100 steps         | Moderate — balances near and far        |
+| 0.999    | 1000 steps        | Far-sighted — plans over long sequences |
+| 1.0      | $\infty$          | Undiscounted — only finite episodes     |
 
 ### 2.5 Partially Observable MDPs
 
@@ -314,6 +314,7 @@ A **policy** $\pi$ is a rule for selecting actions. Two forms:
 **Stochastic policy:** $\pi(a \mid s) = P(A_t = a \mid S_t = s)$ — a conditional distribution over actions given a state. Satisfies $\pi(a \mid s) \ge 0$ and $\sum_{a \in \mathcal{A}} \pi(a \mid s) = 1$ for all $s$.
 
 Stochastic policies are more general (every deterministic policy is a degenerate stochastic policy), and they are essential for:
+
 1. **Exploration:** A deterministic policy cannot explore — it always takes the same action in the same state.
 2. **Optimality in POMDPs:** Under partial observability, stochastic policies can be strictly better than deterministic ones.
 3. **Policy gradient methods:** Parameterising $\pi_\theta(a \mid s)$ as a differentiable distribution (e.g., softmax over logits) enables gradient-based optimisation.
@@ -329,6 +330,7 @@ $$V^\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s] = \mathbb{E}_\pi\left[\sum_{k=0}^{
 This is the expected return starting from state $s$ and following policy $\pi$ thereafter. The expectation is over both the stochasticity of the policy and the stochasticity of the environment transitions.
 
 **Properties:**
+
 - $V^\pi(s) \in [-R_{\max}/(1-\gamma), \; R_{\max}/(1-\gamma)]$ for bounded rewards.
 - For a terminal state $s_{\text{term}}$: $V^\pi(s_{\text{term}}) = 0$.
 - $V^\pi$ is the unique fixed point of the Bellman expectation operator for policy $\pi$ (Section 4).
@@ -353,7 +355,7 @@ $$Q^\pi(s, a) = \sum_{s' \in \mathcal{S}} P(s' \mid s, a) \left[R(s, a, s') + \g
 
 These two equations together give the **Bellman expectation equation** — the most important equation in RL (Section 4).
 
-```
+```text
 VALUE FUNCTION RELATIONSHIPS
 ════════════════════════════════════════════════════════════════════════
 
@@ -378,6 +380,7 @@ The **advantage function** measures how much better action $a$ is compared to th
 $$A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s)$$
 
 **Properties:**
+
 - $\sum_a \pi(a \mid s) A^\pi(s, a) = 0$ — the expected advantage is zero by construction.
 - $A^\pi(s, a) > 0$ means action $a$ is better than average.
 - $A^\pi(s, a) < 0$ means action $a$ is worse than average.
@@ -412,7 +415,7 @@ Substituting the V–Q relationships from Section 3.4 into each other yields the
 
 $$V^\pi(s) = \sum_{a} \pi(a \mid s) \sum_{s'} P(s' \mid s, a) \left[R(s, a, s') + \gamma V^\pi(s')\right]$$
 
-*Derivation.* Start from $V^\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s]$. Use the recursive return $G_t = R_{t+1} + \gamma G_{t+1}$:
+_Derivation._ Start from $V^\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s]$. Use the recursive return $G_t = R_{t+1} + \gamma G_{t+1}$:
 
 $$V^\pi(s) = \mathbb{E}_\pi[R_{t+1} + \gamma G_{t+1} \mid S_t = s]$$
 
@@ -456,7 +459,7 @@ $$(\mathcal{T}^* V)(s) = \max_a \sum_{s'} P(s' \mid s, a) \left[R(s, a, s') + \g
 
 **Theorem.** $\mathcal{T}^*$ is a contraction with modulus $\gamma$ in the $\ell^\infty$-norm.
 
-*Proof.* For any two value functions $V_1, V_2$:
+_Proof._ For any two value functions $V_1, V_2$:
 
 $$|(\mathcal{T}^* V_1)(s) - (\mathcal{T}^* V_2)(s)| = \left|\max_a \sum_{s'} P(s' \mid s, a) [R + \gamma V_1(s')] - \max_a \sum_{s'} P(s' \mid s, a) [R + \gamma V_2(s')]\right|$$
 
@@ -516,7 +519,7 @@ $$\pi'(s) = \arg\max_a \sum_{s'} P(s' \mid s, a) \left[R(s, a, s') + \gamma V^\p
 
 Then $V^{\pi'}(s) \ge V^\pi(s)$ for all $s \in \mathcal{S}$, with equality if and only if $\pi$ is already optimal.
 
-*Proof sketch.* For any state $s$:
+_Proof sketch._ For any state $s$:
 
 $$V^\pi(s) \le Q^\pi(s, \pi'(s)) = \sum_{s'} P(s' \mid s, \pi'(s)) [R + \gamma V^\pi(s')]$$
 
@@ -563,12 +566,12 @@ To achieve $\epsilon$-accuracy: $k \ge \frac{1}{1 - \gamma} \ln\!\left(\frac{2 R
 
 **Policy iteration convergence rate.** In the worst case, policy iteration converges in $O(|\mathcal{A}|^{|\mathcal{S}|})$ iterations (trying all policies), but this is never observed in practice. Ye (2011) showed that policy iteration converges in $O(|\mathcal{S}| |\mathcal{A}| / (1-\gamma))$ iterations — polynomial, not exponential. Empirically, convergence is typically much faster than this bound suggests.
 
-| Algorithm | Per-iteration cost | Iterations to converge | Model required? |
-| --- | --- | --- | --- |
-| Policy evaluation | $O(\lvert\mathcal{S}\rvert^2 \lvert\mathcal{A}\rvert)$ | $O(\frac{1}{1-\gamma} \log \frac{1}{\epsilon})$ | Yes |
-| Value iteration | $O(\lvert\mathcal{S}\rvert^2 \lvert\mathcal{A}\rvert)$ | $O(\frac{1}{1-\gamma} \log \frac{1}{\epsilon})$ | Yes |
-| Policy iteration | $O(\lvert\mathcal{S}\rvert^3 + \lvert\mathcal{S}\rvert^2 \lvert\mathcal{A}\rvert)$ | Very few (typically $< 20$) | Yes |
-| Direct solve | $O(\lvert\mathcal{S}\rvert^3)$ | 1 (matrix inversion) | Yes |
+| Algorithm         | Per-iteration cost                                                                 | Iterations to converge                          | Model required? |
+| ----------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------- | --------------- |
+| Policy evaluation | $O(\lvert\mathcal{S}\rvert^2 \lvert\mathcal{A}\rvert)$                             | $O(\frac{1}{1-\gamma} \log \frac{1}{\epsilon})$ | Yes             |
+| Value iteration   | $O(\lvert\mathcal{S}\rvert^2 \lvert\mathcal{A}\rvert)$                             | $O(\frac{1}{1-\gamma} \log \frac{1}{\epsilon})$ | Yes             |
+| Policy iteration  | $O(\lvert\mathcal{S}\rvert^3 + \lvert\mathcal{S}\rvert^2 \lvert\mathcal{A}\rvert)$ | Very few (typically $< 20$)                     | Yes             |
+| Direct solve      | $O(\lvert\mathcal{S}\rvert^3)$                                                     | 1 (matrix inversion)                            | Yes             |
 
 ---
 
@@ -597,6 +600,7 @@ $$V(s) \leftarrow V(s) + \alpha \left[G_t - V(s)\right]$$
 To find the optimal policy, we need MC for Q-values (not just V-values), because improving a policy from V requires knowing $P$, but improving from Q does not.
 
 **MC control with exploring starts:**
+
 1. Initialise $Q(s, a)$ and $\pi$ arbitrarily.
 2. For each episode: choose a random starting state-action pair (exploring starts), then follow $\pi$.
 3. For each $(s, a)$ in the episode, update $Q(s, a)$ using first-visit MC.
@@ -668,14 +672,14 @@ $$\delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)$$
 
 ### 7.3 TD vs MC: Bias-Variance Tradeoff
 
-|  | Monte Carlo | TD(0) |
-| --- | --- | --- |
-| Target | $G_t = R_{t+1} + \gamma R_{t+2} + \cdots$ | $R_{t+1} + \gamma V(S_{t+1})$ |
-| Bias | Unbiased (uses true returns) | Biased (uses estimate $V(S_{t+1})$) |
-| Variance | High (accumulates over episode) | Low (single-step randomness) |
-| Requires episodes? | Yes (must wait for episode end) | No (updates after every step) |
-| Works in continuing tasks? | No | Yes |
-| Converges to $V^\pi$? | Yes ($\alpha_t$ conditions) | Yes ($\alpha_t$ conditions) |
+|                            | Monte Carlo                               | TD(0)                               |
+| -------------------------- | ----------------------------------------- | ----------------------------------- |
+| Target                     | $G_t = R_{t+1} + \gamma R_{t+2} + \cdots$ | $R_{t+1} + \gamma V(S_{t+1})$       |
+| Bias                       | Unbiased (uses true returns)              | Biased (uses estimate $V(S_{t+1})$) |
+| Variance                   | High (accumulates over episode)           | Low (single-step randomness)        |
+| Requires episodes?         | Yes (must wait for episode end)           | No (updates after every step)       |
+| Works in continuing tasks? | No                                        | Yes                                 |
+| Converges to $V^\pi$?      | Yes ($\alpha_t$ conditions)               | Yes ($\alpha_t$ conditions)         |
 
 **Bias of TD(0):** The TD target $R_{t+1} + \gamma V(S_{t+1})$ uses the current estimate $V(S_{t+1})$, which may be wrong. This introduces bias — the target is not an unbiased estimate of $V^\pi(S_t)$. However, this bias decreases as $V$ approaches $V^\pi$, and in the limit TD(0) converges to the correct values.
 
@@ -759,7 +763,7 @@ The critical difference from SARSA: the target uses $\max_a Q(S_{t+1}, a)$ — t
 
 The cliff-walking example illustrates the difference clearly:
 
-```
+```text
 CLIFF WALKING ENVIRONMENT
 ════════════════════════════════════════════════════════════════════════
 
@@ -804,7 +808,7 @@ With probability 0.5, swap the roles of $Q_1$ and $Q_2$. Since the selection and
 1. All state-action pairs are visited infinitely often.
 2. The learning rate $\alpha_t(s, a)$ satisfies: $\sum_t \alpha_t(s, a) = \infty$ and $\sum_t \alpha_t^2(s, a) < \infty$.
 
-*Proof sketch.* Define the noise $\omega_t = R_{t+1} + \gamma \max_a Q(S_{t+1}, a) - \mathbb{E}[R_{t+1} + \gamma \max_a Q(S_{t+1}, a) \mid S_t, A_t]$. The Q-learning update is:
+_Proof sketch._ Define the noise $\omega_t = R_{t+1} + \gamma \max_a Q(S_{t+1}, a) - \mathbb{E}[R_{t+1} + \gamma \max_a Q(S_{t+1}, a) \mid S_t, A_t]$. The Q-learning update is:
 
 $$Q_{t+1}(S_t, A_t) = (1 - \alpha_t) Q_t(S_t, A_t) + \alpha_t (\mathcal{T}^* Q_t)(S_t, A_t) + \alpha_t \omega_t$$
 
@@ -872,14 +876,14 @@ with $\tau \ll 1$ (typically $\tau = 0.005$).
 
 **Rainbow** (Hessel et al., 2018) combines six DQN improvements, each addressing a different limitation:
 
-| Component | Addresses | Key idea |
-| --- | --- | --- |
-| Double DQN | Maximisation bias | Decouple selection and evaluation |
-| Prioritised replay | Uniform sampling inefficiency | Sample high-TD-error transitions more often |
-| Dueling architecture | Value vs advantage | $Q(s,a) = V(s) + A(s,a) - \bar{A}$ |
-| Multi-step returns | Single-step bootstrap bias | Use $n$-step TD targets |
-| Distributional RL (C51) | Scalar value limitation | Learn the full return distribution |
-| Noisy nets | $\epsilon$-greedy exploration | Learned exploration via parameter noise |
+| Component               | Addresses                     | Key idea                                    |
+| ----------------------- | ----------------------------- | ------------------------------------------- |
+| Double DQN              | Maximisation bias             | Decouple selection and evaluation           |
+| Prioritised replay      | Uniform sampling inefficiency | Sample high-TD-error transitions more often |
+| Dueling architecture    | Value vs advantage            | $Q(s,a) = V(s) + A(s,a) - \bar{A}$          |
+| Multi-step returns      | Single-step bootstrap bias    | Use $n$-step TD targets                     |
+| Distributional RL (C51) | Scalar value limitation       | Learn the full return distribution          |
+| Noisy nets              | $\epsilon$-greedy exploration | Learned exploration via parameter noise     |
 
 The combination outperforms any individual component — a rare example of orthogonal improvements stacking multiplicatively.
 
@@ -915,7 +919,7 @@ where both the mean $\mu_\theta(s)$ and variance $\sigma_\theta^2(s)$ are output
 
 $$\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta}\left[\sum_{t=0}^{T} \nabla_\theta \log \pi_\theta(A_t \mid S_t) \, Q^{\pi_\theta}(S_t, A_t)\right]$$
 
-*Proof.* Start from $J(\theta) = \mathbb{E}_{\tau \sim p_\theta}[R(\tau)] = \sum_\tau p_\theta(\tau) R(\tau)$.
+_Proof._ Start from $J(\theta) = \mathbb{E}_{\tau \sim p_\theta}[R(\tau)] = \sum_\tau p_\theta(\tau) R(\tau)$.
 
 $$\nabla_\theta J = \sum_\tau \nabla_\theta p_\theta(\tau) R(\tau) = \sum_\tau p_\theta(\tau) \frac{\nabla_\theta p_\theta(\tau)}{p_\theta(\tau)} R(\tau)$$
 
@@ -942,6 +946,7 @@ where $G_t = \sum_{k=t}^{T} \gamma^{k-t} R_{k+1}$ is the return from time $t$. A
 $$\theta \leftarrow \theta + \alpha \sum_{t=0}^{T} \gamma^t G_t \nabla_\theta \log \pi_\theta(A_t \mid S_t)$$
 
 **Properties:**
+
 - Unbiased gradient estimate.
 - Very high variance — $G_t$ accumulates all randomness from time $t$ onward.
 - Requires complete episodes (cannot learn online).
@@ -953,7 +958,7 @@ $$\theta \leftarrow \theta + \alpha \sum_{t=0}^{T} \gamma^t G_t \nabla_\theta \l
 
 $$\mathbb{E}_{\pi_\theta}\left[\nabla_\theta \log \pi_\theta(a \mid s) \cdot b(s)\right] = 0$$
 
-*Proof.* $\sum_a \nabla_\theta \pi_\theta(a \mid s) \cdot b(s) = b(s) \nabla_\theta \sum_a \pi_\theta(a \mid s) = b(s) \nabla_\theta 1 = 0$. $\square$
+_Proof._ $\sum_a \nabla_\theta \pi_\theta(a \mid s) \cdot b(s) = b(s) \nabla_\theta \sum_a \pi_\theta(a \mid s) = b(s) \nabla_\theta 1 = 0$. $\square$
 
 **Practical impact:** Using $b(s) = V^\pi(s)$ converts the policy gradient to:
 
@@ -1033,7 +1038,7 @@ where $r_t(\theta) = \frac{\pi_\theta(A_t \mid S_t)}{\pi_{\theta_{\text{old}}}(A
 - When $\hat{A}_t > 0$ (good action): We want to increase $\pi_\theta(A_t \mid S_t)$, which increases $r_t$. But the clip prevents $r_t$ from exceeding $1 + \epsilon$ — stopping the optimisation from making the action too much more likely.
 - When $\hat{A}_t < 0$ (bad action): We want to decrease $\pi_\theta(A_t \mid S_t)$, decreasing $r_t$. The clip prevents $r_t$ from falling below $1 - \epsilon$.
 
-```
+```text
 PPO CLIPPING MECHANISM
 ════════════════════════════════════════════════════════════════════════
 
@@ -1165,7 +1170,7 @@ This is binary cross-entropy on pairwise comparisons. The reward model learns to
 
 ### 13.2 The RLHF Pipeline
 
-```
+```text
 RLHF PIPELINE
 ════════════════════════════════════════════════════════════════════════
 
@@ -1206,6 +1211,7 @@ where $\pi_{\text{ref}}$ is the SFT model (reference policy) and $\beta$ control
 **Per-token reward shaping.** The reward $r_\psi(x, y)$ is a single scalar for the entire sequence. To apply PPO (which operates per-step), the reward is distributed: $r_t = 0$ for all tokens except the last, where $r_T = r_\psi(x, y)$. The KL penalty $-\beta \log \frac{\pi_\theta(y_t \mid x, y_{<t})}{\pi_{\text{ref}}(y_t \mid x, y_{<t})}$ is added at each token.
 
 **In RL terms:**
+
 - **State** $s_t$: the prompt $x$ plus tokens generated so far $y_{<t}$.
 - **Action** $a_t$: the next token $y_t \in \mathcal{V}$.
 - **Policy** $\pi_\theta(a_t \mid s_t)$: the LLM's next-token distribution.
@@ -1229,6 +1235,7 @@ $$P(y_w \succ y_l \mid x) = \sigma\!\left(\beta \log \frac{\pi_\theta(y_w \mid x
 $$\mathcal{L}_{\text{DPO}}(\theta) = -\mathbb{E}_{(x, y_w, y_l)} \left[\log \sigma\!\left(\beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\right)\right]$$
 
 **Advantages of DPO:**
+
 - No reward model training needed.
 - No RL loop (PPO is complex and unstable for LLMs).
 - Simple supervised loss — just binary cross-entropy on preference pairs.
@@ -1440,18 +1447,18 @@ Reinforcement learning is no longer a niche subfield — it is the critical fina
 
 **Where this connects:**
 
-| Concept | Connects to |
-| --- | --- |
-| Bellman equations | Dynamic programming (Sections 09, 12-02) |
-| Policy gradient theorem | Log-derivative trick, score functions (Section 06-03) |
-| Advantage function | Variance reduction, control variates (Section 06-06) |
-| KL divergence constraint | Information theory (Chapter 13) |
-| Softmax policy | Boltzmann distribution, attention (Section 14-05) |
-| Function approximation | Neural networks (Section 14-02) |
-| Bradley-Terry model | Logistic regression, maximum likelihood (Section 14-01) |
-| Contraction mapping | Fixed-point theory, spectral radius (Section 02-06) |
-| Importance sampling | Monte Carlo methods, variance (Section 06-04) |
-| RLHF / DPO | LLM training, alignment (applied ML) |
+| Concept                  | Connects to                                             |
+| ------------------------ | ------------------------------------------------------- |
+| Bellman equations        | Dynamic programming (Sections 09, 12-02)                |
+| Policy gradient theorem  | Log-derivative trick, score functions (Section 06-03)   |
+| Advantage function       | Variance reduction, control variates (Section 06-06)    |
+| KL divergence constraint | Information theory (Chapter 13)                         |
+| Softmax policy           | Boltzmann distribution, attention (Section 14-05)       |
+| Function approximation   | Neural networks (Section 14-02)                         |
+| Bradley-Terry model      | Logistic regression, maximum likelihood (Section 14-01) |
+| Contraction mapping      | Fixed-point theory, spectral radius (Section 02-06)     |
+| Importance sampling      | Monte Carlo methods, variance (Section 06-04)           |
+| RLHF / DPO               | LLM training, alignment (applied ML)                    |
 
 **What comes next:** Section 14-07 (Generative Models) develops the mathematics of VAEs, GANs, and diffusion models — another family of models where the training objective involves optimising an intractable expectation, solved by similar tricks (reparameterisation, score functions, variational bounds) to those used in policy gradients.
 
@@ -1459,18 +1466,18 @@ Reinforcement learning is no longer a niche subfield — it is the critical fina
 
 ## References
 
-1. Sutton, R. S. & Barto, A. G. (2018). *Reinforcement Learning: An Introduction* (2nd ed.). MIT Press.
-2. Watkins, C. J. & Dayan, P. (1992). Q-learning. *Machine Learning*, 8(3-4), 279-292.
-3. Mnih, V. et al. (2015). Human-level control through deep reinforcement learning. *Nature*, 518, 529-533.
-4. Schulman, J. et al. (2015). Trust region policy optimization. *ICML*.
-5. Schulman, J. et al. (2016). High-dimensional continuous control using generalised advantage estimation. *ICLR*.
-6. Schulman, J. et al. (2017). Proximal policy optimization algorithms. *arXiv:1707.06347*.
-7. Haarnoja, T. et al. (2018). Soft actor-critic: Off-policy maximum entropy deep RL. *ICML*.
-8. Silver, D. et al. (2014). Deterministic policy gradient algorithms. *ICML*.
-9. Christiano, P. et al. (2017). Deep reinforcement learning from human preferences. *NeurIPS*.
-10. Ouyang, L. et al. (2022). Training language models to follow instructions with human feedback. *NeurIPS*.
-11. Rafailov, R. et al. (2023). Direct preference optimization: Your language model is secretly a reward model. *NeurIPS*.
-12. Bai, Y. et al. (2022). Constitutional AI: Harmlessness from AI feedback. *arXiv:2212.08073*.
-13. Fujimoto, S. et al. (2018). Addressing function approximation error in actor-critic methods. *ICML*.
-14. Hessel, M. et al. (2018). Rainbow: Combining improvements in deep reinforcement learning. *AAAI*.
-15. Hafner, D. et al. (2023). Mastering diverse domains through world models. *arXiv:2301.04104*.
+1. Sutton, R. S. & Barto, A. G. (2018). _Reinforcement Learning: An Introduction_ (2nd ed.). MIT Press.
+2. Watkins, C. J. & Dayan, P. (1992). Q-learning. _Machine Learning_, 8(3-4), 279-292.
+3. Mnih, V. et al. (2015). Human-level control through deep reinforcement learning. _Nature_, 518, 529-533.
+4. Schulman, J. et al. (2015). Trust region policy optimization. _ICML_.
+5. Schulman, J. et al. (2016). High-dimensional continuous control using generalised advantage estimation. _ICLR_.
+6. Schulman, J. et al. (2017). Proximal policy optimization algorithms. _arXiv:1707.06347_.
+7. Haarnoja, T. et al. (2018). Soft actor-critic: Off-policy maximum entropy deep RL. _ICML_.
+8. Silver, D. et al. (2014). Deterministic policy gradient algorithms. _ICML_.
+9. Christiano, P. et al. (2017). Deep reinforcement learning from human preferences. _NeurIPS_.
+10. Ouyang, L. et al. (2022). Training language models to follow instructions with human feedback. _NeurIPS_.
+11. Rafailov, R. et al. (2023). Direct preference optimization: Your language model is secretly a reward model. _NeurIPS_.
+12. Bai, Y. et al. (2022). Constitutional AI: Harmlessness from AI feedback. _arXiv:2212.08073_.
+13. Fujimoto, S. et al. (2018). Addressing function approximation error in actor-critic methods. _ICML_.
+14. Hessel, M. et al. (2018). Rainbow: Combining improvements in deep reinforcement learning. _AAAI_.
+15. Hafner, D. et al. (2023). Mastering diverse domains through world models. _arXiv:2301.04104_.

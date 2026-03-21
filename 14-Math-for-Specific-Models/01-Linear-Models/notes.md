@@ -25,9 +25,9 @@ The treatment is rigorous throughout: every estimator is derived from first prin
 
 ## Companion Notebooks
 
-| Notebook | Description |
-|---|---|
-| [theory.ipynb](theory.ipynb) | Interactive derivations: OLS geometry, ridge shrinkage paths, Lasso coordinate descent, Bayesian posteriors, SVM margins, bias-variance curves, LoRA visualisation |
+| Notebook                           | Description                                                                                                                                                                                                                              |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive derivations: OLS geometry, ridge shrinkage paths, Lasso coordinate descent, Bayesian posteriors, SVM margins, bias-variance curves, LoRA visualisation                                                                       |
 | [exercises.ipynb](exercises.ipynb) | 10 graded problems: OLS geometry proof, ridge Bayesian equivalence, Lasso soft-thresholding, Gaussian posterior derivation, logistic gradient, LDA classifier, SVM dual, bias-variance decomposition, LoRA rank analysis, NTK regression |
 
 ## Learning Objectives
@@ -65,7 +65,7 @@ After completing this section, you will:
   - [3.2 Estimating the Noise Variance](#32-estimating-the-noise-variance)
   - [3.3 Hypothesis Testing](#33-hypothesis-testing)
   - [3.4 Confidence and Prediction Intervals](#34-confidence-and-prediction-intervals)
-  - [3.5 R² and Goodness of Fit](#35-r-and-goodness-of-fit)
+  - [3.5 R² and Goodness of Fit](#35-r2-and-goodness-of-fit)
 - [4. Ridge Regression (L2 Regularisation)](#4-ridge-regression-l2-regularisation)
   - [4.1 Objective and Closed-Form Solution](#41-objective-and-closed-form-solution)
   - [4.2 SVD View and Singular Value Shrinkage](#42-svd-view-and-singular-value-shrinkage)
@@ -160,6 +160,7 @@ The residual $\mathbf{e} = \mathbf{y} - \hat{\mathbf{y}}$ is perpendicular to ev
 **Classification = Hyperplane Separation.** A linear classifier partitions $\mathbb{R}^d$ into half-spaces using a hyperplane $\{\mathbf{x} : \mathbf{w}^\top \mathbf{x} + b = 0\}$. The weight vector $\mathbf{w}$ points in the direction of maximum class separation; the margin is the distance from the hyperplane to the nearest data point.
 
 **Three inductive biases** that linear models embody:
+
 - **Additivity**: the effect of each feature is independent and additive
 - **Proportionality**: doubling a feature doubles its contribution to the output
 - **Global linearity**: the same linear map applies everywhere in input space
@@ -170,21 +171,21 @@ All three fail for real data at some scale — which is why we need nonlinear mo
 
 Every neural network is a composition of linear maps and nonlinear activations. Strip away the nonlinearities and every layer reduces to a linear model. This is not merely a theoretical curiosity — it is the key to understanding:
 
-| Neural Network Component | Linear Model Equivalent |
-|---|---|
-| `nn.Linear(d, k)` | OLS with $k$ output variables |
-| Weight decay ($\lambda \lVert W \rVert_F^2$) | Ridge regression with $\lambda$ |
-| L1 weight regularisation | Lasso regression |
-| LoRA weight update $\Delta W = BA$ | Rank-constrained linear regression |
-| Attention output $AV$ | Linear mixing of value vectors |
-| Linear probe on activations | Logistic regression on fixed features |
-| Fine-tuning last layer | Transfer learning = linear model on frozen features |
+| Neural Network Component                     | Linear Model Equivalent                             |
+| -------------------------------------------- | --------------------------------------------------- |
+| `nn.Linear(d, k)`                            | OLS with $k$ output variables                       |
+| Weight decay ($\lambda \lVert W \rVert_F^2$) | Ridge regression with $\lambda$                     |
+| L1 weight regularisation                     | Lasso regression                                    |
+| LoRA weight update $\Delta W = BA$           | Rank-constrained linear regression                  |
+| Attention output $AV$                        | Linear mixing of value vectors                      |
+| Linear probe on activations                  | Logistic regression on fixed features               |
+| Fine-tuning last layer                       | Transfer learning = linear model on frozen features |
 
 **For AI (2026):** LoRA (Hu et al., 2022) and its successors (DoRA, LoRA+, Flora) are the dominant parameter-efficient fine-tuning methods for LLMs. Their mathematical foundation is exactly rank-constrained linear regression: $\Delta W = BA$ where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times k}$ with $r \ll \min(d,k)$. The nuclear norm regularisation that controls rank in matrix completion is the convex relaxation of the Lasso applied to singular values.
 
 ### 1.4 Historical Timeline
 
-```
+```text
 HISTORY OF LINEAR MODELS
 ════════════════════════════════════════════════════════════════════════
 
@@ -234,7 +235,7 @@ where $X \in \mathbb{R}^{n \times d}$ is the **design matrix** (row $i$ = $(\mat
 
 **Anatomy of the design matrix:**
 
-```
+```text
 DESIGN MATRIX STRUCTURE
 ════════════════════════════════════════════════════════════════════════
 
@@ -255,17 +256,18 @@ DESIGN MATRIX STRUCTURE
 
 **The five Gauss-Markov assumptions:**
 
-| Assumption | Mathematical statement | Consequence if violated |
-|---|---|---|
-| Linearity | $\mathbb{E}[\mathbf{y} \mid X] = X\boldsymbol{\beta}$ | Bias — model systematically wrong |
-| Strict exogeneity | $\mathbb{E}[\boldsymbol{\epsilon} \mid X] = \mathbf{0}$ | OLS is biased (endogeneity) |
-| Full rank | $\operatorname{rank}(X) = d$ | $(X^\top X)^{-1}$ doesn't exist |
-| Homoscedasticity | $\operatorname{Cov}(\boldsymbol{\epsilon} \mid X) = \sigma^2 I_n$ | OLS is unbiased but not efficient |
-| No autocorrelation | $\operatorname{Cov}(\epsilon^{(i)}, \epsilon^{(j)}) = 0$ for $i \neq j$ | Standard errors wrong |
+| Assumption         | Mathematical statement                                                  | Consequence if violated           |
+| ------------------ | ----------------------------------------------------------------------- | --------------------------------- |
+| Linearity          | $\mathbb{E}[\mathbf{y} \mid X] = X\boldsymbol{\beta}$                   | Bias — model systematically wrong |
+| Strict exogeneity  | $\mathbb{E}[\boldsymbol{\epsilon} \mid X] = \mathbf{0}$                 | OLS is biased (endogeneity)       |
+| Full rank          | $\operatorname{rank}(X) = d$                                            | $(X^\top X)^{-1}$ doesn't exist   |
+| Homoscedasticity   | $\operatorname{Cov}(\boldsymbol{\epsilon} \mid X) = \sigma^2 I_n$       | OLS is unbiased but not efficient |
+| No autocorrelation | $\operatorname{Cov}(\epsilon^{(i)}, \epsilon^{(j)}) = 0$ for $i \neq j$ | Standard errors wrong             |
 
 The assumptions of normality ($\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \sigma^2 I)$) are needed for exact finite-sample inference but not for the BLUE property.
 
 **Non-examples of linear regression** (things that look linear but aren't):
+
 - $y = \beta_0 + \beta_1 x + \beta_2 x^2$ — this IS linear regression (in features $1, x, x^2$)
 - $y = \beta_0 e^{\beta_1 x}$ — this is NOT (the model is nonlinear in $\beta_1$)
 - $y = \beta_0 + \beta_1 / (x + \beta_2)$ — NOT linear in parameters
@@ -316,14 +318,14 @@ $$H = X(X^\top X)^{-1} X^\top, \quad \hat{\mathbf{y}} = H\mathbf{y}$$
 
 **Key properties** (all follow from $H$ being an orthogonal projector onto $\mathcal{C}(X)$):
 
-| Property | Equation | Interpretation |
-|---|---|---|
-| Idempotent | $H^2 = H$ | Projecting twice = projecting once |
-| Symmetric | $H^\top = H$ | Orthogonal projection |
-| Rank | $\operatorname{rank}(H) = d$ | Projects onto a $d$-dim subspace |
-| Eigenvalues | $\lambda_i \in \{0, 1\}$ | In or out of $\mathcal{C}(X)$ |
-| Residual projector | $(I - H)^2 = I - H$ | Residuals form complementary subspace |
-| Trace | $\operatorname{tr}(H) = d$ | Degrees of freedom used by model |
+| Property           | Equation                     | Interpretation                        |
+| ------------------ | ---------------------------- | ------------------------------------- |
+| Idempotent         | $H^2 = H$                    | Projecting twice = projecting once    |
+| Symmetric          | $H^\top = H$                 | Orthogonal projection                 |
+| Rank               | $\operatorname{rank}(H) = d$ | Projects onto a $d$-dim subspace      |
+| Eigenvalues        | $\lambda_i \in \{0, 1\}$     | In or out of $\mathcal{C}(X)$         |
+| Residual projector | $(I - H)^2 = I - H$          | Residuals form complementary subspace |
+| Trace              | $\operatorname{tr}(H) = d$   | Degrees of freedom used by model      |
 
 **Leverage scores.** The diagonal entries $h_{ii} = H_{ii} = \mathbf{x}^{(i)\top}(X^\top X)^{-1}\mathbf{x}^{(i)}$ measure how much influence observation $i$ has on its own fitted value. Properties:
 
@@ -377,18 +379,17 @@ where subscript $r$ denotes the first $r$ singular vectors/values. This solution
 
 **Proof sketch.**
 
-*Step 1: Unbiasedness.* $\mathbb{E}[\hat{\boldsymbol{\beta}}] = (X^\top X)^{-1} X^\top \mathbb{E}[\mathbf{y}] = (X^\top X)^{-1} X^\top X \boldsymbol{\beta} = \boldsymbol{\beta}$.
+_Step 1: Unbiasedness._ $\mathbb{E}[\hat{\boldsymbol{\beta}}] = (X^\top X)^{-1} X^\top \mathbb{E}[\mathbf{y}] = (X^\top X)^{-1} X^\top X \boldsymbol{\beta} = \boldsymbol{\beta}$.
 
-*Step 2: Variance.* $\operatorname{Cov}(\hat{\boldsymbol{\beta}}) = (X^\top X)^{-1} X^\top \operatorname{Cov}(\mathbf{y}) X (X^\top X)^{-1} = \sigma^2 (X^\top X)^{-1}$.
+_Step 2: Variance._ $\operatorname{Cov}(\hat{\boldsymbol{\beta}}) = (X^\top X)^{-1} X^\top \operatorname{Cov}(\mathbf{y}) X (X^\top X)^{-1} = \sigma^2 (X^\top X)^{-1}$.
 
-*Step 3: Optimality.* Let $\tilde{\boldsymbol{\beta}} = C\mathbf{y}$ be any other linear unbiased estimator, so $CX = I$ (unbiasedness condition). Write $C = (X^\top X)^{-1} X^\top + D$ for some matrix $D$ with $DX = 0$. Then:
+_Step 3: Optimality._ Let $\tilde{\boldsymbol{\beta}} = C\mathbf{y}$ be any other linear unbiased estimator, so $CX = I$ (unbiasedness condition). Write $C = (X^\top X)^{-1} X^\top + D$ for some matrix $D$ with $DX = 0$. Then:
 
 $$\operatorname{Cov}(\tilde{\boldsymbol{\beta}}) = \sigma^2 CC^\top = \sigma^2 (X^\top X)^{-1} + \sigma^2 DD^\top \succeq \sigma^2 (X^\top X)^{-1} = \operatorname{Cov}(\hat{\boldsymbol{\beta}})$$
 
 since $DD^\top \succeq 0$. Equality holds iff $D = 0$, i.e., $\tilde{\boldsymbol{\beta}} = \hat{\boldsymbol{\beta}}$. $\square$
 
 **Limitations:** "Best" means minimum variance in the PSD order — not best in any norm. BLUE is only optimal within the linear unbiased class; biased estimators (like Ridge) can have lower mean squared error by trading bias for variance reduction.
-
 
 ---
 
@@ -486,6 +487,7 @@ $$R^2 = 1 - \frac{\text{RSS}}{\text{TSS}} = 1 - \frac{\sum_i (y^{(i)} - \hat{y}^
 where TSS (total sum of squares) = variance of $\mathbf{y}$ up to a constant.
 
 **Properties:**
+
 - $R^2 \in [0, 1]$ for OLS with an intercept (residuals are always smaller than deviations from the mean)
 - $R^2 = r^2$ in simple regression ($d=1$), where $r$ is the Pearson correlation
 - Adding any feature (even random noise) increases $R^2$ — the model uses additional degrees of freedom
@@ -513,6 +515,7 @@ $$-2X^\top(\mathbf{y} - X\boldsymbol{\beta}) + 2\lambda\boldsymbol{\beta} = \mat
 $$\boxed{\hat{\boldsymbol{\beta}}_\lambda = (X^\top X + \lambda I)^{-1} X^\top \mathbf{y}}$$
 
 **Key properties:**
+
 - $(X^\top X + \lambda I)$ is **always invertible** for $\lambda > 0$, even when $X$ is rank-deficient
 - The solution exists and is unique for all $\lambda > 0$
 - As $\lambda \to 0$: $\hat{\boldsymbol{\beta}}_\lambda \to \hat{\boldsymbol{\beta}}_{\text{OLS}}$
@@ -536,7 +539,7 @@ Compare with OLS: $\hat{\boldsymbol{\beta}}_{\text{OLS}} = \sum_{j=1}^d \frac{1}
 
 Ridge applies a **shrinkage factor** $\sigma_j^2/(\sigma_j^2 + \lambda) < 1$ to each component. Components with small $\sigma_j$ (near-collinear directions) are shrunk most aggressively.
 
-```
+```text
 RIDGE SINGULAR VALUE SHRINKAGE
 ════════════════════════════════════════════════════════════════════════
 
@@ -600,7 +603,6 @@ Special cases: $\Gamma = I$ → Ridge; $\Gamma = $ finite-difference matrix → 
 
 **For AI:** Weight decay $\lambda \lVert \boldsymbol{\theta} \rVert_2^2$ is the universal default regulariser in LLM pretraining. Llama 2 uses weight decay 0.1; GPT-4 architecture details suggest similar values. The Bayesian interpretation says weight decay encodes a Gaussian prior $\boldsymbol{\theta} \sim \mathcal{N}(\mathbf{0}, (1/\lambda)I)$ — a mild belief that weights should be small.
 
-
 ---
 
 ## 5. Lasso Regression (L1 Regularisation)
@@ -619,7 +621,7 @@ $$\min_{\boldsymbol{\beta}} \lVert \mathbf{y} - X\boldsymbol{\beta} \rVert_2^2 \
 
 The $\ell^1$ ball $\{\boldsymbol{\beta} : \lVert \boldsymbol{\beta} \rVert_1 \leq t\}$ is a **polytope** (diamond in 2D) with corners at $\pm t \mathbf{e}_j$. The ellipsoidal contours of the least-squares objective typically contact the $\ell^1$ ball at a corner — where exactly one coordinate is nonzero. The $\ell^2$ ball is smooth and round; contours contact it on its surface, where all coordinates are generally nonzero.
 
-```
+```text
 GEOMETRY OF REGULARISATION CONSTRAINTS
 ════════════════════════════════════════════════════════════════════════
 
@@ -661,6 +663,7 @@ The Lasso solution for coordinate $j$ is the **soft-thresholding operator**:
 $$\hat{\beta}_j = S_\lambda(z_j) = \operatorname{sign}(z_j)\max(|z_j| - \lambda, 0)$$
 
 **Derivation:** Consider $\min_\beta \frac{1}{2}(\beta - z)^2 + \lambda|\beta|$.
+
 - If $z > \lambda$: minimum at $\hat{\beta} = z - \lambda > 0$
 - If $z < -\lambda$: minimum at $\hat{\beta} = z + \lambda < 0$
 - If $|z| \leq \lambda$: minimum at $\hat{\beta} = 0$ (the penalty dominates)
@@ -671,7 +674,7 @@ This gives $S_\lambda(z) = \operatorname{sign}(z)\max(|z|-\lambda, 0)$, which sh
 
 **Algorithm (Cyclic Coordinate Descent for Lasso):**
 
-```
+```text
 Input: X, y, λ, initialise β = 0
 Repeat until convergence:
   For j = 1 to d:
@@ -698,6 +701,7 @@ The **Least Angle Regression (LARS)** algorithm (Efron et al., 2004) traces the 
 **Key insight:** as $\lambda$ decreases from $\infty$ to $0$, the Lasso coefficient path is **piecewise linear**. LARS exploits this to compute the entire path in $O(nd^2)$ time — the same cost as a single OLS fit.
 
 **LARS procedure:**
+
 1. Start with $\boldsymbol{\beta} = \mathbf{0}$ (all coefficients zero, $\lambda = \infty$)
 2. Find the feature $j^*$ most correlated with the residual $\mathbf{r} = \mathbf{y} - X\boldsymbol{\beta}$
 3. Move $\beta_{j^*}$ in the direction of $\operatorname{sign}(\mathbf{x}_{j^*}^\top \mathbf{r})$ until another feature has equal correlation
@@ -746,14 +750,14 @@ where $z_j = \frac{1}{n}\mathbf{x}_j^\top \mathbf{r}^{(-j)}$ as before. The Ridg
 
 **Comparison table:**
 
-| Property | Ridge | Lasso | Elastic Net |
-|---|---|---|---|
-| Exact zeros | No | Yes | Yes |
-| Correlated features | Includes all (shrinks equally) | Picks one arbitrarily | Groups them |
-| Closed form | Yes | No (subgradient) | No (subgradient) |
-| Always unique | Yes | Yes (when $X$ full rank) | Yes |
-| High $d > n$ | Cannot select | Selects at most $n$ | Selects > $n$ (with grouping) |
-| Bayesian prior | Gaussian | Laplace | Gaussian + Laplace |
+| Property            | Ridge                          | Lasso                    | Elastic Net                   |
+| ------------------- | ------------------------------ | ------------------------ | ----------------------------- |
+| Exact zeros         | No                             | Yes                      | Yes                           |
+| Correlated features | Includes all (shrinks equally) | Picks one arbitrarily    | Groups them                   |
+| Closed form         | Yes                            | No (subgradient)         | No (subgradient)              |
+| Always unique       | Yes                            | Yes (when $X$ full rank) | Yes                           |
+| High $d > n$        | Cannot select                  | Selects at most $n$      | Selects > $n$ (with grouping) |
+| Bayesian prior      | Gaussian                       | Laplace                  | Gaussian + Laplace            |
 
 ### 6.2 Group Lasso
 
@@ -826,6 +830,7 @@ Therefore:
 $$\boldsymbol{\beta} \mid \mathbf{y}, X \sim \mathcal{N}(\boldsymbol{\mu}_n, \Sigma_n)$$
 
 **Intuition.** The posterior mean $\boldsymbol{\mu}_n$ is a **weighted combination of the prior mean and the MLE**:
+
 - Prior mean $\boldsymbol{\mu}_0$, weighted by prior precision $\Sigma_0^{-1}$
 - MLE $\hat{\boldsymbol{\beta}}_{\text{OLS}}$, weighted by likelihood precision $\frac{1}{\sigma^2}X^\top X$
 
@@ -850,6 +855,7 @@ Since both distributions are Gaussian, the integral is analytically tractable:
 $$y_* \mid \mathbf{x}_*, \mathbf{y}, X \sim \mathcal{N}(\mathbf{x}_*^\top \boldsymbol{\mu}_n, \; \underbrace{\mathbf{x}_*^\top \Sigma_n \mathbf{x}_*}_{\text{epistemic}} + \underbrace{\sigma^2}_{\text{aleatoric}})$$
 
 **Two types of uncertainty:**
+
 - **Epistemic (reducible) uncertainty:** $\mathbf{x}_*^\top \Sigma_n \mathbf{x}_*$ — uncertainty about $\boldsymbol{\beta}$, decreases with more data
 - **Aleatoric (irreducible) uncertainty:** $\sigma^2$ — inherent noise, constant regardless of sample size
 
@@ -882,7 +888,6 @@ $$\hat{f}(\mathbf{x}_*) = \mathbf{k}_*^\top (K + \sigma^2 I)^{-1} \mathbf{y}$$
 where $K_{ij} = k(\mathbf{x}^{(i)}, \mathbf{x}^{(j)})$ and $\mathbf{k}_* = [k(\mathbf{x}^{(1)}, \mathbf{x}_*), \ldots, k(\mathbf{x}^{(n)}, \mathbf{x}_*)]^\top$.
 
 **Neural Tangent Kernel.** For infinitely wide neural networks trained with gradient descent, the kernel is the **NTK** $\Theta(\mathbf{x}, \mathbf{x}')$. Training corresponds to kernel ridge regression with this kernel — linear model dynamics in function space. This explains why wide networks can be analysed theoretically using linear model tools (Jacot et al., 2018; Lee et al., 2019).
-
 
 ---
 
@@ -1007,14 +1012,14 @@ Generative classifiers use Bayes' theorem to turn the class-conditional density 
 
 **Ng & Jordan (2001) comparison:**
 
-| Property | Discriminative (Logistic) | Generative (Naive Bayes) |
-|---|---|---|
-| Asymptotic accuracy | Higher (more expressive) | Lower (stronger assumptions) |
-| Sample efficiency | Slow (needs more data) | Fast (makes assumptions) |
-| Missing features | Hard (retrain) | Easy (marginalise over missing) |
-| Outlier sensitivity | More robust | Less robust |
-| Joint modelling | No | Yes (can generate $\mathbf{x}$) |
-| Causal structure | Ignored | Partly modelled |
+| Property            | Discriminative (Logistic) | Generative (Naive Bayes)        |
+| ------------------- | ------------------------- | ------------------------------- |
+| Asymptotic accuracy | Higher (more expressive)  | Lower (stronger assumptions)    |
+| Sample efficiency   | Slow (needs more data)    | Fast (makes assumptions)        |
+| Missing features    | Hard (retrain)            | Easy (marginalise over missing) |
+| Outlier sensitivity | More robust               | Less robust                     |
+| Joint modelling     | No                        | Yes (can generate $\mathbf{x}$) |
+| Causal structure    | Ignored                   | Partly modelled                 |
 
 Key insight (Ng & Jordan): generative models reach their asymptotic error faster (with fewer samples) but have higher asymptotic error. Discriminative models are better with large $n$; generative models are better with small $n$.
 
@@ -1061,6 +1066,7 @@ This is **quadratic in $\mathbf{x}$** — QDA has quadratic decision boundaries.
 $$p(\mathbf{x} \mid y = k) = \prod_{j=1}^d p(x_j \mid y = k)$$
 
 This is almost certainly wrong (features are correlated) but often works well in practice due to:
+
 1. Small number of parameters: $O(Kd)$ vs. $O(Kd^2)$ for LDA
 2. Robustness to model misspecification at low $n$
 
@@ -1080,7 +1086,6 @@ The Ng & Jordan (2001) result can be stated precisely: for $d$-dimensional Gauss
 - **Large $n/d$ ratio**: discriminative models (logistic regression) win
 
 In modern AI, $n \gg d$ for LLM pretraining (trillions of tokens, tens of thousands of features), which is why discriminative training (cross-entropy loss) dominates. For few-shot fine-tuning or domain adaptation with small $n$, Bayesian/generative methods become competitive.
-
 
 ---
 
@@ -1160,12 +1165,12 @@ The box constraint $\alpha_i \leq C$ bounds the influence of each training point
 
 **Standard kernels:**
 
-| Kernel | Formula | Feature space dimension |
-|---|---|---|
-| Linear | $k(\mathbf{x},\mathbf{z}) = \mathbf{x}^\top \mathbf{z}$ | $d$ |
-| Polynomial | $k(\mathbf{x},\mathbf{z}) = (\mathbf{x}^\top \mathbf{z} + c)^p$ | $\binom{d+p}{p}$ |
-| RBF/Gaussian | $k(\mathbf{x},\mathbf{z}) = \exp(-\lVert\mathbf{x}-\mathbf{z}\rVert^2 / 2\ell^2)$ | $\infty$ |
-| Laplace | $k(\mathbf{x},\mathbf{z}) = \exp(-\lVert\mathbf{x}-\mathbf{z}\rVert / \ell)$ | $\infty$ |
+| Kernel       | Formula                                                                           | Feature space dimension |
+| ------------ | --------------------------------------------------------------------------------- | ----------------------- |
+| Linear       | $k(\mathbf{x},\mathbf{z}) = \mathbf{x}^\top \mathbf{z}$                           | $d$                     |
+| Polynomial   | $k(\mathbf{x},\mathbf{z}) = (\mathbf{x}^\top \mathbf{z} + c)^p$                   | $\binom{d+p}{p}$        |
+| RBF/Gaussian | $k(\mathbf{x},\mathbf{z}) = \exp(-\lVert\mathbf{x}-\mathbf{z}\rVert^2 / 2\ell^2)$ | $\infty$                |
+| Laplace      | $k(\mathbf{x},\mathbf{z}) = \exp(-\lVert\mathbf{x}-\mathbf{z}\rVert / \ell)$      | $\infty$                |
 
 **For AI:** Kernel methods are the mathematical foundation of **attention mechanisms**. Self-attention computes $\operatorname{Attention}(Q,K,V) = \operatorname{softmax}(QK^\top/\sqrt{d_k})V$, where $QK^\top/\sqrt{d_k}$ is a matrix of kernel evaluations between queries and keys. Cosine-similarity attention uses $k(\mathbf{q}, \mathbf{k}) = \mathbf{q}^\top \mathbf{k} / (\lVert\mathbf{q}\rVert \lVert\mathbf{k}\rVert)$ — a normalised linear kernel. Random Feature Attention (Peng et al., 2021) approximates the softmax kernel with random features to achieve linear-time attention.
 
@@ -1210,9 +1215,9 @@ Classical statistical learning theory predicts a U-shaped test error curve:
 
 **Double descent** (Belkin et al., 2020; Hastie et al., 2022) reveals a second descent:
 
-3. Overparameterised regime ($d \gg n$): after crossing the **interpolation threshold** ($d = n$), error decreases again — even without explicit regularisation
+1. Overparameterised regime ($d \gg n$): after crossing the **interpolation threshold** ($d = n$), error decreases again — even without explicit regularisation
 
-```
+```text
 DOUBLE DESCENT TEST ERROR CURVE
 ════════════════════════════════════════════════════════════════════════
 
@@ -1287,10 +1292,10 @@ For Ridge and Lasso, computing the entire regularisation path (solution for all 
 - **Lasso path (LARS):** $O(nd^2)$ for the entire path using the piecewise-linear structure
 
 **Practical hyperparameter selection:**
+
 1. Define a logarithmic grid: $\lambda \in \{\lambda_{\max}/100, \lambda_{\max}/10, \ldots, \lambda_{\max}\}$ where $\lambda_{\max} = \lVert X^\top \mathbf{y} \rVert_\infty / n$ (largest $\lambda$ giving all-zero Lasso solution)
 2. For each $\lambda$: compute $k$-fold CV error
 3. Select $\lambda^* = \arg\min_\lambda \text{CV}(\lambda)$ or apply the one-SE rule
-
 
 ---
 
@@ -1376,13 +1381,13 @@ where $H_t^{-1}$ is the L-BFGS quasi-Newton approximation. Memory: $O(md)$ vs. $
 
 **When to use which method:**
 
-| Method | Cost/step | Rate | Best for |
-|---|---|---|---|
-| GD | $O(nd)$ | $O(1/t)$ or linear | Small $n$, smooth loss |
-| SGD | $O(Bd)$ | $O(1/\sqrt{t})$ | Large $n$, batch parallelism |
-| Newton/IRLS | $O(nd^2 + d^3)$ | Quadratic | Small $d$, logistic regression |
-| Coord. descent | $O(n)$/coord | Linear | Lasso, separable penalty |
-| L-BFGS | $O(mnd)$ | Superlinear | Medium $n$, smooth differentiable |
+| Method         | Cost/step       | Rate               | Best for                          |
+| -------------- | --------------- | ------------------ | --------------------------------- |
+| GD             | $O(nd)$         | $O(1/t)$ or linear | Small $n$, smooth loss            |
+| SGD            | $O(Bd)$         | $O(1/\sqrt{t})$    | Large $n$, batch parallelism      |
+| Newton/IRLS    | $O(nd^2 + d^3)$ | Quadratic          | Small $d$, logistic regression    |
+| Coord. descent | $O(n)$/coord    | Linear             | Lasso, separable penalty          |
+| L-BFGS         | $O(mnd)$        | Superlinear        | Medium $n$, smooth differentiable |
 
 ---
 
@@ -1466,18 +1471,18 @@ This is a **weighted linear combination** of value vectors — a linear model wi
 
 ## 14. Common Mistakes
 
-| # | Mistake | Why It's Wrong | Fix |
-|---|---|---|---|
-| 1 | Using OLS when $n < d$ | $(X^\top X)^{-1}$ doesn't exist; infinitely many solutions | Use Ridge, Lasso, or pseudoinverse; always check $\operatorname{rank}(X)$ |
-| 2 | Forgetting to standardise features before regularisation | Ridge/Lasso penalise all $\beta_j$ equally, so features on different scales are penalised differently | Always centre and scale features to unit variance before regularising |
-| 3 | Interpreting $R^2$ as model quality | Adding useless features always increases $R^2$; high $R^2$ on training data means nothing about generalisation | Use adjusted $R^2$, AIC, BIC, or cross-validation error |
-| 4 | Using Ridge when sparsity is desired | Ridge shrinks but never zeros out coefficients | Use Lasso or Elastic Net for feature selection |
-| 5 | Forgetting the intercept in OLS | Predictions are biased; residuals don't sum to zero | Always include an intercept unless there's a domain-specific reason not to |
-| 6 | Treating logistic regression as a regression model | Despite the name, logistic regression is a classification model — the output is a probability, not a numerical prediction | Use the output as $P(y=1|\mathbf{x})$; threshold at 0.5 for predictions |
-| 7 | Ignoring multicollinearity | Highly correlated features make $(X^\top X)^{-1}$ ill-conditioned; standard errors explode | Check condition number; use Ridge or VIF analysis |
-| 8 | Selecting $\lambda$ on the training set | Optimising $\lambda$ on training data is not penalised — the model memorises noise via $\lambda$ | Always select $\lambda$ via cross-validation on held-out data |
-| 9 | Conflating MAP estimate with posterior mean (Bayesian) | MAP is a point estimate; posterior mean minimises MSE; they're equal only for symmetric posteriors | Be explicit: Ridge = MAP with Gaussian prior, not the full posterior |
-| 10 | Confusing kernel SVM with Gaussian process regression | SVM uses kernels for decision boundaries (discriminative); GP regression uses kernels for probabilistic predictions (generative/Bayesian) | Both use kernel matrices, but objectives and outputs differ completely |
+| #   | Mistake                                                  | Why It's Wrong                                                                                                                            | Fix                                                                        |
+| --- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------- |
+| 1   | Using OLS when $n < d$                                   | $(X^\top X)^{-1}$ doesn't exist; infinitely many solutions                                                                                | Use Ridge, Lasso, or pseudoinverse; always check $\operatorname{rank}(X)$  |
+| 2   | Forgetting to standardise features before regularisation | Ridge/Lasso penalise all $\beta_j$ equally, so features on different scales are penalised differently                                     | Always centre and scale features to unit variance before regularising      |
+| 3   | Interpreting $R^2$ as model quality                      | Adding useless features always increases $R^2$; high $R^2$ on training data means nothing about generalisation                            | Use adjusted $R^2$, AIC, BIC, or cross-validation error                    |
+| 4   | Using Ridge when sparsity is desired                     | Ridge shrinks but never zeros out coefficients                                                                                            | Use Lasso or Elastic Net for feature selection                             |
+| 5   | Forgetting the intercept in OLS                          | Predictions are biased; residuals don't sum to zero                                                                                       | Always include an intercept unless there's a domain-specific reason not to |
+| 6   | Treating logistic regression as a regression model       | Despite the name, logistic regression is a classification model — the output is a probability, not a numerical prediction                 | Use the output as $P(y=1                                                   | \mathbf{x})$; threshold at 0.5 for predictions |
+| 7   | Ignoring multicollinearity                               | Highly correlated features make $(X^\top X)^{-1}$ ill-conditioned; standard errors explode                                                | Check condition number; use Ridge or VIF analysis                          |
+| 8   | Selecting $\lambda$ on the training set                  | Optimising $\lambda$ on training data is not penalised — the model memorises noise via $\lambda$                                          | Always select $\lambda$ via cross-validation on held-out data              |
+| 9   | Conflating MAP estimate with posterior mean (Bayesian)   | MAP is a point estimate; posterior mean minimises MSE; they're equal only for symmetric posteriors                                        | Be explicit: Ridge = MAP with Gaussian prior, not the full posterior       |
+| 10  | Confusing kernel SVM with Gaussian process regression    | SVM uses kernels for decision boundaries (discriminative); GP regression uses kernels for probabilistic predictions (generative/Bayesian) | Both use kernel matrices, but objectives and outputs differ completely     |
 
 ---
 
@@ -1601,28 +1606,27 @@ This is a **weighted linear combination** of value vectors — a linear model wi
 
 (d) **For AI:** Explain why wide neural networks in the NTK regime are disadvantageous for feature learning. What property of practical LLMs (finite width, feature learning) allows them to outperform their NTK counterparts?
 
-
 ---
 
 ## 16. Why This Matters for AI (2026)
 
-| Concept | AI Application | Specific Example |
-|---|---|---|
-| OLS / normal equations | Linear probing evaluation | Measuring representation quality in BERT, LLaMA (Tenney et al., 2019) |
-| Ridge regression / weight decay | LLM pretraining regularisation | AdamW with weight decay 0.1 in LLaMA 2, GPT-4 |
-| Lasso / $\ell^1$ sparsity | Sparse autoencoders (SAEs) | Anthropic SAE interpretability research (Templeton et al., 2024) |
-| Nuclear norm / low rank | LoRA, DoRA, GaLore | PEFT methods for fine-tuning 70B+ parameter models |
-| Bayesian linear regression | Uncertainty quantification | Conformal prediction for LLM outputs |
-| Logistic regression | Linear probing for properties | Syntactic / semantic concept detection in transformer layers |
-| Softmax regression | Language model head | Every token prediction in GPT-4, Claude, Gemini |
-| LDA / Fisher discriminant | Representation geometry analysis | Linear separability of concepts in embedding space |
-| SVM / kernel methods | Attention as kernel computation | Performers, Random Feature Attention (Peng et al., 2021) |
-| Bias-variance decomposition | Model complexity / regularisation | Understanding why LLMs generalise despite memorisation |
-| Double descent | Overparameterised LLMs | 70B+ models interpolate training but generalise — benign overfitting |
-| LOOCV / leverage scores | Training data attribution | Influence functions for LLM output attribution (Koh & Liang, 2017) |
-| KKT conditions | Sparse attention patterns | Reformer, Longformer locality constraints |
-| NTK regime | Linearised LLM analysis | Lazy training at wide width, feature learning at practical width |
-| Coordinate descent | Token-level optimisation | Inference-time compute scheduling in chain-of-thought |
+| Concept                         | AI Application                    | Specific Example                                                      |
+| ------------------------------- | --------------------------------- | --------------------------------------------------------------------- |
+| OLS / normal equations          | Linear probing evaluation         | Measuring representation quality in BERT, LLaMA (Tenney et al., 2019) |
+| Ridge regression / weight decay | LLM pretraining regularisation    | AdamW with weight decay 0.1 in LLaMA 2, GPT-4                         |
+| Lasso / $\ell^1$ sparsity       | Sparse autoencoders (SAEs)        | Anthropic SAE interpretability research (Templeton et al., 2024)      |
+| Nuclear norm / low rank         | LoRA, DoRA, GaLore                | PEFT methods for fine-tuning 70B+ parameter models                    |
+| Bayesian linear regression      | Uncertainty quantification        | Conformal prediction for LLM outputs                                  |
+| Logistic regression             | Linear probing for properties     | Syntactic / semantic concept detection in transformer layers          |
+| Softmax regression              | Language model head               | Every token prediction in GPT-4, Claude, Gemini                       |
+| LDA / Fisher discriminant       | Representation geometry analysis  | Linear separability of concepts in embedding space                    |
+| SVM / kernel methods            | Attention as kernel computation   | Performers, Random Feature Attention (Peng et al., 2021)              |
+| Bias-variance decomposition     | Model complexity / regularisation | Understanding why LLMs generalise despite memorisation                |
+| Double descent                  | Overparameterised LLMs            | 70B+ models interpolate training but generalise — benign overfitting  |
+| LOOCV / leverage scores         | Training data attribution         | Influence functions for LLM output attribution (Koh & Liang, 2017)    |
+| KKT conditions                  | Sparse attention patterns         | Reformer, Longformer locality constraints                             |
+| NTK regime                      | Linearised LLM analysis           | Lazy training at wide width, feature learning at practical width      |
+| Coordinate descent              | Token-level optimisation          | Inference-time compute scheduling in chain-of-thought                 |
 
 ---
 
@@ -1644,7 +1648,7 @@ From here, the curriculum extends in two directions:
 
 ### Curriculum Position
 
-```
+```text
 LINEAR MODELS IN THE CURRICULUM
 ════════════════════════════════════════════════════════════════════════
 
@@ -1676,18 +1680,18 @@ The linear model framework is not a historical artifact — it is the analytical
 
 ## References
 
-1. Tibshirani, R. (1994). "Regression Shrinkage and Selection via the Lasso." *JRSS-B*, 58(1), 267–288.
-2. Hoerl, A. E. & Kennard, R. W. (1970). "Ridge Regression: Biased Estimation for Nonorthogonal Problems." *Technometrics*, 12(1), 55–67.
-3. Zou, H. & Hastie, T. (2003). "Regularization and Variable Selection via the Elastic Net." *JRSS-B*, 67(2), 301–320.
-4. Efron, B., Hastie, T., Johnstone, I., & Tibshirani, R. (2004). "Least Angle Regression." *Annals of Statistics*, 32(2), 407–499.
-5. Hastie, T., Tibshirani, R., & Friedman, J. (2009). *The Elements of Statistical Learning* (2nd ed.). Springer.
-6. Ng, A. Y. & Jordan, M. I. (2001). "On Discriminative vs. Generative Classifiers." *NeurIPS* 14.
-7. Vapnik, V. (1995). *The Nature of Statistical Learning Theory*. Springer.
-8. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Springer.
-9. Jacot, A., Gabriel, F., & Hongler, C. (2018). "Neural Tangent Kernel." *NeurIPS* 31.
-10. Belkin, M., Hsu, D., Ma, S., & Mandal, S. (2019). "Reconciling Modern Machine-Learning Practice and the Classical Bias-Variance Trade-Off." *PNAS*, 116(32).
-11. Hu, E., Shen, Y., Wallis, P., et al. (2022). "LoRA: Low-Rank Adaptation of Large Language Models." *ICLR*.
-12. Koh, P. W. & Liang, P. (2017). "Understanding Black-box Predictions via Influence Functions." *ICML*.
-13. Tenney, I., Das, D., & Pavlick, E. (2019). "BERT Rediscovers the Classical NLP Pipeline." *ACL*.
-14. Zhao, R., Li, G., Zhang, Y., et al. (2024). "GaLore: Memory-Efficient LLM Training by Gradient Low-Rank Projection." *ICML*.
-15. Elhage, N., Nanda, N., Olsson, C., et al. (2021). "A Mathematical Framework for Transformer Circuits." *Transformer Circuits Thread*, Anthropic.
+1. Tibshirani, R. (1994). "Regression Shrinkage and Selection via the Lasso." _JRSS-B_, 58(1), 267–288.
+2. Hoerl, A. E. & Kennard, R. W. (1970). "Ridge Regression: Biased Estimation for Nonorthogonal Problems." _Technometrics_, 12(1), 55–67.
+3. Zou, H. & Hastie, T. (2003). "Regularization and Variable Selection via the Elastic Net." _JRSS-B_, 67(2), 301–320.
+4. Efron, B., Hastie, T., Johnstone, I., & Tibshirani, R. (2004). "Least Angle Regression." _Annals of Statistics_, 32(2), 407–499.
+5. Hastie, T., Tibshirani, R., & Friedman, J. (2009). _The Elements of Statistical Learning_ (2nd ed.). Springer.
+6. Ng, A. Y. & Jordan, M. I. (2001). "On Discriminative vs. Generative Classifiers." _NeurIPS_ 14.
+7. Vapnik, V. (1995). _The Nature of Statistical Learning Theory_. Springer.
+8. Bishop, C. M. (2006). _Pattern Recognition and Machine Learning_. Springer.
+9. Jacot, A., Gabriel, F., & Hongler, C. (2018). "Neural Tangent Kernel." _NeurIPS_ 31.
+10. Belkin, M., Hsu, D., Ma, S., & Mandal, S. (2019). "Reconciling Modern Machine-Learning Practice and the Classical Bias-Variance Trade-Off." _PNAS_, 116(32).
+11. Hu, E., Shen, Y., Wallis, P., et al. (2022). "LoRA: Low-Rank Adaptation of Large Language Models." _ICLR_.
+12. Koh, P. W. & Liang, P. (2017). "Understanding Black-box Predictions via Influence Functions." _ICML_.
+13. Tenney, I., Das, D., & Pavlick, E. (2019). "BERT Rediscovers the Classical NLP Pipeline." _ACL_.
+14. Zhao, R., Li, G., Zhang, Y., et al. (2024). "GaLore: Memory-Efficient LLM Training by Gradient Low-Rank Projection." _ICML_.
+15. Elhage, N., Nanda, N., Olsson, C., et al. (2021). "A Mathematical Framework for Transformer Circuits." _Transformer Circuits Thread_, Anthropic.

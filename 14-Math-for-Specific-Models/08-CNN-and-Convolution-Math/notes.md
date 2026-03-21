@@ -23,9 +23,9 @@ This section develops the full mathematical theory: from the continuous convolut
 
 ## Companion Notebooks
 
-| Notebook | Description |
-| --- | --- |
-| [theory.ipynb](theory.ipynb) | Interactive demos: convolution as sliding dot-product, Fourier interpretation, gradient flow, feature map visualisation, BatchNorm dynamics, receptive field growth |
+| Notebook                           | Description                                                                                                                                                                                                 |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive demos: convolution as sliding dot-product, Fourier interpretation, gradient flow, feature map visualisation, BatchNorm dynamics, receptive field growth                                         |
 | [exercises.ipynb](exercises.ipynb) | 10 graded problems with solutions: 2D conv from scratch, output size formula, backprop through conv, BatchNorm, depthwise separable, dilated receptive field, transposed conv, ResNet skip, patch embedding |
 
 ## Learning Objectives
@@ -100,7 +100,7 @@ This exploits the fact that local image statistics are highly informative: edges
 
 ### 1.3 Historical Timeline
 
-```
+```text
 CNN ARCHITECTURE TIMELINE
 ════════════════════════════════════════════════════════════════════════
 
@@ -135,13 +135,13 @@ $$(f * g)(t) = \int_{-\infty}^{\infty} f(\tau) \, g(t - \tau) \, d\tau$$
 
 **Properties of convolution:**
 
-| Property | Formula |
-| --- | --- |
-| Commutativity | $f * g = g * f$ |
-| Associativity | $(f * g) * h = f * (g * h)$ |
-| Distributivity | $f * (g + h) = (f * g) + (f * h)$ |
-| Linearity in both arguments | $(af) * g = a(f * g)$ |
-| Derivative rule | $(f * g)' = f' * g = f * g'$ |
+| Property                    | Formula                           |
+| --------------------------- | --------------------------------- |
+| Commutativity               | $f * g = g * f$                   |
+| Associativity               | $(f * g) * h = f * (g * h)$       |
+| Distributivity              | $f * (g + h) = (f * g) + (f * h)$ |
+| Linearity in both arguments | $(af) * g = a(f * g)$             |
+| Derivative rule             | $(f * g)' = f' * g = f * g'$      |
 
 The **derivative rule** is particularly important: it shows why convolving with the derivative of a Gaussian detects edges.
 
@@ -214,12 +214,12 @@ where $s$ is the stride and $b$ is the bias. Each output value is a dot product 
 
 **Geometric intuition:** The kernel is a sliding window that sweeps across the input, computing a local dot product at every position. Different kernels detect different patterns:
 
-| Kernel | Detects |
-| --- | --- |
-| $\begin{pmatrix}-1 & 0 & 1 \\ -2 & 0 & 2 \\ -1 & 0 & 1\end{pmatrix}$ | Vertical edges (Sobel $x$) |
-| $\begin{pmatrix}-1 & -2 & -1 \\ 0 & 0 & 0 \\ 1 & 2 & 1\end{pmatrix}$ | Horizontal edges (Sobel $y$) |
-| $\frac{1}{9}\begin{pmatrix}1 & 1 & 1 \\ 1 & 1 & 1 \\ 1 & 1 & 1\end{pmatrix}$ | Blur (average) |
-| $\begin{pmatrix}0 & -1 & 0 \\ -1 & 4 & -1 \\ 0 & -1 & 0\end{pmatrix}$ | Sharpening (Laplacian) |
+| Kernel                                                                       | Detects                      |
+| ---------------------------------------------------------------------------- | ---------------------------- |
+| $\begin{pmatrix}-1 & 0 & 1 \\ -2 & 0 & 2 \\ -1 & 0 & 1\end{pmatrix}$         | Vertical edges (Sobel $x$)   |
+| $\begin{pmatrix}-1 & -2 & -1 \\ 0 & 0 & 0 \\ 1 & 2 & 1\end{pmatrix}$         | Horizontal edges (Sobel $y$) |
+| $\frac{1}{9}\begin{pmatrix}1 & 1 & 1 \\ 1 & 1 & 1 \\ 1 & 1 & 1\end{pmatrix}$ | Blur (average)               |
+| $\begin{pmatrix}0 & -1 & 0 \\ -1 & 4 & -1 \\ 0 & -1 & 0\end{pmatrix}$        | Sharpening (Laplacian)       |
 
 In CNNs, the kernel values are **learned** from data rather than handcrafted.
 
@@ -231,7 +231,7 @@ In CNNs, the kernel values are **learned** from data rather than handcrafted.
 
 **Full padding**: pad enough so that every input pixel appears in exactly one position as the kernel center. Output is larger than input.
 
-```
+```text
 PADDING STRATEGIES (1D illustration, input size 5, kernel size 3)
 ════════════════════════════════════════════════════════════════════════
 
@@ -283,13 +283,13 @@ $$H_{\text{out}} = \left\lfloor \frac{H + 2p - d(k-1) - 1}{s} \right\rfloor + 1$
 
 **Special cases:**
 
-| Setting | Formula | Example ($H=32, k=3$) |
-| --- | --- | --- |
-| Valid, stride 1 | $H - k + 1$ | $32 - 3 + 1 = 30$ |
-| Same, stride 1 | $H$ | $32$ |
-| Valid, stride 2 | $\lfloor(H - k)/2\rfloor + 1$ | $\lfloor(32 - 3)/2\rfloor + 1 = 15$ |
-| Same, stride 2 | $\lceil H/2 \rceil$ | $16$ |
-| Dilated $d=2$, valid | $H - d(k-1)$ | $32 - 2(2) = 28$ |
+| Setting              | Formula                       | Example ($H=32, k=3$)               |
+| -------------------- | ----------------------------- | ----------------------------------- |
+| Valid, stride 1      | $H - k + 1$                   | $32 - 3 + 1 = 30$                   |
+| Same, stride 1       | $H$                           | $32$                                |
+| Valid, stride 2      | $\lfloor(H - k)/2\rfloor + 1$ | $\lfloor(32 - 3)/2\rfloor + 1 = 15$ |
+| Same, stride 2       | $\lceil H/2 \rceil$           | $16$                                |
+| Dilated $d=2$, valid | $H - d(k-1)$                  | $32 - 2(2) = 28$                    |
 
 **Verification trick:** For a $k \times k$ kernel, valid padding, stride 1: the output shrinks by $k - 1$ in each dimension. Stacking $L$ such layers shrinks by $L(k-1)$.
 
@@ -374,7 +374,7 @@ $$Y[f, i, j] = b_f + \sum_{c, m, n} X[c, \, i \cdot s + m, \, j \cdot s + n] \cd
 
 Each output channel $f$ is a separate feature map, representing the response of filter $f$ at every spatial position.
 
-```
+```text
 MULTI-CHANNEL CONVOLUTION
 ════════════════════════════════════════════════════════════════════════
 
@@ -396,6 +396,7 @@ MULTI-CHANNEL CONVOLUTION
 ### 5.3 Parameter Count
 
 For a convolutional layer with:
+
 - Input channels: $C_{\text{in}}$
 - Output channels: $C_{\text{out}}$
 - Kernel size: $k \times k$
@@ -432,11 +433,11 @@ After layer 1: RF = 3. After layer 2: RF = $3 + 2 = 5$. Two $3 \times 3$ layers 
 
 **ResNet-50 receptive field:** At the final feature map (before global average pooling), the theoretical receptive field is much larger than $224 \times 224$ — the entire image. In practice, the **effective receptive field** (weighted by gradient magnitude) is significantly smaller, as shown by Luo et al. (2017).
 
-| Architecture | Theoretical RF | Depth | Top-1 ImageNet |
-| --- | --- | --- | --- |
-| VGG-16 | 228 | 13 conv | 74.4% |
-| ResNet-50 | 483 | 49 conv | 76.9% |
-| EfficientNet-B7 | 851 | ~66 conv | 84.3% |
+| Architecture    | Theoretical RF | Depth    | Top-1 ImageNet |
+| --------------- | -------------- | -------- | -------------- |
+| VGG-16          | 228            | 13 conv  | 74.4%          |
+| ResNet-50       | 483            | 49 conv  | 76.9%          |
+| EfficientNet-B7 | 851            | ~66 conv | 84.3%          |
 
 ---
 
@@ -449,6 +450,7 @@ After layer 1: RF = 3. After layer 2: RF = $3 + 2 = 5$. Two $3 \times 3$ layers 
 $$Y[f, i, j] = \max_{0 \le m < k, \; 0 \le n < k} X[f, \, i \cdot s + m, \, j \cdot s + n]$$
 
 **Properties:**
+
 - **Translation invariance:** Small shifts in the input do not change the max-pooled output (approximately — the shift must be smaller than the pool window).
 - **Selectivity:** Keeps the strongest activation in each region, discarding weaker responses.
 - **Non-parametric:** No learned parameters — a fixed operation.
@@ -555,7 +557,7 @@ The key property: the gradient from a single sample $x_i$ flows to all other sam
 
 Different normalisation strategies differ in which axes they compute statistics over:
 
-```
+```text
 NORMALISATION STRATEGIES (N=batch, C=channel, H=height, W=width)
 ════════════════════════════════════════════════════════════════════════
 
@@ -576,12 +578,12 @@ NORMALISATION STRATEGIES (N=batch, C=channel, H=height, W=width)
 ════════════════════════════════════════════════════════════════════════
 ```
 
-| Norm type | Best for | Fails when |
-| --- | --- | --- |
-| Batch Norm | Large-batch supervised CNN training | Small batch (detection, segmentation) |
-| Layer Norm | Transformers, RNNs, NLP | Spatial CNNs (less spatial meaning) |
-| Instance Norm | Style transfer, image generation | Classification (removes useful info) |
-| Group Norm | Object detection, small batch | Must choose group size $G$ |
+| Norm type     | Best for                            | Fails when                            |
+| ------------- | ----------------------------------- | ------------------------------------- |
+| Batch Norm    | Large-batch supervised CNN training | Small batch (detection, segmentation) |
+| Layer Norm    | Transformers, RNNs, NLP             | Spatial CNNs (less spatial meaning)   |
+| Instance Norm | Style transfer, image generation    | Classification (removes useful info)  |
+| Group Norm    | Object detection, small batch       | Must choose group size $G$            |
 
 ---
 
@@ -717,6 +719,7 @@ A $3 \times 3$ kernel with $d = 4$: covers a $9 \times 9$ area.
 The **effective kernel size** is $k + (k-1)(d-1) = d(k-1) + 1$.
 
 **Motivation:** Dense prediction tasks (semantic segmentation, depth estimation) require:
+
 1. **Large receptive fields** — to understand global context.
 2. **High spatial resolution** — to make predictions at the pixel level.
 
@@ -734,7 +737,7 @@ $$\text{RF}_L = 1 + \sum_{l=0}^{L-1} 2 \cdot 2^l = 1 + 2(2^L - 1) = 2^{L+1} - 1$
 
 After $L = 7$ layers: RF = $2^8 - 1 = 255$. After $L = 10$: RF = $2047$. The receptive field grows **exponentially** with depth — much faster than the linear growth of standard convolutions ($L(k-1) + 1$).
 
-```
+```text
 DILATED CONVOLUTION RECEPTIVE FIELDS (3x3 kernel)
 ════════════════════════════════════════════════════════════════════════
 
@@ -778,6 +781,7 @@ In the Toeplitz matrix view: if $\mathbf{y} = \mathbf{C} \mathbf{x}$, then the t
 **Computation:** For each element $y[i, j]$ in the input, "stamp" the kernel multiplied by $y[i, j]$ onto the output, with stride $s$ spacing. Overlapping regions are summed.
 
 **Use cases:**
+
 1. Upsampling in encoder-decoder networks (U-Net, FCN for semantic segmentation).
 2. Generative networks (VAE decoders, GANs) that need to upsample latent codes to images.
 3. Visualising learned features by inverting the network.
@@ -789,6 +793,7 @@ In the Toeplitz matrix view: if $\mathbf{y} = \mathbf{C} \mathbf{x}$, then the t
 When stride > 1, the transposed convolution kernel stamps overlap unevenly — some output pixels receive contributions from more kernel stamps than others, creating a periodic "checkerboard" pattern in the output.
 
 **Root cause:** For stride $s = 2$ and kernel $k = 3$, the output coverage pattern is:
+
 - Position 0: covered by 2 stamps
 - Position 1: covered by 1 stamp
 - Position 2: covered by 2 stamps
@@ -797,6 +802,7 @@ When stride > 1, the transposed convolution kernel stamps overlap unevenly — s
 The alternating coverage creates a frequency-$s$ artifact. For $k = 4$ and $s = 2$: every position covered equally — no checkerboard! The condition for uniform coverage: $k$ divisible by $s$.
 
 **Solutions:**
+
 1. Use kernel sizes divisible by stride: $k = 4, s = 2$ or $k = 6, s = 3$.
 2. Odena et al. (2016) showed that **bilinear upsampling followed by a standard convolution** (Section 11.3) eliminates checkerboard artifacts entirely.
 
@@ -839,13 +845,13 @@ Implementation: pad the input with $k-1$ zeros on the **left** (past), none on t
 
 Both 1D convolution and self-attention process sequences. The key mathematical differences:
 
-| | 1D Convolution | Self-Attention |
-| --- | --- | --- |
-| Context | Fixed window $k$ | Full sequence $L$ |
-| Weights | Fixed (kernel) | Input-dependent |
-| Complexity | $O(L k C)$ | $O(L^2 C)$ |
-| Translation equivariance | Yes (exact) | Approximate (via PE) |
-| Long-range dependencies | Limited by $k$ | Exact |
+|                          | 1D Convolution   | Self-Attention       |
+| ------------------------ | ---------------- | -------------------- |
+| Context                  | Fixed window $k$ | Full sequence $L$    |
+| Weights                  | Fixed (kernel)   | Input-dependent      |
+| Complexity               | $O(L k C)$       | $O(L^2 C)$           |
+| Translation equivariance | Yes (exact)      | Approximate (via PE) |
+| Long-range dependencies  | Limited by $k$   | Exact                |
 
 **Convolution as local, static attention:** The convolution kernel $K[m]$ is the attention weight for position offset $m$, applied identically at every position. Self-attention generalises this: the weight for position $j$ attending to position $i$ is $\text{softmax}(\mathbf{q}_j^\top \mathbf{k}_i / \sqrt{d_k})$ — **content-dependent and position-dependent**.
 
@@ -884,6 +890,7 @@ $$\mathbf{x}_l = H_l([\mathbf{x}_0, \mathbf{x}_1, \ldots, \mathbf{x}_{l-1}])$$
 where $[\cdot, \cdot]$ denotes channel concatenation. Every layer receives feature maps from all preceding layers.
 
 **Benefits:**
+
 1. **Feature reuse:** Earlier features remain accessible throughout the network.
 2. **Gradient flow:** Direct connections to every layer prevent gradient vanishing.
 3. **Efficiency:** Growth rate (new channels per layer) can be very small ($k = 32$) because features accumulate via concatenation.
@@ -928,14 +935,14 @@ A $P \times P$ convolution with stride $P$ produces one output per non-overlappi
 
 ### 14.2 Inductive Biases Compared
 
-| Inductive Bias | CNN | ViT |
-| --- | --- | --- |
-| Translation equivariance | Built-in (exact) | Learned (approximate via PE) |
-| Locality | Built-in (local kernels) | None (global attention) |
-| Parameter sharing | Across all spatial positions | Only within attention heads |
-| Rotation equivariance | None | None |
-| Scale invariance | Approximate (via pooling) | None |
-| Data requirement | Low (works on small datasets) | High (needs large-scale pretraining) |
+| Inductive Bias           | CNN                           | ViT                                  |
+| ------------------------ | ----------------------------- | ------------------------------------ |
+| Translation equivariance | Built-in (exact)              | Learned (approximate via PE)         |
+| Locality                 | Built-in (local kernels)      | None (global attention)              |
+| Parameter sharing        | Across all spatial positions  | Only within attention heads          |
+| Rotation equivariance    | None                          | None                                 |
+| Scale invariance         | Approximate (via pooling)     | None                                 |
+| Data requirement         | Low (works on small datasets) | High (needs large-scale pretraining) |
 
 **When CNNs win:** Small datasets, tasks requiring precise spatial localisation (detection, segmentation), mobile/edge deployment.
 
@@ -945,14 +952,14 @@ A $P \times P$ convolution with stride $P$ produces one output per non-overlappi
 
 **ConvNeXt** (Liu et al., 2022) takes ResNet-50 and applies all the design decisions of ViT-style training to arrive at a pure CNN that matches ViT performance:
 
-| Modification | From ViT design | Effect |
-| --- | --- | --- |
-| $7 \times 7$ depthwise conv | Large receptive field per block | +0.1% |
-| Inverted bottleneck | Wider hidden dim | +0.4% |
-| Group norm (1 group = LN) | Layer Norm-like | +0.1% |
-| GELU activation | Transformer activation | +0.0% |
-| Fewer normalisation layers | ViT uses only pre-norm | +0.1% |
-| Separate downsampling | ViT has explicit stem | +0.4% |
+| Modification                | From ViT design                 | Effect |
+| --------------------------- | ------------------------------- | ------ |
+| $7 \times 7$ depthwise conv | Large receptive field per block | +0.1%  |
+| Inverted bottleneck         | Wider hidden dim                | +0.4%  |
+| Group norm (1 group = LN)   | Layer Norm-like                 | +0.1%  |
+| GELU activation             | Transformer activation          | +0.0%  |
+| Fewer normalisation layers  | ViT uses only pre-norm          | +0.1%  |
+| Separate downsampling       | ViT has explicit stem           | +0.4%  |
 
 The message: the performance gap between CNNs and ViTs was largely due to **training procedures and design conventions**, not the fundamental architecture. A well-trained CNN with modern design choices is competitive with a ViT.
 
@@ -1005,6 +1012,7 @@ The message: the performance gap between CNNs and ViTs was largely due to **trai
 ## 17. Why This Matters for AI (2026)
 
 **CNNs are not dead.** Despite the ViT revolution, CNNs remain dominant in:
+
 - **Mobile and edge inference** (MobileNet, EfficientNet-Lite, TFLite models)
 - **Medical imaging** (limited data, spatial precision required)
 - **Object detection** (YOLO uses CNNs; EfficientDet, DETR use CNN backbones)
@@ -1012,12 +1020,14 @@ The message: the performance gap between CNNs and ViTs was largely due to **trai
 - **Signal processing** (WaveNet, Encodec, SoundStream)
 
 **Convolution in Transformers.** The connection between convolution and attention is deep and productive:
+
 - Patch embedding = strided convolution.
 - Local attention = convolution with learned, content-dependent weights.
 - Convolutional position encodings (e.g., CPVT, LocalViT) inject CNN inductive biases into ViTs.
 - **ConvNeXt** shows that a pure CNN with modern training can match ViT — suggesting the gap was always about training, not architecture.
 
 **Depthwise separable convolutions are everywhere.** MobileNet's depthwise separable design directly influenced:
+
 - **Xception:** Extends the idea to all layers.
 - **Transformer FFN layers:** Can be viewed as $1 \times 1$ convolutions (mixing channels at each position).
 - **EfficientNet:** Uses mobile inverted bottlenecks throughout.
@@ -1033,18 +1043,18 @@ The message: the performance gap between CNNs and ViTs was largely due to **trai
 
 **Where this connects:**
 
-| Concept | Connects to |
-| --- | --- |
-| Toeplitz matrix structure | Linear algebra, eigenvectors (Chapter 02) |
-| Convolution theorem (FFT) | Fourier analysis, signal processing |
-| Backprop through conv | Automatic differentiation (Section 14-02) |
-| BatchNorm backward | Computational graphs, chain rule |
-| Residual connections | Gradient flow, vanishing gradients (Section 14-02) |
-| Translation equivariance | Group theory, symmetry |
-| Patch embedding as conv | Transformer architecture (Section 14-05) |
-| Dilated causal conv | WaveNet, sequence modelling (Section 14-04) |
-| Depthwise separable | Tensor decomposition, matrix rank |
-| EfficientNet scaling | Pareto optimality, constrained optimisation |
+| Concept                   | Connects to                                        |
+| ------------------------- | -------------------------------------------------- |
+| Toeplitz matrix structure | Linear algebra, eigenvectors (Chapter 02)          |
+| Convolution theorem (FFT) | Fourier analysis, signal processing                |
+| Backprop through conv     | Automatic differentiation (Section 14-02)          |
+| BatchNorm backward        | Computational graphs, chain rule                   |
+| Residual connections      | Gradient flow, vanishing gradients (Section 14-02) |
+| Translation equivariance  | Group theory, symmetry                             |
+| Patch embedding as conv   | Transformer architecture (Section 14-05)           |
+| Dilated causal conv       | WaveNet, sequence modelling (Section 14-04)        |
+| Depthwise separable       | Tensor decomposition, matrix rank                  |
+| EfficientNet scaling      | Pareto optimality, constrained optimisation        |
 
 **What comes next:** Section 14-09 (Attention Mechanisms) generalises convolution: instead of fixed local kernels, attention computes input-dependent, global weights. Understanding convolution's weight-sharing, locality, and equivariance makes the design choices of Transformers (why positional encoding is needed, why local attention helps, why patch size matters) much clearer.
 
@@ -1052,18 +1062,18 @@ The message: the performance gap between CNNs and ViTs was largely due to **trai
 
 ## References
 
-1. LeCun, Y. et al. (1998). Gradient-based learning applied to document recognition. *Proceedings of the IEEE*, 86(11), 2278-2324.
-2. Krizhevsky, A., Sutskever, I. & Hinton, G. (2012). ImageNet classification with deep convolutional neural networks. *NeurIPS*.
-3. Simonyan, K. & Zisserman, A. (2015). Very deep convolutional networks for large-scale image recognition. *ICLR*.
-4. Szegedy, C. et al. (2015). Going deeper with convolutions. *CVPR*.
-5. He, K. et al. (2016). Deep residual learning for image recognition. *CVPR*.
-6. Ioffe, S. & Szegedy, C. (2015). Batch normalisation: Accelerating deep network training. *ICML*.
-7. Howard, A. et al. (2017). MobileNets: Efficient convolutional neural networks for mobile vision. *arXiv:1704.04861*.
-8. Chollet, F. (2017). Xception: Deep learning with depthwise separable convolutions. *CVPR*.
-9. van den Oord, A. et al. (2016). WaveNet: A generative model for raw audio. *arXiv:1609.03499*.
-10. Huang, G. et al. (2017). Densely connected convolutional networks. *CVPR*.
-11. Tan, M. & Le, Q. (2019). EfficientNet: Rethinking model scaling for CNNs. *ICML*.
-12. Dosovitskiy, A. et al. (2021). An image is worth 16x16 words. *ICLR*.
-13. Liu, Z. et al. (2022). A ConvNet for the 2020s. *CVPR*.
-14. Odena, A. et al. (2016). Deconvolution and checkerboard artifacts. *Distill*.
-15. Luo, W. et al. (2017). Understanding the effective receptive field in DNNs. *NeurIPS*.
+1. LeCun, Y. et al. (1998). Gradient-based learning applied to document recognition. _Proceedings of the IEEE_, 86(11), 2278-2324.
+2. Krizhevsky, A., Sutskever, I. & Hinton, G. (2012). ImageNet classification with deep convolutional neural networks. _NeurIPS_.
+3. Simonyan, K. & Zisserman, A. (2015). Very deep convolutional networks for large-scale image recognition. _ICLR_.
+4. Szegedy, C. et al. (2015). Going deeper with convolutions. _CVPR_.
+5. He, K. et al. (2016). Deep residual learning for image recognition. _CVPR_.
+6. Ioffe, S. & Szegedy, C. (2015). Batch normalisation: Accelerating deep network training. _ICML_.
+7. Howard, A. et al. (2017). MobileNets: Efficient convolutional neural networks for mobile vision. _arXiv:1704.04861_.
+8. Chollet, F. (2017). Xception: Deep learning with depthwise separable convolutions. _CVPR_.
+9. van den Oord, A. et al. (2016). WaveNet: A generative model for raw audio. _arXiv:1609.03499_.
+10. Huang, G. et al. (2017). Densely connected convolutional networks. _CVPR_.
+11. Tan, M. & Le, Q. (2019). EfficientNet: Rethinking model scaling for CNNs. _ICML_.
+12. Dosovitskiy, A. et al. (2021). An image is worth 16x16 words. _ICLR_.
+13. Liu, Z. et al. (2022). A ConvNet for the 2020s. _CVPR_.
+14. Odena, A. et al. (2016). Deconvolution and checkerboard artifacts. _Distill_.
+15. Luo, W. et al. (2017). Understanding the effective receptive field in DNNs. _NeurIPS_.

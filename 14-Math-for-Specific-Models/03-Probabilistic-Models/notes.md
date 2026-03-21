@@ -25,9 +25,9 @@ Every topic is connected to concrete AI systems: the ELBO reappears in VQ-VAE (D
 
 ## Companion Notebooks
 
-| Notebook | Description |
-|---|---|
-| [theory.ipynb](theory.ipynb) | Interactive demos: exponential family moments, EM for GMM, ELBO optimisation, VAE from scratch, MCMC chains, GP regression, HMM inference, diffusion forward/reverse |
+| Notebook                           | Description                                                                                                                                                             |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive demos: exponential family moments, EM for GMM, ELBO optimisation, VAE from scratch, MCMC chains, GP regression, HMM inference, diffusion forward/reverse    |
 | [exercises.ipynb](exercises.ipynb) | 10 graded problems: conjugate updates, EM convergence, CAVI, reparameterisation, MH sampler, GP posterior, Viterbi, flow log-likelihood, score matching loss, ICL Bayes |
 
 ## Learning Objectives
@@ -136,16 +136,18 @@ After completing this section, you will:
 
 ### 1.1 What Is a Probabilistic Model?
 
-A probabilistic model is a mathematical object that assigns a probability distribution to every quantity of interest — data, parameters, latent structure, future observations. Unlike deterministic models that return a single answer, a probabilistic model returns a *distribution over* answers, encoding not just a best guess but a calibrated measure of how confident that guess is.
+A probabilistic model is a mathematical object that assigns a probability distribution to every quantity of interest — data, parameters, latent structure, future observations. Unlike deterministic models that return a single answer, a probabilistic model returns a _distribution over_ answers, encoding not just a best guess but a calibrated measure of how confident that guess is.
 
 **Three types of uncertainty** that probabilistic models handle:
+
 - **Aleatoric uncertainty** (irreducible noise): randomness inherent in the data-generating process — measurement noise, sensor jitter, human label disagreement. No amount of additional data removes it.
 - **Epistemic uncertainty** (model uncertainty): uncertainty due to limited data. Can be reduced by observing more. A trained Bayesian model knows what it doesn't know.
 - **Distributional shift**: the test distribution differs from training. Calibrated models detect this as high uncertainty on out-of-distribution inputs.
 
-**For AI**: a language model that outputs a single token is a deterministic policy; a language model that maintains a full distribution $p(w_t \mid w_{<t})$ is a probabilistic model. Sampling temperature, nucleus sampling, and uncertainty quantification all require this probabilistic view. Diffusion models, VAEs, and normalizing flows *are* probabilistic generative models — they define a distribution over images, audio, or proteins.
+**For AI**: a language model that outputs a single token is a deterministic policy; a language model that maintains a full distribution $p(w_t \mid w_{<t})$ is a probabilistic model. Sampling temperature, nucleus sampling, and uncertainty quantification all require this probabilistic view. Diffusion models, VAEs, and normalizing flows _are_ probabilistic generative models — they define a distribution over images, audio, or proteins.
 
 **Non-examples** (deterministic models that lack the probabilistic structure):
+
 - Standard SVMs without probability calibration
 - Deterministic autoencoders without latent distributions
 - Decision trees without probability estimates at leaves
@@ -160,11 +162,11 @@ $$p(\mathbf{x}_\text{obs}) = \int p(\mathbf{x}_\text{obs}, \mathbf{x}_\text{miss
 
 **Bayesian learning is optimal.** By the Bernardo-Smith representation theorem, any coherent belief system satisfying the axioms of probability must update via Bayes' theorem. Frequentist alternatives violate coherence in pathological cases. In finite-sample regimes, Bayesian methods often outperform MLE because the prior captures inductive bias.
 
-**For LLMs**: in-context learning (§15) is now understood as *implicit* Bayesian inference — the transformer posterior-updates over latent hypotheses given in-context examples. Constitutional AI, RLHF preference modelling, and uncertainty-aware decoding all rest on probabilistic foundations.
+**For LLMs**: in-context learning (§15) is now understood as _implicit_ Bayesian inference — the transformer posterior-updates over latent hypotheses given in-context examples. Constitutional AI, RLHF preference modelling, and uncertainty-aware decoding all rest on probabilistic foundations.
 
 ### 1.3 Historical Timeline
 
-```
+```text
 PROBABILISTIC MODELS — HISTORICAL TIMELINE
 ════════════════════════════════════════════════════════════════════════
 
@@ -207,12 +209,13 @@ The Bayesian treats parameters as random variables with a prior $p(\boldsymbol{\
 $$p(\boldsymbol{\theta} \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \boldsymbol{\theta})\, p(\boldsymbol{\theta})}{p(\mathcal{D})}$$
 
 **Key consequences:**
-- Bayesian inference returns a *distribution*, not a point estimate — uncertainty is explicit
+
+- Bayesian inference returns a _distribution_, not a point estimate — uncertainty is explicit
 - Predictions integrate over parameter uncertainty: $p(y^* \mid \mathbf{x}^*, \mathcal{D}) = \int p(y^* \mid \mathbf{x}^*, \boldsymbol{\theta})\, p(\boldsymbol{\theta} \mid \mathcal{D})\, d\boldsymbol{\theta}$
 - MAP estimation ($\arg\max p(\boldsymbol{\theta} \mid \mathcal{D})$) is a compromise: Bayesian objective, point estimate
 - **Bernstein-von Mises theorem**: as $n \to \infty$, the posterior concentrates around the MLE (under regularity), so Bayesian and frequentist methods agree asymptotically. Differences matter most in small-$n$ regimes — exactly where AI practitioners care most.
 
-**For AI**: batch normalisation statistics, learning rate schedules, and weight decay are all implicitly frequentist. Meanwhile, hyperparameter optimisation via Gaussian processes (Bayesian optimisation), VAEs, and diffusion models are explicitly Bayesian. Understanding both sides clarifies *why* weight decay equals MAP with a Gaussian prior: $\mathcal{L}_\text{MAP} = -\log p(\mathcal{D} \mid \boldsymbol{\theta}) - \log p(\boldsymbol{\theta}) = \mathcal{L}_\text{MLE} + \lambda \lVert \boldsymbol{\theta} \rVert_2^2$.
+**For AI**: batch normalisation statistics, learning rate schedules, and weight decay are all implicitly frequentist. Meanwhile, hyperparameter optimisation via Gaussian processes (Bayesian optimisation), VAEs, and diffusion models are explicitly Bayesian. Understanding both sides clarifies _why_ weight decay equals MAP with a Gaussian prior: $\mathcal{L}_\text{MAP} = -\log p(\mathcal{D} \mid \boldsymbol{\theta}) - \log p(\boldsymbol{\theta}) = \mathcal{L}_\text{MLE} + \lambda \lVert \boldsymbol{\theta} \rVert_2^2$.
 
 ---
 
@@ -221,6 +224,7 @@ $$p(\boldsymbol{\theta} \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \boldsymbol
 ### 2.1 Probability Spaces and Random Variables
 
 **Definition (Probability Space).** A probability space is a triple $(\Omega, \mathcal{F}, P)$ where:
+
 - $\Omega$ is the sample space (set of all outcomes)
 - $\mathcal{F}$ is a $\sigma$-algebra over $\Omega$ (closed under complement and countable union)
 - $P: \mathcal{F} \to [0,1]$ is a probability measure satisfying $P(\Omega)=1$ and countable additivity
@@ -241,13 +245,13 @@ $$p(x) = \int p(x,y)\, dy \quad \text{(marginalisation)}$$
 
 **Standard distributions** (see notation guide §5.2):
 
-| Distribution | PMF/PDF | Mean | Variance | Conjugate to |
-|---|---|---|---|---|
-| $\operatorname{Bern}(p)$ | $p^x(1-p)^{1-x}$ | $p$ | $p(1-p)$ | Beta prior |
-| $\operatorname{Cat}(\mathbf{p})$ | $\prod_k p_k^{\mathbf{1}[x=k]}$ | $\mathbf{p}$ | — | Dirichlet prior |
-| $\mathcal{N}(\mu,\sigma^2)$ | $\frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}$ | $\mu$ | $\sigma^2$ | Normal prior (known $\sigma^2$) |
-| $\operatorname{Poisson}(\lambda)$ | $\frac{\lambda^x e^{-\lambda}}{x!}$ | $\lambda$ | $\lambda$ | Gamma prior |
-| $\operatorname{Dir}(\boldsymbol{\alpha})$ | $\frac{1}{B(\boldsymbol{\alpha})}\prod_k p_k^{\alpha_k-1}$ | $\frac{\boldsymbol{\alpha}}{\alpha_0}$ | — | Conjugate to Categorical |
+| Distribution                              | PMF/PDF                                                         | Mean                                   | Variance   | Conjugate to                    |
+| ----------------------------------------- | --------------------------------------------------------------- | -------------------------------------- | ---------- | ------------------------------- |
+| $\operatorname{Bern}(p)$                  | $p^x(1-p)^{1-x}$                                                | $p$                                    | $p(1-p)$   | Beta prior                      |
+| $\operatorname{Cat}(\mathbf{p})$          | $\prod_k p_k^{\mathbf{1}[x=k]}$                                 | $\mathbf{p}$                           | —          | Dirichlet prior                 |
+| $\mathcal{N}(\mu,\sigma^2)$               | $\frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}$ | $\mu$                                  | $\sigma^2$ | Normal prior (known $\sigma^2$) |
+| $\operatorname{Poisson}(\lambda)$         | $\frac{\lambda^x e^{-\lambda}}{x!}$                             | $\lambda$                              | $\lambda$  | Gamma prior                     |
+| $\operatorname{Dir}(\boldsymbol{\alpha})$ | $\frac{1}{B(\boldsymbol{\alpha})}\prod_k p_k^{\alpha_k-1}$      | $\frac{\boldsymbol{\alpha}}{\alpha_0}$ | —          | Conjugate to Categorical        |
 
 ### 2.2 Bayes' Theorem
 
@@ -281,6 +285,7 @@ The exponential family is the most important class of distributions in statistic
 $$p(\mathbf{x} \mid \boldsymbol{\eta}) = h(\mathbf{x})\exp\!\left(\boldsymbol{\eta}^\top T(\mathbf{x}) - A(\boldsymbol{\eta})\right)$$
 
 where:
+
 - $\boldsymbol{\eta} \in \mathcal{H} \subseteq \mathbb{R}^k$ — **natural parameters** (also called canonical parameters)
 - $T(\mathbf{x}): \mathcal{X} \to \mathbb{R}^k$ — **sufficient statistics** (captures all information about $\boldsymbol{\eta}$ in the data)
 - $A(\boldsymbol{\eta}) = \log \int h(\mathbf{x}) \exp(\boldsymbol{\eta}^\top T(\mathbf{x}))\, d\mathbf{x}$ — **log-partition function** (normaliser)
@@ -331,14 +336,14 @@ $$\boldsymbol{\chi}_\text{post} = \boldsymbol{\chi} + \sum_{i=1}^n T(\mathbf{x}^
 
 **Standard conjugate pairs:**
 
-| Likelihood | Prior | Posterior |
-|---|---|---|
-| Bernoulli($p$) | Beta($\alpha, \beta$) | Beta($\alpha + n_1$, $\beta + n_0$) |
-| Categorical($\boldsymbol{\pi}$) | Dirichlet($\boldsymbol{\alpha}$) | Dirichlet($\boldsymbol{\alpha} + \mathbf{n}$) |
-| Gaussian($\mu$, known $\sigma^2$) | Gaussian($\mu_0, \sigma_0^2$) | Gaussian (precision-weighted mean) |
-| Gaussian($\mu$, $\sigma^2$) | Normal-Inverse-Gamma | Normal-Inverse-Gamma |
-| Poisson($\lambda$) | Gamma($a$, $b$) | Gamma($a+\sum x_i$, $b+n$) |
-| Multinomial($\boldsymbol{\pi}$) | Dirichlet($\boldsymbol{\alpha}$) | Dirichlet($\boldsymbol{\alpha} + \mathbf{n}$) |
+| Likelihood                        | Prior                            | Posterior                                     |
+| --------------------------------- | -------------------------------- | --------------------------------------------- |
+| Bernoulli($p$)                    | Beta($\alpha, \beta$)            | Beta($\alpha + n_1$, $\beta + n_0$)           |
+| Categorical($\boldsymbol{\pi}$)   | Dirichlet($\boldsymbol{\alpha}$) | Dirichlet($\boldsymbol{\alpha} + \mathbf{n}$) |
+| Gaussian($\mu$, known $\sigma^2$) | Gaussian($\mu_0, \sigma_0^2$)    | Gaussian (precision-weighted mean)            |
+| Gaussian($\mu$, $\sigma^2$)       | Normal-Inverse-Gamma             | Normal-Inverse-Gamma                          |
+| Poisson($\lambda$)                | Gamma($a$, $b$)                  | Gamma($a+\sum x_i$, $b+n$)                    |
+| Multinomial($\boldsymbol{\pi}$)   | Dirichlet($\boldsymbol{\alpha}$) | Dirichlet($\boldsymbol{\alpha} + \mathbf{n}$) |
 
 **Example: Gaussian posterior with known variance.**
 
@@ -349,7 +354,6 @@ $$\mu \mid \mathcal{D} \sim \mathcal{N}\!\left(\frac{\frac{\mu_0}{\sigma_0^2} + 
 The posterior mean is a **precision-weighted average** of prior mean and sample mean. As $n \to \infty$, the posterior mean converges to $\bar{x}$ (frequentist MLE) and posterior variance converges to $\sigma^2/n$.
 
 **For AI**: Bayesian optimisation for hyperparameter search uses GP priors conjugate to Gaussian likelihoods. Language model vocabulary distributions $p(w)$ are Dirichlet-Categorical models. Token smoothing (Laplace smoothing) is Bayesian estimation with a $\operatorname{Dir}(\mathbf{1})$ prior.
-
 
 ---
 
@@ -367,7 +371,7 @@ where $\mathrm{pa}(i)$ denotes the parents of node $i$ in $\mathcal{G}$.
 
 **Example: Naive Bayes classifier.**
 
-```
+```text
        Y (class)
       / | \
     X₁  X₂  X₃  (features, conditionally independent given Y)
@@ -393,11 +397,11 @@ D-separation is a graphical criterion for reading conditional independence direc
 
 **Three structural patterns:**
 
-| Pattern | Structure | $X \perp\!\!\!\perp Y \mid Z$? |
-|---|---|---|
-| **Chain** | $X \to Z \to Y$ | Yes: conditioning on $Z$ blocks the path |
-| **Fork** | $X \leftarrow Z \rightarrow Y$ | Yes: conditioning on common cause $Z$ blocks |
-| **Collider** | $X \rightarrow Z \leftarrow Y$ | No: conditioning on collider $Z$ *opens* path |
+| Pattern      | Structure                      | $X \perp\!\!\!\perp Y \mid Z$?                |
+| ------------ | ------------------------------ | --------------------------------------------- |
+| **Chain**    | $X \to Z \to Y$                | Yes: conditioning on $Z$ blocks the path      |
+| **Fork**     | $X \leftarrow Z \rightarrow Y$ | Yes: conditioning on common cause $Z$ blocks  |
+| **Collider** | $X \rightarrow Z \leftarrow Y$ | No: conditioning on collider $Z$ _opens_ path |
 
 **The Bayes Ball Algorithm.** To test whether $X \perp\!\!\!\perp Y \mid \mathbf{Z}$:
 
@@ -408,6 +412,7 @@ D-separation is a graphical criterion for reading conditional independence direc
 3. If no ball reaches $Y$, then $X \perp\!\!\!\perp Y \mid \mathbf{Z}$
 
 **Collider bias** (Berkson's paradox): conditioning on a collider creates spurious correlations between its parents. If $Z = X + Y$ (collider), knowing $Z$ makes $X$ and $Y$ negatively correlated — even if they are marginally independent. This appears in:
+
 - **Selection bias**: conditioning on selected participants (collider) induces confounding
 - **Transformer attention**: attending to a summary token can create spurious correlations between irrelevant tokens
 
@@ -517,6 +522,7 @@ where $M = I + W^\top \Psi^{-1} W \in \mathbb{R}^{q \times q}$. This is the effi
 **Marginalisation adds expressiveness.** A single Gaussian has an ellipsoidal density. A mixture of $K$ Gaussians can approximate any density (universal approximator in the limit $K \to \infty$ — this is the Gaussian mixture density theorem). By marginalising out the discrete assignment $z$, a simple model (Gaussian) gains exponential expressiveness.
 
 **Identifiability challenges.** Latent variable models often have non-identifiable parameters:
+
 - GMMs: permuting cluster labels gives identical likelihoods ($K!$ symmetries)
 - FA/PPCA: rotating $W$ by any orthogonal matrix $R$ gives identical marginal: $W' = WR$, since $WW^\top = WRR^\top W^\top$
 - VAE decoder: the prior is $\mathcal{N}(\mathbf{0}, I)$ but any rotation of the latent space gives equal ELBO
@@ -524,7 +530,6 @@ where $M = I + W^\top \Psi^{-1} W \in \mathbb{R}^{q \times q}$. This is the effi
 Non-identifiability does not prevent learning useful representations, but it means **the latent coordinates have no canonical meaning** without additional constraints (sparsity, disentanglement objectives, etc.).
 
 **Model evidence for model selection.** The marginal likelihood $p(\mathcal{D}) = \int p(\mathcal{D} \mid \boldsymbol{\theta})\, p(\boldsymbol{\theta})\, d\boldsymbol{\theta}$ automatically penalises complexity (Occam's razor): a model with too many parameters "spreads probability mass" over many configurations, reducing $p(\mathcal{D})$ even if it fits perfectly. This gives a principled way to choose the number of mixture components $K$ or latent dimensions $q$ without cross-validation.
-
 
 ---
 
@@ -638,6 +643,7 @@ where $\mathbb{E}_{q_{-j}}$ averages over all latent variables except $z_j$.
 **Key result**: the optimal $q_j^*$ is always in the **conjugate family** of the conditional $p(z_j \mid \mathbf{z}_{-j}, \mathbf{x})$. For exponential family models with conjugate priors, CAVI has **closed-form updates** — no gradient computation required.
 
 **CAVI for GMM:**
+
 - Update $q(z_i)$: $r_{ik} \propto \exp(\mathbb{E}[\log\pi_k] + \mathbb{E}[\log\mathcal{N}(\mathbf{x}^{(i)} \mid \boldsymbol{\mu}_k, \Sigma_k)])$
 - Update $q(\boldsymbol{\mu}_k)$: Gaussian with mean $= \frac{N_k \bar{\mathbf{x}}_k}{\lambda_0^{-1} + N_k}$ (precision-weighted posterior)
 
@@ -682,6 +688,7 @@ As $K \to \infty$, $\mathcal{L}_K \to \log p(\mathbf{x})$ (by law of large numbe
 ### 7.1 Architecture and Generative Model
 
 The VAE (Kingma & Welling 2013, ICLR 2014) is an amortised variational inference algorithm implemented as a neural network. It simultaneously learns:
+
 1. A generative model $p_\theta(\mathbf{x} \mid \mathbf{z})$ (decoder)
 2. An inference network $q_\phi(\mathbf{z} \mid \mathbf{x})$ (encoder / recognition network)
 
@@ -701,7 +708,7 @@ $$\mathcal{L}(\phi, \theta; \mathbf{x}) = \underbrace{\mathbb{E}_{q_\phi(\mathbf
 For Gaussian $q$ and Gaussian prior, the KL has a closed form:
 $$D_{\mathrm{KL}}(\mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\sigma}^2) \| \mathcal{N}(\mathbf{0}, I)) = \frac{1}{2}\sum_j\!\left(\mu_j^2 + \sigma_j^2 - \log\sigma_j^2 - 1\right)$$
 
-**Amortisation**: instead of optimising a separate $q$ per datapoint (as in standard VI), the VAE shares encoder parameters $\phi$ across all datapoints — the encoder *amortises* the cost of variational inference. This makes training $O(n)$ instead of $O(n^2)$.
+**Amortisation**: instead of optimising a separate $q$ per datapoint (as in standard VI), the VAE shares encoder parameters $\phi$ across all datapoints — the encoder _amortises_ the cost of variational inference. This makes training $O(n)$ instead of $O(n^2)$.
 
 ### 7.2 Reparameterisation Trick
 
@@ -723,10 +730,12 @@ has **dramatically lower variance** than the score function estimator because th
 ### 7.3 VAE Training Dynamics
 
 **Posterior collapse.** A pathological mode where $q_\phi(\mathbf{z} \mid \mathbf{x}) \approx p(\mathbf{z})$ — the encoder ignores $\mathbf{x}$ and the decoder ignores $\mathbf{z}$. The model degenerates to a non-conditional decoder $p_\theta(\mathbf{x})$. Causes:
+
 - Decoder too powerful (e.g., autoregressive decoder can model $p(\mathbf{x})$ without $\mathbf{z}$)
 - KL term vanishes early in training ("KL collapse")
 
 **Fixes:**
+
 - **$\beta$-VAE** (Higgins et al. 2017): weight the KL term by $\beta > 1$, forcing the latent code to carry information
 - **KL annealing**: start with $\beta=0$, linearly increase to $\beta=1$ during training
 - **Free bits** (Kingma et al. 2016): allow each latent dimension a minimum KL budget $\lambda$ before penalising
@@ -774,11 +783,13 @@ If a kernel satisfies detailed balance with respect to $\pi$, then $\pi$ is the 
 **Metropolis-Hastings (MH) Algorithm** (Metropolis et al. 1953; Hastings 1970):
 
 At state $\mathbf{x}$:
+
 1. Propose $\mathbf{x}' \sim q(\mathbf{x}' \mid \mathbf{x})$ (proposal distribution)
 2. Compute acceptance ratio: $\alpha = \min\!\left(1,\; \frac{p(\mathbf{x}')\, q(\mathbf{x} \mid \mathbf{x}')}{p(\mathbf{x})\, q(\mathbf{x}' \mid \mathbf{x})}\right)$
 3. Accept with probability $\alpha$: $\mathbf{x}_{t+1} = \mathbf{x}'$; else $\mathbf{x}_{t+1} = \mathbf{x}$
 
 **Key properties:**
+
 - Only requires $p(\mathbf{x})$ up to normalisation — no need to compute $Z$
 - Detailed balance is satisfied by construction: the accept/reject step corrects for the proposal asymmetry
 - **Random-walk MH**: $q(\mathbf{x}' \mid \mathbf{x}) = \mathcal{N}(\mathbf{x}, \sigma^2 I)$. Step size $\sigma$ tradeoff: too small → high acceptance but slow exploration; too large → low acceptance, mostly stuck
@@ -812,6 +823,7 @@ After $L$ leapfrog steps, accept the proposal $(\mathbf{x}', \mathbf{p}')$ with 
 $$\alpha = \min\!\left(1, \exp(-\mathcal{H}(\mathbf{x}', \mathbf{p}') + \mathcal{H}(\mathbf{x}, \mathbf{p}))\right)$$
 
 **Advantages of HMC over RW-MH**:
+
 - Proposals are far from current position (long trajectories)
 - High acceptance rate (typically >80%)
 - Scales well with dimension (acceptance rate degrades as $O(d^{-1/4})$ vs. $O(d^{-1})$ for RW-MH)
@@ -829,7 +841,6 @@ where $\rho_k$ is the autocorrelation at lag $k$. HMC typically achieves much hi
 
 **For AI**: HMC is used in Bayesian deep learning (weight space sampling), Langevin dynamics (a continuous-time limit of MCMC) underlies score-based diffusion models (§13), and stochastic gradient Langevin dynamics (SGLD, Welling & Teh 2011) is a scalable MCMC method that uses mini-batches — bridging MCMC and deep learning optimisation.
 
-
 ---
 
 ## 9. Gaussian Processes
@@ -841,6 +852,7 @@ where $\rho_k$ is the autocorrelation at lag $k$. HMC typically achieves much hi
 $$f(\cdot) \sim \mathcal{GP}(m(\cdot), k(\cdot, \cdot))$$
 
 where:
+
 - $m(\mathbf{x}) = \mathbb{E}[f(\mathbf{x})]$ — mean function (often taken as zero for simplicity)
 - $k(\mathbf{x}, \mathbf{x}') = \mathbb{E}[(f(\mathbf{x}) - m(\mathbf{x}))(f(\mathbf{x}') - m(\mathbf{x}'))]$ — **kernel** or covariance function
 
@@ -884,15 +896,16 @@ The kernel encodes prior beliefs about function smoothness, periodicity, and sca
 
 **Common kernels:**
 
-| Kernel | Formula $k(\mathbf{x}, \mathbf{x}')$ | Smoothness | Notes |
-|---|---|---|---|
-| RBF / SE | $\exp(-\lVert \mathbf{x}-\mathbf{x}' \rVert^2 / 2\ell^2)$ | $C^\infty$ | Infinitely differentiable; too smooth for many tasks |
-| Matérn 3/2 | $(1 + \frac{\sqrt{3}r}{\ell})\exp(-\frac{\sqrt{3}r}{\ell})$ | $C^1$ | Once differentiable; preferred for physical processes |
-| Matérn 5/2 | $(1 + \frac{\sqrt{5}r}{\ell} + \frac{5r^2}{3\ell^2})\exp(-\frac{\sqrt{5}r}{\ell})$ | $C^2$ | Twice differentiable; standard in Bayesian optimisation |
-| Linear | $\sigma_b^2 + \sigma_v^2 (\mathbf{x}-c)^\top(\mathbf{x}'-c)$ | $C^\infty$ (linear) | Equivalent to Bayesian linear regression |
-| Periodic | $\exp(-\frac{2\sin^2(\pi\lVert\mathbf{x}-\mathbf{x}'\rVert/p)}{\ell^2})$ | $C^\infty$ | Models periodic functions |
+| Kernel     | Formula $k(\mathbf{x}, \mathbf{x}')$                                               | Smoothness          | Notes                                                   |
+| ---------- | ---------------------------------------------------------------------------------- | ------------------- | ------------------------------------------------------- |
+| RBF / SE   | $\exp(-\lVert \mathbf{x}-\mathbf{x}' \rVert^2 / 2\ell^2)$                          | $C^\infty$          | Infinitely differentiable; too smooth for many tasks    |
+| Matérn 3/2 | $(1 + \frac{\sqrt{3}r}{\ell})\exp(-\frac{\sqrt{3}r}{\ell})$                        | $C^1$               | Once differentiable; preferred for physical processes   |
+| Matérn 5/2 | $(1 + \frac{\sqrt{5}r}{\ell} + \frac{5r^2}{3\ell^2})\exp(-\frac{\sqrt{5}r}{\ell})$ | $C^2$               | Twice differentiable; standard in Bayesian optimisation |
+| Linear     | $\sigma_b^2 + \sigma_v^2 (\mathbf{x}-c)^\top(\mathbf{x}'-c)$                       | $C^\infty$ (linear) | Equivalent to Bayesian linear regression                |
+| Periodic   | $\exp(-\frac{2\sin^2(\pi\lVert\mathbf{x}-\mathbf{x}'\rVert/p)}{\ell^2})$           | $C^\infty$          | Models periodic functions                               |
 
 **Kernel composition rules:**
+
 - Sum: $k_1 + k_2$ is a valid kernel (models additive structure)
 - Product: $k_1 \cdot k_2$ is a valid kernel (models interaction effects)
 - Convolution: $(k_1 \star k_2)(\mathbf{x}) = \int k_1(\mathbf{x}-\mathbf{t})\, k_2(\mathbf{t})\, d\mathbf{t}$ (diffused kernels)
@@ -935,6 +948,7 @@ $$p(\mathbf{x}_{1:T}, \mathbf{z}_{1:T}) = p(z_1) \prod_{t=2}^T p(z_t \mid z_{t-1
 **Parameter set**: $\boldsymbol{\theta} = \{\boldsymbol{\pi}_0, A, B\}$.
 
 **Three inference problems:**
+
 1. **Filtering**: $p(z_t \mid x_{1:t})$ — online state estimation
 2. **Smoothing**: $p(z_t \mid x_{1:T})$ — offline state estimation using full sequence
 3. **Decoding**: $\arg\max_{z_{1:T}} p(z_{1:T} \mid x_{1:T})$ — most likely state sequence
@@ -990,10 +1004,10 @@ Work in **log-space** to avoid underflow: replace products with sums, and $\max$
 
 **Key insight**: Viterbi is the max-product version of forward-backward; forward-backward is the sum-product version of Viterbi. The relationship:
 
-| Algorithm | Operation | Computes |
-|---|---|---|
-| Forward | $\sum$-product | $p(\mathbf{x}_{1:T})$, marginals $\gamma_t(k)$ |
-| Viterbi | $\max$-product | MAP sequence $\mathbf{z}^*$ |
+| Algorithm | Operation      | Computes                                       |
+| --------- | -------------- | ---------------------------------------------- |
+| Forward   | $\sum$-product | $p(\mathbf{x}_{1:T})$, marginals $\gamma_t(k)$ |
+| Viterbi   | $\max$-product | MAP sequence $\mathbf{z}^*$                    |
 
 ### 10.4 Baum-Welch and EM for HMMs
 
@@ -1035,6 +1049,7 @@ $$p(y^* \mid \mathbf{x}^*, \mathcal{D}) = \int p(y^* \mid f_W(\mathbf{x}^*))\, p
 This integral marginalises over all plausible weight configurations — it is the "Bayesian model average" over infinitely many neural networks.
 
 **Approaches to approximate the posterior:**
+
 1. **Laplace approximation** (§11.2): Gaussian centred at MAP, curvature from Hessian
 2. **Variational BNN** (Graves 2011, Blundell et al. 2015): mean-field $q(W) = \prod_{ij} \mathcal{N}(w_{ij} \mid \mu_{ij}, \sigma_{ij}^2)$
 3. **MC Dropout** (§11.3): dropout at test time ≈ approximate inference
@@ -1054,6 +1069,7 @@ where $H = -\nabla^2 \log p(W \mid \mathcal{D})\big|_{W_\text{MAP}}$ is the **He
 For a network with $P$ parameters: $H \in \mathbb{R}^{P \times P}$, $P \sim 10^8$–$10^{12}$ for modern LLMs. Full Hessian storage is infeasible.
 
 **Practical approximations:**
+
 - **Diagonal**: keep only diagonal of $H$ (variances, no covariances)
 - **Kronecker-factored** (K-FAC): approximate each layer's Hessian as Kronecker product
 - **Last-layer Laplace** (Daxberger et al. 2021): fix all layers except the last, apply Laplace to final layer only — cheap and empirically competitive
@@ -1081,6 +1097,7 @@ where $\hat{\sigma}^2$ is the aleatoric noise (modelled by heteroscedastic outpu
 ### 11.4 Aleatoric vs. Epistemic Uncertainty
 
 **Aleatoric uncertainty** (data uncertainty): inherent randomness in the target — cannot be reduced by more data.
+
 - **Homoscedastic**: constant $\sigma^2$ for all inputs
 - **Heteroscedastic**: $\sigma^2(\mathbf{x})$ depends on input — model outputs $(\mu(\mathbf{x}), \sigma^2(\mathbf{x}))$
 - Loss: $\mathcal{L} = \sum_i \frac{(y^{(i)} - \mu(\mathbf{x}^{(i)}))^2}{2\sigma^2(\mathbf{x}^{(i)})} + \frac{1}{2}\log\sigma^2(\mathbf{x}^{(i)})$ (negative log Gaussian likelihood)
@@ -1091,6 +1108,7 @@ where $\hat{\sigma}^2$ is the aleatoric noise (modelled by heteroscedastic outpu
 $$H[y^* \mid \mathbf{x}^*, \mathcal{D}] = \underbrace{\mathbb{E}_{p(W \mid \mathcal{D})}[H[y^* \mid \mathbf{x}^*, W]]}_{\text{aleatoric}} + \underbrace{I(y^*; W \mid \mathbf{x}^*, \mathcal{D})}_{\text{epistemic (mutual information)}}$$
 
 **For AI**: uncertainty estimation is critical for:
+
 - **Safety**: LLMs should be more uncertain on out-of-distribution queries (medical/legal advice)
 - **Active learning**: query the most uncertain inputs for human annotation
 - **RLHF reward models**: reward model uncertainty informs how much to trust reward signal during PPO training
@@ -1162,17 +1180,18 @@ CNFs are more expressive than discrete flows (infinite "layers") but training re
 **Maximum likelihood training**: minimise $-\frac{1}{n}\sum_i \log p_X(\mathbf{x}^{(i)})$.
 
 **Applications:**
+
 - **Density estimation**: model complex data distributions (tabular, point cloud, molecular)
 - **Variational inference**: use a flow as $q_\phi(\mathbf{z} \mid \mathbf{x})$ — richer posterior approximation than Gaussian
 - **Dequantisation**: discrete images require continuous density; flows handle this via learned dequantisation
 - **Posterior sampling**: in Bayesian networks, learn the posterior shape with a flow
 
 **For AI**: normalising flows are used in:
+
 - **Glow** (Kingma & Dhariwal 2018): flow-based image generation, real-time synthesis
 - **WaveGlow**: audio synthesis
 - **Neural posterior estimation**: likelihood-free inference for scientific simulators (used in physics, neuroscience)
 - **Flow Matching** (§14): the modern successor to CNFs, training flows without density evaluation
-
 
 ---
 
@@ -1218,6 +1237,7 @@ $$\mathcal{L}_\text{DSM} = \mathbb{E}_{\mathbf{x}, \boldsymbol{\epsilon}, \sigma
 Equivalently (DDPM parameterisation), predict the noise $\boldsymbol{\epsilon}$ from the noisy data.
 
 **Multi-scale noise** (Song & Ermon 2019): train on multiple noise levels $\sigma_1 > \sigma_2 > \cdots > \sigma_L$:
+
 - Large $\sigma$: high-noise samples cover all modes (score well-defined globally)
 - Small $\sigma$: low-noise samples capture fine-grained structure
 
@@ -1238,6 +1258,7 @@ $$d\mathbf{x} = \left[\mathbf{f}(\mathbf{x}, t) - g(t)^2 \nabla_\mathbf{x} \log 
 $\nabla_\mathbf{x} \log p_t(\mathbf{x})$ is the **score function** — estimated by a time-conditioned score network $\mathbf{s}_\theta(\mathbf{x}, t)$.
 
 **Two canonical SDEs:**
+
 - **VE-SDE** (Variance Exploding): $\mathbf{f}=0$, $g(t) = \sqrt{d[\sigma^2(t)]/dt}$. Variance grows without bound.
 - **VP-SDE** (Variance Preserving): $\mathbf{f}(\mathbf{x},t) = -\frac{1}{2}\beta(t)\mathbf{x}$, $g(t)=\sqrt{\beta(t)}$. Variance stays bounded; subsumes DDPM.
 
@@ -1303,6 +1324,7 @@ where $\mathbf{x}_t = t\mathbf{x}_1 + (1-(1-\sigma_\text{min})t)\mathbf{x}_0$ (l
 **Key theorem** (Lipman et al. 2022): $\nabla_\theta \mathcal{L}_\text{FM} = \nabla_\theta \mathcal{L}_\text{CFM}$ — the conditional and marginal losses have identical gradients. This makes the conditional loss tractable to optimise.
 
 **Advantages over diffusion:**
+
 - Simpler training objective (no noise schedule engineering)
 - Straighter trajectories → fewer NFE at inference
 - Flexible path design (not restricted to Gaussian noise schedule)
@@ -1321,14 +1343,14 @@ Vector field: $\mathbf{v}_t(\mathbf{x}_t) = \mathbf{x}_1 - \mathbf{x}_0$ — con
 
 ### 14.4 Flow Matching vs. Diffusion
 
-| Property | Diffusion (DDPM/SDE) | Flow Matching |
-|---|---|---|
-| Path | Stochastic, SDE | Deterministic ODE |
-| Training objective | Predict noise $\boldsymbol{\epsilon}$ | Predict vector field $\mathbf{v}$ |
-| Inference steps | 50–1000 (DDIM: 20–50) | 5–30 (ODE solver) |
-| Likelihood computation | Via probability flow ODE | Direct (change of variables) |
-| Theory | Well-established | Newer (2022–) |
-| Production models | SD 1.x/2.x, DALL-E 3 | SD3, Flux, CogVideoX |
+| Property               | Diffusion (DDPM/SDE)                  | Flow Matching                     |
+| ---------------------- | ------------------------------------- | --------------------------------- |
+| Path                   | Stochastic, SDE                       | Deterministic ODE                 |
+| Training objective     | Predict noise $\boldsymbol{\epsilon}$ | Predict vector field $\mathbf{v}$ |
+| Inference steps        | 50–1000 (DDIM: 20–50)                 | 5–30 (ODE solver)                 |
+| Likelihood computation | Via probability flow ODE              | Direct (change of variables)      |
+| Theory                 | Well-established                      | Newer (2022–)                     |
+| Production models      | SD 1.x/2.x, DALL-E 3                  | SD3, Flux, CogVideoX              |
 
 **Mathematical equivalence**: under Gaussian conditional paths and matching parameterisations, flow matching and diffusion models with the probability flow ODE are equivalent. Flow matching can be viewed as a reparameterisation of the DDPM training objective — but the conceptual framing is cleaner and leads to better trajectory designs.
 
@@ -1370,6 +1392,7 @@ The numerator $\sum_i w_i$ is exactly what attention aggregates. The transformer
 ### 15.3 Modern Extensions (2024–2025)
 
 **Prior-Data Fitted Networks (PFNs, Müller et al. 2022 → tabPFN 2024)**: train a transformer on synthetic Bayesian posteriors. During training:
+
 1. Sample a prior $p(\boldsymbol{\theta})$ (e.g., random Bayesian network)
 2. Sample dataset $\mathcal{D}_\text{train} \sim p(\mathbf{x}, y \mid \boldsymbol{\theta})$
 3. Train the transformer to predict $p(y^* \mid \mathbf{x}^*, \mathcal{D}_\text{train})$ exactly
@@ -1391,6 +1414,7 @@ At test time, the PFN **is** the Bayesian posterior predictor for the in-context
 **RAG as Bayesian updating**: Retrieval-Augmented Generation retrieves relevant documents and adds them to the context. In the Bayesian view, each retrieved document is a new observation that updates $p(C \mid \text{context})$, sharpening the posterior toward the true task.
 
 **For AI**: this theoretical framework explains:
+
 - Why few-shot prompting works even without gradient updates
 - Why prompts with examples are strictly better than prompts without (posterior sharpening)
 - Why longer context improves performance monotonically (more evidence)
@@ -1400,20 +1424,20 @@ At test time, the PFN **is** the Bayesian posterior predictor for the in-context
 
 ## 16. Common Mistakes
 
-| # | Mistake | Why It's Wrong | Fix |
-|---|---|---|---|
-| 1 | Treating $p(x)$ as a probability when $X$ is continuous | For continuous RVs, $p(x)\,dx$ is a probability; $p(x)$ can exceed 1 | Always integrate densities; reserve $P$ for probabilities |
-| 2 | Confusing forward and reverse KL: minimising $D_{\mathrm{KL}}(p\|q)$ vs. $D_{\mathrm{KL}}(q\|p)$ | Reverse KL is mode-seeking (underestimates posterior width); forward KL is mass-covering | VI minimises $D_{\mathrm{KL}}(q\|p)$; use forward KL when full coverage matters |
-| 3 | Posterior collapse in VAEs interpreted as convergence | The ELBO can be high even when $q(\mathbf{z} \mid \mathbf{x}) \approx p(\mathbf{z})$ if the decoder ignores $\mathbf{z}$ | Monitor KL term and mutual information $I(\mathbf{x}; \mathbf{z})$ separately; use KL annealing |
-| 4 | Using EM to find global maximum of likelihood | EM only guarantees local maximum (or saddle point) | Multiple random restarts; warm-start from k-means; check convergence of likelihood |
-| 5 | Treating MCMC samples as i.i.d. | MCMC samples are autocorrelated; effective sample size $\ll$ number of iterations | Thin the chain; compute ESS; use NUTS for lower autocorrelation |
-| 6 | Ignoring identifiability in latent variable models | GMM has $K!$ equivalent solutions; FA has rotation ambiguity; conclusions about specific latents are meaningless | Add identifiability constraints; report invariant quantities |
-| 7 | Conflating aleatoric and epistemic uncertainty | Aleatoric cannot be reduced; conflating them leads to wasted data collection | Decompose total entropy into aleatoric + epistemic components explicitly |
-| 8 | Using GP with wrong kernel | SE kernel assumes infinite smoothness — a poor assumption for most physical processes | Use Matérn 5/2 by default; compare via marginal likelihood |
-| 9 | Forgetting burn-in in MCMC | Early samples are not from the stationary distribution | Discard first $T_\text{burn}$ samples; assess via $\hat{R}$ across multiple chains |
-| 10 | Confusing denoising score matching loss with diffusion model loss | DSM loss uses $(y - \mathbf{x})/\sigma^2$ as target; DDPM uses $\boldsymbol{\epsilon}$ as target — they differ by a $\sigma^2$ scaling | Track whether your model predicts score, noise, or $\mathbf{x}_0$ — they are related but require different inference |
-| 11 | Running belief propagation on loopy graphs and expecting exact results | BP is only exact on trees; loopy BP is an approximation with no convergence guarantee | Use junction tree algorithm for exact inference; loopy BP as approximate method |
-| 12 | Comparing ELBO values across models with different architectures | ELBO depends on the normalisation constant; different encoders make ELBOs incomparable | Use IWAE with $K=1000$ samples for fair comparison |
+| #   | Mistake                                                                                          | Why It's Wrong                                                                                                                         | Fix                                                                                                                  |
+| --- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| 1   | Treating $p(x)$ as a probability when $X$ is continuous                                          | For continuous RVs, $p(x)\,dx$ is a probability; $p(x)$ can exceed 1                                                                   | Always integrate densities; reserve $P$ for probabilities                                                            |
+| 2   | Confusing forward and reverse KL: minimising $D_{\mathrm{KL}}(p\|q)$ vs. $D_{\mathrm{KL}}(q\|p)$ | Reverse KL is mode-seeking (underestimates posterior width); forward KL is mass-covering                                               | VI minimises $D_{\mathrm{KL}}(q\|p)$; use forward KL when full coverage matters                                      |
+| 3   | Posterior collapse in VAEs interpreted as convergence                                            | The ELBO can be high even when $q(\mathbf{z} \mid \mathbf{x}) \approx p(\mathbf{z})$ if the decoder ignores $\mathbf{z}$               | Monitor KL term and mutual information $I(\mathbf{x}; \mathbf{z})$ separately; use KL annealing                      |
+| 4   | Using EM to find global maximum of likelihood                                                    | EM only guarantees local maximum (or saddle point)                                                                                     | Multiple random restarts; warm-start from k-means; check convergence of likelihood                                   |
+| 5   | Treating MCMC samples as i.i.d.                                                                  | MCMC samples are autocorrelated; effective sample size $\ll$ number of iterations                                                      | Thin the chain; compute ESS; use NUTS for lower autocorrelation                                                      |
+| 6   | Ignoring identifiability in latent variable models                                               | GMM has $K!$ equivalent solutions; FA has rotation ambiguity; conclusions about specific latents are meaningless                       | Add identifiability constraints; report invariant quantities                                                         |
+| 7   | Conflating aleatoric and epistemic uncertainty                                                   | Aleatoric cannot be reduced; conflating them leads to wasted data collection                                                           | Decompose total entropy into aleatoric + epistemic components explicitly                                             |
+| 8   | Using GP with wrong kernel                                                                       | SE kernel assumes infinite smoothness — a poor assumption for most physical processes                                                  | Use Matérn 5/2 by default; compare via marginal likelihood                                                           |
+| 9   | Forgetting burn-in in MCMC                                                                       | Early samples are not from the stationary distribution                                                                                 | Discard first $T_\text{burn}$ samples; assess via $\hat{R}$ across multiple chains                                   |
+| 10  | Confusing denoising score matching loss with diffusion model loss                                | DSM loss uses $(y - \mathbf{x})/\sigma^2$ as target; DDPM uses $\boldsymbol{\epsilon}$ as target — they differ by a $\sigma^2$ scaling | Track whether your model predicts score, noise, or $\mathbf{x}_0$ — they are related but require different inference |
+| 11  | Running belief propagation on loopy graphs and expecting exact results                           | BP is only exact on trees; loopy BP is an approximation with no convergence guarantee                                                  | Use junction tree algorithm for exact inference; loopy BP as approximate method                                      |
+| 12  | Comparing ELBO values across models with different architectures                                 | ELBO depends on the normalisation constant; different encoders make ELBOs incomparable                                                 | Use IWAE with $K=1000$ samples for fair comparison                                                                   |
 
 ---
 
@@ -1510,23 +1534,23 @@ Implement a 2D RealNVP flow with 4 affine coupling layers on a 2D two-moons data
 
 ## 18. Why This Matters for AI (2026 Perspective)
 
-| Concept | AI/LLM Application | Impact |
-|---|---|---|
-| Bayes' theorem | Bayesian hyperparameter optimisation (Optuna, Vizier) | Finds optimal LLM training hyperparameters 10× more efficiently than random search |
-| Exponential family / softmax | Every transformer output layer; cross-entropy training loss | The mathematical foundation of all language model training |
-| Graphical models / BNs | Causal modelling; mechanistic interpretability circuit diagrams | Understand information flow in neural networks; identify polysemantic circuits |
-| EM algorithm | VQ-VAE training; Baum-Welch for S4/Mamba; CTC training | Core algorithm in sequence models, discrete tokenisation, ASR |
-| ELBO / VI | VAE-based image tokenisers (VQ-VAE, VQGAN) used by DALL-E, Stable Diffusion | Compress images to discrete codes for transformer-based generation |
-| Reparameterisation trick | Any stochastic differentiable computation; diffusion model training | Makes gradient-based learning through sampling possible |
-| VAEs | DALL-E 1 image codebooks; VQ-VAE in VideoGPT, MAGVIT | Discrete image tokenisation enabling LLM-style generation over visual tokens |
-| MCMC / Langevin | Score-based models; diffusion sampling; Bayesian neural net inference | Foundation of all diffusion-based generative models |
-| Gaussian Processes | Bayesian optimisation of neural architecture search (NAS); hyperparameter tuning | GPT-4, Claude hyperparameter tuning uses GP-based BO internally |
-| Hidden Markov Models | CTC (speech recognition); structured state space models (S4, Mamba) | Mamba's selective SSM is a learned non-linear HMM with $O(T)$ inference |
-| Bayesian neural networks | MC Dropout for uncertainty; ensembles for RLHF reward model confidence | Reward model uncertainty prevents reward hacking in PPO RLHF |
-| Normalizing flows | Glow (image synthesis); posterior inference; dequantisation | Enables exact likelihood computation in generative models |
-| Diffusion models | Stable Diffusion, DALL-E 3, Sora, AlphaFold 3 | State-of-the-art image/video/protein generation (2022–2026) |
-| Flow Matching | Stable Diffusion 3, Flux, CogVideoX | Cleaner theory, faster inference, replacing diffusion in production 2024–2026 |
-| ICL as Bayes | Explains GPT/Claude few-shot learning; PFNs for tabular ML | Theoretical grounding for prompt engineering; tabPFN outperforms XGBoost |
+| Concept                      | AI/LLM Application                                                               | Impact                                                                             |
+| ---------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Bayes' theorem               | Bayesian hyperparameter optimisation (Optuna, Vizier)                            | Finds optimal LLM training hyperparameters 10× more efficiently than random search |
+| Exponential family / softmax | Every transformer output layer; cross-entropy training loss                      | The mathematical foundation of all language model training                         |
+| Graphical models / BNs       | Causal modelling; mechanistic interpretability circuit diagrams                  | Understand information flow in neural networks; identify polysemantic circuits     |
+| EM algorithm                 | VQ-VAE training; Baum-Welch for S4/Mamba; CTC training                           | Core algorithm in sequence models, discrete tokenisation, ASR                      |
+| ELBO / VI                    | VAE-based image tokenisers (VQ-VAE, VQGAN) used by DALL-E, Stable Diffusion      | Compress images to discrete codes for transformer-based generation                 |
+| Reparameterisation trick     | Any stochastic differentiable computation; diffusion model training              | Makes gradient-based learning through sampling possible                            |
+| VAEs                         | DALL-E 1 image codebooks; VQ-VAE in VideoGPT, MAGVIT                             | Discrete image tokenisation enabling LLM-style generation over visual tokens       |
+| MCMC / Langevin              | Score-based models; diffusion sampling; Bayesian neural net inference            | Foundation of all diffusion-based generative models                                |
+| Gaussian Processes           | Bayesian optimisation of neural architecture search (NAS); hyperparameter tuning | GPT-4, Claude hyperparameter tuning uses GP-based BO internally                    |
+| Hidden Markov Models         | CTC (speech recognition); structured state space models (S4, Mamba)              | Mamba's selective SSM is a learned non-linear HMM with $O(T)$ inference            |
+| Bayesian neural networks     | MC Dropout for uncertainty; ensembles for RLHF reward model confidence           | Reward model uncertainty prevents reward hacking in PPO RLHF                       |
+| Normalizing flows            | Glow (image synthesis); posterior inference; dequantisation                      | Enables exact likelihood computation in generative models                          |
+| Diffusion models             | Stable Diffusion, DALL-E 3, Sora, AlphaFold 3                                    | State-of-the-art image/video/protein generation (2022–2026)                        |
+| Flow Matching                | Stable Diffusion 3, Flux, CogVideoX                                              | Cleaner theory, faster inference, replacing diffusion in production 2024–2026      |
+| ICL as Bayes                 | Explains GPT/Claude few-shot learning; PFNs for tabular ML                       | Theoretical grounding for prompt engineering; tabPFN outperforms XGBoost           |
 
 ---
 
@@ -1535,17 +1559,19 @@ Implement a 2D RealNVP flow with 4 affine coupling layers on a 2D two-moons data
 This section sits at the intersection of classical statistics and modern deep learning. From the neural networks section (§14-02), you brought the tools of representation learning, backpropagation, and deep architectures. This section adds the **probabilistic lens** — the ability to reason about distributions, uncertainty, and latent structure rather than just point estimates.
 
 **Looking backward**, the prerequisite material provides:
+
 - Linear algebra (§02): Gaussian distributions are defined by their mean vectors and covariance matrices; matrix operations underlie GP regression and PPCA
 - Calculus (§05): gradients of the ELBO and score functions are the computational core of VI and diffusion
 - Probability theory (§13-01): all of this section builds on basic probability axioms, expectation, and conditional independence
 - Information theory (§13-02): KL divergence is the central object in VI; entropy quantifies uncertainty; mutual information measures latent code quality
 
 **Looking forward**, this section enables:
+
 - Generative models (§14-07): VAEs, GANs, diffusion models, flow models all require this section's probabilistic machinery
 - Transformers (§14-05): attention is a soft lookup — a probabilistic weighted average. The theoretical analysis of transformers via the exponential family and in-context Bayesian inference (§15) connects directly to transformer architecture design
 - Reinforcement learning (§14-06): reward modelling uses probabilistic regression; policy gradients are closely related to the score function estimator (§6.3); Bayesian RL uses GPs and probabilistic world models
 
-```
+```text
 PROBABILISTIC MODELS — CURRICULUM POSITION
 ════════════════════════════════════════════════════════════════════════
 
@@ -1572,25 +1598,25 @@ PROBABILISTIC MODELS — CURRICULUM POSITION
 
 ## References
 
-1. Bayes, T. (1763). "An Essay towards Solving a Problem in the Doctrine of Chances." *Philosophical Transactions of the Royal Society of London* 53: 370–418.
-2. Dempster, A.P., Laird, N.M., & Rubin, D.B. (1977). "Maximum Likelihood from Incomplete Data via the EM Algorithm." *Journal of the Royal Statistical Society B* 39(1): 1–22.
-3. Pearl, J. (1988). *Probabilistic Reasoning in Intelligent Systems*. Morgan Kaufmann.
-4. Duane, S., Kennedy, A.D., Pendleton, B.J., & Roweth, D. (1987). "Hybrid Monte Carlo." *Physics Letters B* 195(2): 216–222.
-5. Kingma, D.P., & Welling, M. (2014). "Auto-Encoding Variational Bayes." *ICLR 2014*. arXiv:1312.6114.
-6. Rezende, D.J., & Mohamed, S. (2015). "Variational Inference with Normalizing Flows." *ICML 2015*. arXiv:1505.05770.
-7. Rasmussen, C.E., & Williams, C.K.I. (2006). *Gaussian Processes for Machine Learning*. MIT Press.
-8. Dinh, L., Sohl-Dickstein, J., & Bengio, S. (2017). "Density Estimation using Real-valued Non-Volume Preserving Transformations." *ICLR 2017*. arXiv:1605.08803.
-9. Chen, R.T.Q., Rubanova, Y., Bettencourt, J., & Duvenaud, D. (2018). "Neural Ordinary Differential Equations." *NeurIPS 2018* (Best Paper). arXiv:1806.07366.
-10. Ho, J., Jain, A., & Abbeel, P. (2020). "Denoising Diffusion Probabilistic Models." *NeurIPS 2020*. arXiv:2006.11239.
-11. Song, Y., Sohl-Dickstein, J., Kingma, D.P., et al. (2021). "Score-Based Generative Modeling through SDEs." *ICLR 2021 Outstanding Paper*. arXiv:2011.13456.
-12. Xie, S.M., Raghunathan, A., Liang, P., & Ma, T. (2022). "An Explanation of In-Context Learning as Implicit Bayesian Inference." *NeurIPS 2022*. arXiv:2111.02080.
+1. Bayes, T. (1763). "An Essay towards Solving a Problem in the Doctrine of Chances." _Philosophical Transactions of the Royal Society of London_ 53: 370–418.
+2. Dempster, A.P., Laird, N.M., & Rubin, D.B. (1977). "Maximum Likelihood from Incomplete Data via the EM Algorithm." _Journal of the Royal Statistical Society B_ 39(1): 1–22.
+3. Pearl, J. (1988). _Probabilistic Reasoning in Intelligent Systems_. Morgan Kaufmann.
+4. Duane, S., Kennedy, A.D., Pendleton, B.J., & Roweth, D. (1987). "Hybrid Monte Carlo." _Physics Letters B_ 195(2): 216–222.
+5. Kingma, D.P., & Welling, M. (2014). "Auto-Encoding Variational Bayes." _ICLR 2014_. arXiv:1312.6114.
+6. Rezende, D.J., & Mohamed, S. (2015). "Variational Inference with Normalizing Flows." _ICML 2015_. arXiv:1505.05770.
+7. Rasmussen, C.E., & Williams, C.K.I. (2006). _Gaussian Processes for Machine Learning_. MIT Press.
+8. Dinh, L., Sohl-Dickstein, J., & Bengio, S. (2017). "Density Estimation using Real-valued Non-Volume Preserving Transformations." _ICLR 2017_. arXiv:1605.08803.
+9. Chen, R.T.Q., Rubanova, Y., Bettencourt, J., & Duvenaud, D. (2018). "Neural Ordinary Differential Equations." _NeurIPS 2018_ (Best Paper). arXiv:1806.07366.
+10. Ho, J., Jain, A., & Abbeel, P. (2020). "Denoising Diffusion Probabilistic Models." _NeurIPS 2020_. arXiv:2006.11239.
+11. Song, Y., Sohl-Dickstein, J., Kingma, D.P., et al. (2021). "Score-Based Generative Modeling through SDEs." _ICLR 2021 Outstanding Paper_. arXiv:2011.13456.
+12. Xie, S.M., Raghunathan, A., Liang, P., & Ma, T. (2022). "An Explanation of In-Context Learning as Implicit Bayesian Inference." _NeurIPS 2022_. arXiv:2111.02080.
 13. Lipman, Y., Chen, R.T.Q., Ben-Hamu, H., Nickel, M., & Le, M. (2022). "Flow Matching for Generative Modeling." arXiv:2210.02747.
-14. Vincent, P. (2011). "A Connection Between Score Matching and Denoising Autoencoders." *Neural Computation* 23(7): 1661–1674.
-15. Gal, Y., & Ghahramani, Z. (2016). "Dropout as a Bayesian Approximation." *ICML 2016*. arXiv:1506.02142.
-16. Wainwright, M.J., & Jordan, M.I. (2008). *Graphical Models, Exponential Families, and Variational Inference*. Now Publishers.
-17. Blei, D.M., Kucukelbir, A., & McAuliffe, J.D. (2017). "Variational Inference: A Review for Statisticians." *JASA* 112(518): 859–877.
+14. Vincent, P. (2011). "A Connection Between Score Matching and Denoising Autoencoders." _Neural Computation_ 23(7): 1661–1674.
+15. Gal, Y., & Ghahramani, Z. (2016). "Dropout as a Bayesian Approximation." _ICML 2016_. arXiv:1506.02142.
+16. Wainwright, M.J., & Jordan, M.I. (2008). _Graphical Models, Exponential Families, and Variational Inference_. Now Publishers.
+17. Blei, D.M., Kucukelbir, A., & McAuliffe, J.D. (2017). "Variational Inference: A Review for Statisticians." _JASA_ 112(518): 859–877.
 18. Betancourt, M. (2017). "A Conceptual Introduction to Hamiltonian Monte Carlo." arXiv:1701.02434.
-19. Müller, S., Hollmann, N., Arango, S.P., et al. (2022). "Transformers Can Do Bayesian Inference." *ICLR 2022*. arXiv:2112.10510.
+19. Müller, S., Hollmann, N., Arango, S.P., et al. (2022). "Transformers Can Do Bayesian Inference." _ICLR 2022_. arXiv:2112.10510.
 20. Liu, X., Gong, C., & Liu, Q. (2022). "Flow Straight and Fast: Learning to Generate and Transfer Data with Rectified Flow." arXiv:2209.03003.
 
 ---
@@ -1702,6 +1728,7 @@ SVGD bridges variational inference (optimisation-based) and MCMC (sampling-based
 ### C.2 Dirichlet Process and Bayesian Nonparametrics
 
 A **Dirichlet Process** (Ferguson 1973) is a distribution over distributions. $G \sim \operatorname{DP}(\alpha, G_0)$ means:
+
 - For any finite partition $(A_1, \ldots, A_k)$ of $\Omega$: $(G(A_1), \ldots, G(A_k)) \sim \operatorname{Dir}(\alpha G_0(A_1), \ldots, \alpha G_0(A_k))$
 
 **Stick-breaking construction** (Sethuraman 1994):
@@ -1721,6 +1748,7 @@ The DP generates discrete distributions almost surely — clustering structure e
 $$P(Y \mid \text{do}(X=x)) = \sum_Z P(Y \mid X=x, Z)\, P(Z) \qquad \text{(adjustment formula)}$$
 
 **Backdoor criterion**: $Z$ satisfies the backdoor criterion for $(X \to Y)$ if:
+
 1. $Z$ blocks all backdoor paths from $X$ to $Y$ (paths with arrows into $X$)
 2. $Z$ contains no descendants of $X$
 
@@ -1732,7 +1760,7 @@ When satisfied, $P(Y \mid \text{do}(X)) = \sum_Z P(Y \mid X, Z)\, P(Z)$.
 
 ## Appendix D: Quick Reference Card
 
-```
+```text
 PROBABILISTIC MODELS — QUICK REFERENCE
 ════════════════════════════════════════════════════════════════════════
 
@@ -1772,7 +1800,7 @@ PROBABILISTIC MODELS — QUICK REFERENCE
 
 ## Appendix E: Probabilistic Models Taxonomy
 
-```
+```text
 PROBABILISTIC MODEL TAXONOMY
 ════════════════════════════════════════════════════════════════════════
 
@@ -1823,6 +1851,7 @@ PROBABILISTIC MODEL TAXONOMY
 EM is a special case of VI where the E-step uses the **exact** posterior $q^* = p(\mathbf{z} \mid \mathbf{x}, \boldsymbol{\theta})$. When the posterior is tractable, EM and VI coincide. When the posterior is intractable (e.g., deep generative models), VI replaces the exact E-step with a parametric approximation — yielding variational EM or the VAE training algorithm.
 
 The ELBO is:
+
 - **EM**: maximised in $\boldsymbol{\theta}$ (M-step) and exactly tightened in $q$ (E-step)
 - **VAE**: maximised jointly in $\boldsymbol{\theta}$ (decoder weights) and $\phi$ (encoder weights)
 
@@ -1858,12 +1887,12 @@ As the feature map grows, this converges to a **Gaussian Process** with kernel $
 
 ### F.4 HMMs ↔ State Space Models ↔ Transformers
 
-| Model | State | Transition | Emission |
-|---|---|---|---|
-| HMM | Discrete $z_t \in [K]$ | $A_{jk} = p(z_t \mid z_{t-1})$ | $B_k(x_t) = p(x_t \mid z_t)$ |
-| Kalman Filter | Continuous $\mathbf{z}_t \in \mathbb{R}^d$ | $\mathbf{z}_t = F\mathbf{z}_{t-1} + \boldsymbol{\epsilon}$ | $\mathbf{x}_t = H\mathbf{z}_t + \boldsymbol{\delta}$ |
-| SSM (S4/Mamba) | Continuous, learned $A$, $B$, $C$ | $\mathbf{h}_t = \bar{A}\mathbf{h}_{t-1} + \bar{B}x_t$ | $y_t = C\mathbf{h}_t$ |
-| Transformer | Attention over all $t' \leq t$ | Softmax-weighted sum (global) | Linear output projection |
+| Model          | State                                      | Transition                                                 | Emission                                             |
+| -------------- | ------------------------------------------ | ---------------------------------------------------------- | ---------------------------------------------------- |
+| HMM            | Discrete $z_t \in [K]$                     | $A_{jk} = p(z_t \mid z_{t-1})$                             | $B_k(x_t) = p(x_t \mid z_t)$                         |
+| Kalman Filter  | Continuous $\mathbf{z}_t \in \mathbb{R}^d$ | $\mathbf{z}_t = F\mathbf{z}_{t-1} + \boldsymbol{\epsilon}$ | $\mathbf{x}_t = H\mathbf{z}_t + \boldsymbol{\delta}$ |
+| SSM (S4/Mamba) | Continuous, learned $A$, $B$, $C$          | $\mathbf{h}_t = \bar{A}\mathbf{h}_{t-1} + \bar{B}x_t$      | $y_t = C\mathbf{h}_t$                                |
+| Transformer    | Attention over all $t' \leq t$             | Softmax-weighted sum (global)                              | Linear output projection                             |
 
 **Key insight**: HMMs, SSMs, and transformers are all models for sequential data with different inductive biases. HMMs assume short-range Markov dependence; SSMs assume linear dynamics (with selection mechanism in Mamba); transformers assume all-to-all soft attention (quadratic cost, captures long-range).
 
@@ -1891,11 +1920,11 @@ Apply in all forward passes, HMM computation, and softmax to prevent underflow/o
 
 ### G.3 Diffusion Model Noise Schedules
 
-| Schedule | $\beta_t$ | Suitable for |
-|---|---|---|
-| Linear | $\beta_t = \beta_1 + (\beta_T - \beta_1)\frac{t-1}{T-1}$ | DDPM original; suboptimal |
-| Cosine | $\bar{\alpha}_t = \cos^2\!\left(\frac{t/T + s}{1+s} \cdot \frac{\pi}{2}\right)$ | Improved DDPM (Nichol & Dhariwal 2021) |
-| Sigmoid | $\beta_t = \beta(\operatorname{sigmoid}(-5 + 10t/T))$ | Better for high-resolution |
+| Schedule                 | $\beta_t$                                                                               | Suitable for                              |
+| ------------------------ | --------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Linear                   | $\beta_t = \beta_1 + (\beta_T - \beta_1)\frac{t-1}{T-1}$                                | DDPM original; suboptimal                 |
+| Cosine                   | $\bar{\alpha}_t = \cos^2\!\left(\frac{t/T + s}{1+s} \cdot \frac{\pi}{2}\right)$         | Improved DDPM (Nichol & Dhariwal 2021)    |
+| Sigmoid                  | $\beta_t = \beta(\operatorname{sigmoid}(-5 + 10t/T))$                                   | Better for high-resolution                |
 | EDM (Karras et al. 2022) | Continuous $\sigma(t) = t$, $\mathbf{x}_t = \mathbf{x}_0 + \sigma\boldsymbol{\epsilon}$ | State-of-the-art; VE-SDE parameterisation |
 
 For **flow matching** (§14), the noise schedule is replaced by a linear interpolation coefficient $\alpha_t = t$ — much simpler and avoids schedule engineering entirely.
@@ -1919,6 +1948,7 @@ Since $H(\hat{p})$ is constant, minimising CE ≡ minimising KL.
 ### H.2 Dropout Rate as Variational Parameter
 
 In Gal & Ghahramani (2016)'s variational interpretation:
+
 - **Dropout rate $p$** controls the mixture probability of the zero component
 - **Learning rate** corresponds to the prior precision $\tau$
 - **Weight decay** corresponds to $\tau p / (2n)$ (prior on non-zero weights)
@@ -1941,6 +1971,7 @@ with $p(\boldsymbol{\theta}) = \mathcal{N}(\mathbf{0}, \frac{1}{\lambda}I)$.
 ### H.4 Batch Normalisation as Approximate Posterior Normalisation
 
 BatchNorm normalises activations to zero mean and unit variance within a mini-batch. This can be interpreted as:
+
 1. **Whitening** the input distribution to each layer (approximate Gaussian normalisation)
 2. **Removing internal covariate shift** — preventing the input distribution of each layer from changing during training
 3. **Approximate posterior re-centering**: normalise activations so they behave like samples from a standard distribution before the next layer's transformation
@@ -1949,31 +1980,31 @@ The **trainable parameters** $\gamma$ and $\beta$ re-scale and re-shift after no
 
 ---
 
-*This completes the Probabilistic Models reference. For interactive exploration of all concepts, see [theory.ipynb](theory.ipynb). For practice problems, see [exercises.ipynb](exercises.ipynb).*
+_This completes the Probabilistic Models reference. For interactive exploration of all concepts, see [theory.ipynb](theory.ipynb). For practice problems, see [exercises.ipynb](exercises.ipynb)._
 
 ---
 
 ## Appendix I: Notation Summary for This Section
 
-| Symbol | Meaning | First Use |
-|---|---|---|
-| $p(\boldsymbol{\theta} \mid \mathcal{D})$ | Posterior over parameters | §2.2 |
-| $\boldsymbol{\eta}$ | Natural parameters (exponential family) | §2.3 |
-| $T(\mathbf{x})$ | Sufficient statistics | §2.3 |
-| $A(\boldsymbol{\eta})$ | Log-partition function | §2.3 |
-| $\mathcal{L}(q, \boldsymbol{\theta})$ | Evidence Lower Bound (ELBO) | §6.1 |
-| $q(\mathbf{z})$ | Variational distribution | §6.1 |
-| $r_{ik}$ | Responsibility of component $k$ for point $i$ | §4.1 |
-| $\boldsymbol{\mu}_\phi, \boldsymbol{\sigma}_\phi$ | VAE encoder mean and std | §7.1 |
-| $\mathcal{H}(\mathbf{x}, \mathbf{p})$ | Hamiltonian (HMC) | §8.3 |
-| $\alpha_t(k), \beta_t(k)$ | HMM forward/backward variables | §10.2 |
-| $\gamma_t(k), \xi_t(j,k)$ | HMM state marginals | §10.2 |
-| $k(\mathbf{x}, \mathbf{x}')$ | Kernel (covariance) function | §9.1 |
-| $\mathbf{s}_\theta(\mathbf{x}, t)$ | Score network | §13.1 |
-| $\mathbf{v}_\theta(\mathbf{x}, t)$ | Flow matching vector field | §14.1 |
-| $\bar{\alpha}_t$ | DDPM cumulative noise schedule | §13.4 |
-| $C$ | Latent concept (ICL Bayesian framework) | §15.1 |
-| $G \sim \operatorname{DP}(\alpha, G_0)$ | Dirichlet process | App. C.2 |
-| $I(\boldsymbol{\eta})$ | Fisher information matrix | §2.3, App. B |
+| Symbol                                            | Meaning                                       | First Use    |
+| ------------------------------------------------- | --------------------------------------------- | ------------ |
+| $p(\boldsymbol{\theta} \mid \mathcal{D})$         | Posterior over parameters                     | §2.2         |
+| $\boldsymbol{\eta}$                               | Natural parameters (exponential family)       | §2.3         |
+| $T(\mathbf{x})$                                   | Sufficient statistics                         | §2.3         |
+| $A(\boldsymbol{\eta})$                            | Log-partition function                        | §2.3         |
+| $\mathcal{L}(q, \boldsymbol{\theta})$             | Evidence Lower Bound (ELBO)                   | §6.1         |
+| $q(\mathbf{z})$                                   | Variational distribution                      | §6.1         |
+| $r_{ik}$                                          | Responsibility of component $k$ for point $i$ | §4.1         |
+| $\boldsymbol{\mu}_\phi, \boldsymbol{\sigma}_\phi$ | VAE encoder mean and std                      | §7.1         |
+| $\mathcal{H}(\mathbf{x}, \mathbf{p})$             | Hamiltonian (HMC)                             | §8.3         |
+| $\alpha_t(k), \beta_t(k)$                         | HMM forward/backward variables                | §10.2        |
+| $\gamma_t(k), \xi_t(j,k)$                         | HMM state marginals                           | §10.2        |
+| $k(\mathbf{x}, \mathbf{x}')$                      | Kernel (covariance) function                  | §9.1         |
+| $\mathbf{s}_\theta(\mathbf{x}, t)$                | Score network                                 | §13.1        |
+| $\mathbf{v}_\theta(\mathbf{x}, t)$                | Flow matching vector field                    | §14.1        |
+| $\bar{\alpha}_t$                                  | DDPM cumulative noise schedule                | §13.4        |
+| $C$                                               | Latent concept (ICL Bayesian framework)       | §15.1        |
+| $G \sim \operatorname{DP}(\alpha, G_0)$           | Dirichlet process                             | App. C.2     |
+| $I(\boldsymbol{\eta})$                            | Fisher information matrix                     | §2.3, App. B |
 
 **Notation follows `docs/NOTATION_GUIDE.md` throughout. Distributions in calligraphic ($\mathcal{N}, \operatorname{Dir}$), random variables in uppercase italic ($X, Z$), vectors in bold lowercase ($\mathbf{x}, \boldsymbol{\mu}$), matrices in uppercase ($W, K, A$), KL divergence as $D_{\mathrm{KL}}(p \| q)$ with double-bar.**

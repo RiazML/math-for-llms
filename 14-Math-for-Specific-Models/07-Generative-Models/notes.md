@@ -27,9 +27,9 @@ This section develops the complete mathematical theory from first principles. We
 
 ## Companion Notebooks
 
-| Notebook | Description |
-|---|---|
-| [theory.ipynb](theory.ipynb) | Interactive derivations: ELBO geometry, coupling layer Jacobian, GAN training dynamics, diffusion forward process, score matching, FID computation, flow matching trajectories |
+| Notebook                           | Description                                                                                                                                                                                     |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive derivations: ELBO geometry, coupling layer Jacobian, GAN training dynamics, diffusion forward process, score matching, FID computation, flow matching trajectories                  |
 | [exercises.ipynb](exercises.ipynb) | 10 graded problems: ELBO derivation, coupling Jacobian, diffusion marginal, optimal discriminator, WGAN-GP, DDIM step, score matching equivalence, CFM objective, FID, classifier-free guidance |
 
 ## Learning Objectives
@@ -114,6 +114,7 @@ After completing this section, you will:
 - [14. Conceptual Bridge](#14-conceptual-bridge)
 
 ---
+
 ## 1. Intuition and Motivation
 
 ### 1.1 What Is a Generative Model?
@@ -142,7 +143,7 @@ Three fundamental difficulties make generative modeling harder than discriminati
 
 ### 1.3 Historical Timeline
 
-```
+```text
 GENERATIVE MODELS: HISTORICAL TIMELINE
 ════════════════════════════════════════════════════════════════════════
 
@@ -181,7 +182,7 @@ GENERATIVE MODELS: HISTORICAL TIMELINE
 
 ### 1.4 Taxonomy of Approaches
 
-```
+```text
 TAXONOMY OF GENERATIVE MODELS
 ════════════════════════════════════════════════════════════════════════
 
@@ -244,6 +245,7 @@ MLE minimises $D_{\mathrm{KL}}(p_{\text{data}} \| p_{\boldsymbol{\theta}})$, the
 **For AI:** GPT-family models optimise the cross-entropy loss $-\frac{1}{T}\sum_t \log p_{\boldsymbol{\theta}}(x_t \mid \mathbf{x}_{<t})$, which is exactly MLE for the autoregressive factorisation. The connection to KL minimisation explains why language models cover diverse topics rather than collapsing to the most common tokens.
 
 **Non-examples (when MLE fails):**
+
 - If $p_{\boldsymbol{\theta}}$ cannot represent the data distribution (model misspecification), MLE finds the closest model in KL sense — but "closest" may still be far.
 - If the normalisation constant $Z_{\boldsymbol{\theta}}$ is intractable (energy-based models), the MLE gradient itself is intractable.
 - For discrete data with continuous models, likelihood can be infinite (density model assigns a spike to each data point) — need regularisation or proper discrete models.
@@ -257,12 +259,12 @@ MLE minimises $D_{\mathrm{KL}}(p_{\text{data}} \| p_{\boldsymbol{\theta}})$, the
 
 **Implicit density models** do not define $p_{\boldsymbol{\theta}}(\mathbf{x})$ explicitly — they only define a sampling procedure. GANs are the canonical example: the generator $G(\mathbf{z})$ maps noise to samples, but there is no closed-form expression for the induced density $p_g(\mathbf{x})$. This makes likelihood evaluation impossible but allows using powerful, flexible architectures as generators.
 
-| Property | Explicit (tractable) | Explicit (approx) | Implicit |
-|---|---|---|---|
-| Likelihood evaluation | Yes | Lower bound | No |
-| Sampling speed | Slow (AR) / Fast (flow) | Fast | Fast |
-| Training objective | MLE | ELBO | Adversarial |
-| Typical quality | High (AR), Good (flow) | Good | Highest |
+| Property              | Explicit (tractable)    | Explicit (approx) | Implicit    |
+| --------------------- | ----------------------- | ----------------- | ----------- |
+| Likelihood evaluation | Yes                     | Lower bound       | No          |
+| Sampling speed        | Slow (AR) / Fast (flow) | Fast              | Fast        |
+| Training objective    | MLE                     | ELBO              | Adversarial |
+| Typical quality       | High (AR), Good (flow)  | Good              | Highest     |
 
 ### 2.3 Latent Variable Models
 
@@ -281,11 +283,13 @@ This integral is generally intractable for continuous $\mathbf{z}$ in high dimen
 **For AI:** In Stable Diffusion, $\mathbf{z}$ is the latent encoding produced by a VAE encoder. The diffusion process operates entirely in latent space, making it $4\times$ cheaper than pixel-space diffusion. At generation time: sample $\mathbf{z} \sim p_\theta$ via denoising, then decode $\mathbf{x} = \mathcal{D}(\mathbf{z})$.
 
 **Standard examples:**
+
 - GMM: $\mathbf{z} \in \{1,\ldots,K\}$ discrete cluster label; $p(\mathbf{x}\mid\mathbf{z}=k) = \mathcal{N}(\boldsymbol{\mu}_k, \Sigma_k)$. Marginal is a mixture.
 - VAE: $\mathbf{z} \in \mathbb{R}^d$ continuous code; $p_{\boldsymbol{\theta}}(\mathbf{x}\mid\mathbf{z})$ is a neural network decoder.
 - LDA (text): $\mathbf{z}$ is topic proportion; $p(\text{word}\mid\mathbf{z})$ is topic-word distribution.
 
 **Non-examples:**
+
 - A purely discriminative model $p(y\mid\mathbf{x})$ with no generative story for $\mathbf{x}$.
 - A deterministic autoencoder (no probabilistic decoder or prior).
 
@@ -362,6 +366,7 @@ $$\nabla_{\boldsymbol{\phi}} \mathbb{E}_{q_{\boldsymbol{\phi}}}[f(\mathbf{z})] =
 This **pathwise gradient** has much lower variance because it uses the chain rule through $g_{\boldsymbol{\phi}}$ rather than the noisy score function. In practice, a single sample $\boldsymbol{\varepsilon}^{(1)} \sim \mathcal{N}(\mathbf{0},I)$ suffices for training.
 
 **Generalisation.** Reparameterisation works for any distribution with a location-scale family or an invertible CDF transform:
+
 - Gaussian: $\mathbf{z} = \boldsymbol{\mu} + \boldsymbol{\sigma} \odot \boldsymbol{\varepsilon}$
 - Laplace: $z = \mu - b\operatorname{sign}(u)\log(1 - 2\lvert u \rvert)$, $u \sim \mathcal{U}(-\frac{1}{2}, \frac{1}{2})$
 - Exponential: $z = -\lambda^{-1}\log u$, $u \sim \mathcal{U}(0,1)$
@@ -461,6 +466,7 @@ This is exact — no approximation, no lower bound. Flows give tractable, exact 
 **Intuition.** The Jacobian determinant $|\det J_f(\mathbf{z})|$ is a volume scaling factor: if $f$ expands a region by factor $c$, the probability density in that region decreases by $1/c$ to preserve the total probability mass. This is the continuous analogue of the discrete change-of-variables formula $P(Y = y) = P(X = f^{-1}(y)) / |f'(f^{-1}(y))|$.
 
 **Two directions:**
+
 - **Sampling (generation):** Sample $\mathbf{z} \sim p_Z$, compute $\mathbf{x} = f(\mathbf{z})$. Fast if $f$ is fast.
 - **Density evaluation:** Given $\mathbf{x}$, compute $\mathbf{z} = f^{-1}(\mathbf{x})$ and evaluate $\log p_X(\mathbf{x})$. Fast if $f^{-1}$ is fast.
 
@@ -615,6 +621,7 @@ where the supremum is over all 1-Lipschitz functions $f$ (i.e., $\lvert f(\mathb
 $$\min_{\boldsymbol{\theta}} \max_{\boldsymbol{\phi}: \lVert f_{\boldsymbol{\phi}} \rVert_L \leq 1} \mathbb{E}_{p_{\text{data}}}[f_{\boldsymbol{\phi}}(\mathbf{x})] - \mathbb{E}_{p_z}[f_{\boldsymbol{\phi}}(G_{\boldsymbol{\theta}}(\mathbf{z}))]$$
 
 **Advantages over standard GAN:**
+
 1. $W_1$ is finite and continuous even when supports don't overlap — no vanishing gradients.
 2. The critic provides a meaningful loss metric that correlates with sample quality.
 3. The game is more stable: the critic can be trained to optimality without making generator training harder.
@@ -671,6 +678,7 @@ $$\mathbf{x}_t = \sqrt{\bar\alpha_t}\,\mathbf{x}_0 + \sqrt{1-\bar\alpha_t}\,\bol
 This allows sampling any $\mathbf{x}_t$ in one step without simulating the full chain.
 
 **Noise schedules:**
+
 - **Linear** (Ho et al., 2020): $\beta_t$ increases linearly from $\beta_1 = 10^{-4}$ to $\beta_T = 0.02$. Works but over-corrupts at the end.
 - **Cosine** (Nichol & Dhariwal, 2021): $\bar\alpha_t = \cos^2(\pi t / (2T))$. Smoother corruption, better results for low-resolution images.
 - **EDM** (Karras et al., 2022): parameterise in terms of noise levels $\sigma_t$ directly; $\bar\alpha_t = 1/(1+\sigma_t^2)$. Enables continuous-time analysis and optimal noise level sampling during training.
@@ -726,6 +734,7 @@ where $t \sim \mathcal{U}\{1,\ldots,T\}$ and $\boldsymbol{\varepsilon} \sim \mat
 **Why it works.** Predicting $\boldsymbol{\varepsilon}$ is equivalent to predicting the score (see §6.5). The simplification removes the time-dependent weighting $w(t)$ of the full ELBO, effectively giving higher weight to intermediate noise levels (where the model's predictions matter most for sample quality) and lower weight to very clean or very noisy steps.
 
 **Parameterisations comparison:**
+
 - $\boldsymbol{\varepsilon}$-prediction: $\boldsymbol{\varepsilon}_{\boldsymbol{\theta}}(\mathbf{x}_t, t)$ — standard for DDPM/DDIM
 - $\mathbf{x}_0$-prediction: $\hat{\mathbf{x}}_{\boldsymbol{\theta}}(\mathbf{x}_t, t) = (\mathbf{x}_t - \sqrt{1-\bar\alpha_t}\boldsymbol{\varepsilon}_\theta)/\sqrt{\bar\alpha_t}$ — equivalent, numerically different
 - $\mathbf{v}$-prediction: $\mathbf{v}_{\boldsymbol{\theta}} = \sqrt{\bar\alpha_t}\boldsymbol{\varepsilon} - \sqrt{1-\bar\alpha_t}\mathbf{x}_0$ — used in Stable Diffusion XL
@@ -774,6 +783,7 @@ Setting $\sigma_t = 0$ gives a **deterministic** ODE that maps $\mathbf{x}_T \ma
 $$\mathbf{x}_{t-1} = \sqrt{\bar\alpha_{t-1}}\frac{\mathbf{x}_t - \sqrt{1-\bar\alpha_t}\boldsymbol{\varepsilon}_{\boldsymbol{\theta}}}{\sqrt{\bar\alpha_t}} + \sqrt{1-\bar\alpha_{t-1}}\,\boldsymbol{\varepsilon}_{\boldsymbol{\theta}}(\mathbf{x}_t,t)$$
 
 **Advantages:**
+
 1. **Fewer steps:** Because the sampling is now solving an ODE (not a stochastic process), we can use larger step sizes — 50 steps instead of 1000, with acceptable quality loss.
 2. **Deterministic:** Same $\mathbf{x}_T$ always gives the same $\mathbf{x}_0$ — useful for interpolation and inversion.
 3. **Invertible:** Can encode real images to noise by running the ODE forward, enabling image editing.
@@ -892,6 +902,7 @@ $$u_t(\mathbf{x} \mid \mathbf{x}_1) = \frac{\mathbf{x}_1 - (1-t)\mathbf{x}_0}{1-
 So the model learns to predict the direction from noise to data — a constant velocity field along straight lines!
 
 **Training algorithm:**
+
 1. Sample $\mathbf{x}_1 \sim p_{\text{data}}$, $\mathbf{x}_0 \sim \mathcal{N}(\mathbf{0},I)$, $t \sim \mathcal{U}(0,1)$
 2. Compute $\mathbf{x}_t = (1-t)\mathbf{x}_0 + t\mathbf{x}_1$
 3. Loss: $\lVert \mathbf{v}_{\boldsymbol{\theta}}(\mathbf{x}_t, t) - (\mathbf{x}_1 - \mathbf{x}_0) \rVert_2^2$
@@ -909,6 +920,7 @@ $$\gamma^* = \arg\min_{\gamma \in \Pi(p_0, p_{\text{data}})} \mathbb{E}_{(\mathb
 Each noise sample $\mathbf{x}_0$ is matched to its nearest data point $\mathbf{x}_1$ (approximately, via Sinkhorn algorithm on minibatches). The paths $(1-t)\mathbf{x}_0 + t\mathbf{x}_1$ are then nearly parallel, making the marginal velocity nearly constant and reducing curvature.
 
 **Advantages:**
+
 - Straighter trajectories → fewer NFE (number of function evaluations) at inference
 - Better sample quality at the same NFE budget
 - Training stability (lower variance gradients)
@@ -925,7 +937,7 @@ $$\min_{\boldsymbol{\theta}} \mathbb{E}_{\mathbf{x}_0, \mathbf{x}_1, t}\!\left[\
 
 ### 8.4 Flow Matching vs Diffusion
 
-```
+```text
 FLOW MATCHING VS DIFFUSION: COMPARISON
 ════════════════════════════════════════════════════════════════════════
 
@@ -956,6 +968,7 @@ FLOW MATCHING VS DIFFUSION: COMPARISON
 **Key idea (Rombach et al., 2022):** Run the diffusion process in the latent space of a pretrained VAE rather than in pixel space. This provides a $4\times$ to $8\times$ compression of spatial resolution, dramatically reducing compute.
 
 **Architecture:**
+
 1. **VAE encoder**: $\mathbf{z} = \mathcal{E}(\mathbf{x}) \in \mathbb{R}^{h/f \times w/f \times c}$ with downsampling factor $f$ (typically $f=8$)
 2. **Diffusion in latent space**: Forward/reverse process on $\mathbf{z}$, not $\mathbf{x}$
 3. **VAE decoder**: $\hat{\mathbf{x}} = \mathcal{D}(\mathbf{z}_0)$ after denoising
@@ -974,6 +987,7 @@ $$\text{Attention}(Q,K,V) = \operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{d
 The **U-Net** (Ronneberger et al., 2015) is the standard backbone for diffusion models. It processes spatial features at multiple resolutions with skip connections:
 
 **Architecture:**
+
 - **Encoder path**: Sequence of ResBlocks + downsampling (stride-2 conv). Resolution decreases $H \to H/2 \to H/4 \to \cdots$
 - **Bottleneck**: Self-attention + ResBlocks at lowest resolution
 - **Decoder path**: ResBlocks + upsampling + skip connections from encoder
@@ -1052,6 +1066,7 @@ where $(\boldsymbol{\mu}_r, \Sigma_r)$ and $(\boldsymbol{\mu}_g, \Sigma_g)$ are 
 **FID as Wasserstein-2.** FID equals the Wasserstein-2 distance between the Gaussian approximations: $\mathrm{FID} = W_2^2(\mathcal{N}(\boldsymbol{\mu}_r, \Sigma_r), \mathcal{N}(\boldsymbol{\mu}_g, \Sigma_g))$.
 
 **Practical notes:**
+
 - Requires 50,000 real and generated samples for stable estimates
 - Sensitive to image preprocessing (especially resize/crop choices)
 - Sensitive to the Inception feature extractor version
@@ -1090,20 +1105,20 @@ where $d$ is the number of dimensions (e.g., $d = 3 \times 256 \times 256 = 1966
 
 ## 11. Common Mistakes
 
-| # | Mistake | Why It's Wrong | Fix |
-|---|---|---|---|
-| 1 | Writing the ELBO as $\mathbb{E}_q[\log p] + D_{\mathrm{KL}}$ | The KL term in the ELBO is subtracted, not added. The ELBO = reconstruction $-$ KL. Adding KL gives a quantity above the log-likelihood. | $\mathcal{L} = \mathbb{E}_{q}[\log p(\mathbf{x}\mid\mathbf{z})] - D_{\mathrm{KL}}(q\|p)$ |
-| 2 | KL direction: writing $D_{\mathrm{KL}}(p\|q)$ when deriving the ELBO | The ELBO derivation requires $D_{\mathrm{KL}}(q_\phi\|p_\theta(\mathbf{z}\mid\mathbf{x}))$; the KL term in the ELBO objective is $D_{\mathrm{KL}}(q_\phi\|p(\mathbf{z}))$. Reversing the direction changes the meaning and the optimisation. | Always write which direction: $D_{\mathrm{KL}}(\text{approximate}\|\text{prior})$ in the ELBO penalty |
-| 3 | Using score-function gradient for the ELBO encoder | Score function (REINFORCE) is unbiased but has extremely high variance for continuous $\mathbf{z}$. Training will be very slow or fail entirely. | Use reparameterisation: $\mathbf{z} = \boldsymbol{\mu} + \boldsymbol{\sigma}\odot\boldsymbol{\varepsilon}$, $\boldsymbol{\varepsilon}\sim\mathcal{N}(\mathbf{0},I)$ |
-| 4 | Coupling layer inverse: computing $s(y_a)$ instead of $s(z_a)$ | Since $y_a = z_a$ (identity on the first half), $s(y_a) = s(z_a)$ — no bug here. But computing $s$ and $t$ on $y_b$ instead of $y_a$ is wrong: the inverse uses $x_1 = y_a$ to compute $s, t$, not $x_2 = y_b$. | Inverse: $z_b = (y_b - t(y_a)) \odot \exp(-s(y_a))$ |
-| 5 | GAN non-saturation: using $\min_G \log(1-D(G(\mathbf{z})))$ | When $D$ is good, $D(G(\mathbf{z})) \approx 0$, so $\log(1-D)\approx 0$ and gradients vanish. The generator cannot learn. | Use $\max_G \log D(G(\mathbf{z}))$ (non-saturating) — same Nash equilibrium, better gradients early in training |
-| 6 | WGAN gradient penalty: interpolating between two generated samples | The GP should be on points between real and generated data. Interpolating between two generated samples gives wrong penalty landscape. | $\hat\mathbf{x} = \epsilon\mathbf{x}_r + (1-\epsilon)G(\mathbf{z})$, $\epsilon\sim\mathcal{U}(0,1)$ |
-| 7 | Diffusion forward: using $\bar\alpha_t = 1-t$ for linear noise schedule | The correct $\bar\alpha_t = \prod_{s=1}^t(1-\beta_s) \neq 1 - t\beta_{\max}$. The product compounds noise differently from a linear decrease. | Precompute $\bar\alpha_t = \prod_{s=1}^t(1-\beta_s)$ and cache; or use $\bar\alpha_t = \cos^2(\pi t/(2T))$ |
-| 8 | Confusing $\mathbf{x}_0$-prediction and $\boldsymbol{\varepsilon}$-prediction | Both predict a reconstruction of $\mathbf{x}_0$, but with different loss weightings and numerical properties. $\boldsymbol{\varepsilon}$-prediction can have large magnitudes at high noise; $\mathbf{x}_0$-prediction saturates near 0 at low noise. | Be explicit: $\hat\mathbf{x}_0 = (\mathbf{x}_t - \sqrt{1-\bar\alpha_t}\boldsymbol{\varepsilon}_\theta)/\sqrt{\bar\alpha_t}$ gives the relationship |
-| 9 | FID: computing with fewer than 10,000 samples | FID is highly sensitive to sample count — FID@1k can be 5-10 points lower than FID@50k. Results are not comparable across papers using different counts. | Always report FID@50k for standard benchmarks; report sample count explicitly |
-| 10 | IS: comparing across different Inception versions | Inception Score depends on the specific Inception model's class probabilities. Newer models give different scores for the same images. | Use the same Inception checkpoint (inception-2015-12-05) across all comparisons |
-| 11 | Flow composition order: applying $f_1$ last instead of first | The flow is $\mathbf{x} = f_K\circ\cdots\circ f_1(\mathbf{z})$. Applying in wrong order computes a different function. The Jacobian log-det sum depends on the correct ordering. | Maintain explicit list of layers; always verify: generate = apply in order $1\to K$, invert = apply in order $K\to 1$ |
-| 12 | CFG: applying guidance scale $w$ to the wrong term | CFG formula: $\tilde\boldsymbol{\varepsilon} = (1+w)\boldsymbol{\varepsilon}(\mathbf{x}_t,y) - w\boldsymbol{\varepsilon}(\mathbf{x}_t,\emptyset)$. A common mistake is $w\boldsymbol{\varepsilon}(\mathbf{x}_t,y) + (1-w)\boldsymbol{\varepsilon}(\mathbf{x}_t,\emptyset)$, which is linear interpolation (not extrapolation) and doesn't amplify the conditional direction. | The correct formula extrapolates beyond the conditional prediction; verify $w=0$ gives conditional model, $w=-1$ gives unconditional |
+| #   | Mistake                                                                       | Why It's Wrong                                                                                                                                                                                                                                                                                                                                                               | Fix                                                                                                                                                                 |
+| --- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Writing the ELBO as $\mathbb{E}_q[\log p] + D_{\mathrm{KL}}$                  | The KL term in the ELBO is subtracted, not added. The ELBO = reconstruction $-$ KL. Adding KL gives a quantity above the log-likelihood.                                                                                                                                                                                                                                     | $\mathcal{L} = \mathbb{E}_{q}[\log p(\mathbf{x}\mid\mathbf{z})] - D_{\mathrm{KL}}(q\|p)$                                                                            |
+| 2   | KL direction: writing $D_{\mathrm{KL}}(p\|q)$ when deriving the ELBO          | The ELBO derivation requires $D_{\mathrm{KL}}(q_\phi\|p_\theta(\mathbf{z}\mid\mathbf{x}))$; the KL term in the ELBO objective is $D_{\mathrm{KL}}(q_\phi\|p(\mathbf{z}))$. Reversing the direction changes the meaning and the optimisation.                                                                                                                                 | Always write which direction: $D_{\mathrm{KL}}(\text{approximate}\|\text{prior})$ in the ELBO penalty                                                               |
+| 3   | Using score-function gradient for the ELBO encoder                            | Score function (REINFORCE) is unbiased but has extremely high variance for continuous $\mathbf{z}$. Training will be very slow or fail entirely.                                                                                                                                                                                                                             | Use reparameterisation: $\mathbf{z} = \boldsymbol{\mu} + \boldsymbol{\sigma}\odot\boldsymbol{\varepsilon}$, $\boldsymbol{\varepsilon}\sim\mathcal{N}(\mathbf{0},I)$ |
+| 4   | Coupling layer inverse: computing $s(y_a)$ instead of $s(z_a)$                | Since $y_a = z_a$ (identity on the first half), $s(y_a) = s(z_a)$ — no bug here. But computing $s$ and $t$ on $y_b$ instead of $y_a$ is wrong: the inverse uses $x_1 = y_a$ to compute $s, t$, not $x_2 = y_b$.                                                                                                                                                              | Inverse: $z_b = (y_b - t(y_a)) \odot \exp(-s(y_a))$                                                                                                                 |
+| 5   | GAN non-saturation: using $\min_G \log(1-D(G(\mathbf{z})))$                   | When $D$ is good, $D(G(\mathbf{z})) \approx 0$, so $\log(1-D)\approx 0$ and gradients vanish. The generator cannot learn.                                                                                                                                                                                                                                                    | Use $\max_G \log D(G(\mathbf{z}))$ (non-saturating) — same Nash equilibrium, better gradients early in training                                                     |
+| 6   | WGAN gradient penalty: interpolating between two generated samples            | The GP should be on points between real and generated data. Interpolating between two generated samples gives wrong penalty landscape.                                                                                                                                                                                                                                       | $\hat\mathbf{x} = \epsilon\mathbf{x}_r + (1-\epsilon)G(\mathbf{z})$, $\epsilon\sim\mathcal{U}(0,1)$                                                                 |
+| 7   | Diffusion forward: using $\bar\alpha_t = 1-t$ for linear noise schedule       | The correct $\bar\alpha_t = \prod_{s=1}^t(1-\beta_s) \neq 1 - t\beta_{\max}$. The product compounds noise differently from a linear decrease.                                                                                                                                                                                                                                | Precompute $\bar\alpha_t = \prod_{s=1}^t(1-\beta_s)$ and cache; or use $\bar\alpha_t = \cos^2(\pi t/(2T))$                                                          |
+| 8   | Confusing $\mathbf{x}_0$-prediction and $\boldsymbol{\varepsilon}$-prediction | Both predict a reconstruction of $\mathbf{x}_0$, but with different loss weightings and numerical properties. $\boldsymbol{\varepsilon}$-prediction can have large magnitudes at high noise; $\mathbf{x}_0$-prediction saturates near 0 at low noise.                                                                                                                        | Be explicit: $\hat\mathbf{x}_0 = (\mathbf{x}_t - \sqrt{1-\bar\alpha_t}\boldsymbol{\varepsilon}_\theta)/\sqrt{\bar\alpha_t}$ gives the relationship                  |
+| 9   | FID: computing with fewer than 10,000 samples                                 | FID is highly sensitive to sample count — FID@1k can be 5-10 points lower than FID@50k. Results are not comparable across papers using different counts.                                                                                                                                                                                                                     | Always report FID@50k for standard benchmarks; report sample count explicitly                                                                                       |
+| 10  | IS: comparing across different Inception versions                             | Inception Score depends on the specific Inception model's class probabilities. Newer models give different scores for the same images.                                                                                                                                                                                                                                       | Use the same Inception checkpoint (inception-2015-12-05) across all comparisons                                                                                     |
+| 11  | Flow composition order: applying $f_1$ last instead of first                  | The flow is $\mathbf{x} = f_K\circ\cdots\circ f_1(\mathbf{z})$. Applying in wrong order computes a different function. The Jacobian log-det sum depends on the correct ordering.                                                                                                                                                                                             | Maintain explicit list of layers; always verify: generate = apply in order $1\to K$, invert = apply in order $K\to 1$                                               |
+| 12  | CFG: applying guidance scale $w$ to the wrong term                            | CFG formula: $\tilde\boldsymbol{\varepsilon} = (1+w)\boldsymbol{\varepsilon}(\mathbf{x}_t,y) - w\boldsymbol{\varepsilon}(\mathbf{x}_t,\emptyset)$. A common mistake is $w\boldsymbol{\varepsilon}(\mathbf{x}_t,y) + (1-w)\boldsymbol{\varepsilon}(\mathbf{x}_t,\emptyset)$, which is linear interpolation (not extrapolation) and doesn't amplify the conditional direction. | The correct formula extrapolates beyond the conditional prediction; verify $w=0$ gives conditional model, $w=-1$ gives unconditional                                |
 
 ---
 
@@ -1211,22 +1226,22 @@ For the RealNVP affine coupling $\mathbf{y}_b = \mathbf{z}_b \odot \exp(s(\mathb
 
 ## 13. Why This Matters for AI (2026 Perspective)
 
-| Concept | AI / LLM Impact |
-|---|---|
-| ELBO and VAE | VAE encoder/decoder is the compression backbone of Stable Diffusion, DALL-E 3, Parti. Latent space enables $4\times$–$8\times$ cheaper diffusion. |
-| Reparameterisation trick | Enables gradient flow through stochastic nodes; used in diffusion forward process, normalising flow sampling, and differentiable simulation. |
-| VQ-VAE | Discrete image tokenisation for DALL-E 1, Parti, LlamaGen. Enables treating images as sequences for GPT-style generation. |
-| GAN discriminator | Direct ancestor of RLHF reward models. Discriminator training on preferred/non-preferred samples is the conceptual foundation of Bradley-Terry preference modelling. |
-| WGAN / optimal transport | OT paths in flow matching (SD3, Flux) enable straight trajectories, fewer NFE, and faster generation. The Wasserstein metric underlies FID evaluation. |
-| Score matching | Unified mathematical framework connecting DDPM, NCSN, SDE-based diffusion, and Langevin dynamics. Score functions = noise prediction networks. |
-| DDPM simplified objective | Standard training objective for all diffusion-based image/video/audio generation (SD, DALL-E 2, Imagen, Sora, AudioLDM). |
-| Classifier-free guidance | The "prompt strength" parameter in every text-to-image system. Controls text adherence vs diversity. Critical for RLHF-based alignment of diffusion models. |
-| Flow matching (CFM) | State-of-the-art image generation (Flux, SD3, MovieGen). Trains faster than diffusion, enables 1-50 step generation. |
-| DDIM / deterministic sampling | Production sampler in all deployed diffusion systems. Enables image editing via DDIM inversion. |
-| Consistency models | Single-step generation for interactive applications (LCM). Deployed in real-time image editing tools. |
-| Discrete diffusion | Emerging framework for language generation as parallel, non-autoregressive process. Competitive with GPT-style models on NLU/NLG benchmarks as of 2025. |
-| FID / precision-recall | Universal evaluation benchmark for all generative models. Every image generation paper reports FID on COCO, LAION, or ImageNet. |
-| Latent diffusion (LDM) | Stable Diffusion architecture — enabled open-source, affordable text-to-image generation. Foundation of entire open-source GenAI ecosystem. |
+| Concept                       | AI / LLM Impact                                                                                                                                                      |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ELBO and VAE                  | VAE encoder/decoder is the compression backbone of Stable Diffusion, DALL-E 3, Parti. Latent space enables $4\times$–$8\times$ cheaper diffusion.                    |
+| Reparameterisation trick      | Enables gradient flow through stochastic nodes; used in diffusion forward process, normalising flow sampling, and differentiable simulation.                         |
+| VQ-VAE                        | Discrete image tokenisation for DALL-E 1, Parti, LlamaGen. Enables treating images as sequences for GPT-style generation.                                            |
+| GAN discriminator             | Direct ancestor of RLHF reward models. Discriminator training on preferred/non-preferred samples is the conceptual foundation of Bradley-Terry preference modelling. |
+| WGAN / optimal transport      | OT paths in flow matching (SD3, Flux) enable straight trajectories, fewer NFE, and faster generation. The Wasserstein metric underlies FID evaluation.               |
+| Score matching                | Unified mathematical framework connecting DDPM, NCSN, SDE-based diffusion, and Langevin dynamics. Score functions = noise prediction networks.                       |
+| DDPM simplified objective     | Standard training objective for all diffusion-based image/video/audio generation (SD, DALL-E 2, Imagen, Sora, AudioLDM).                                             |
+| Classifier-free guidance      | The "prompt strength" parameter in every text-to-image system. Controls text adherence vs diversity. Critical for RLHF-based alignment of diffusion models.          |
+| Flow matching (CFM)           | State-of-the-art image generation (Flux, SD3, MovieGen). Trains faster than diffusion, enables 1-50 step generation.                                                 |
+| DDIM / deterministic sampling | Production sampler in all deployed diffusion systems. Enables image editing via DDIM inversion.                                                                      |
+| Consistency models            | Single-step generation for interactive applications (LCM). Deployed in real-time image editing tools.                                                                |
+| Discrete diffusion            | Emerging framework for language generation as parallel, non-autoregressive process. Competitive with GPT-style models on NLU/NLG benchmarks as of 2025.              |
+| FID / precision-recall        | Universal evaluation benchmark for all generative models. Every image generation paper reports FID on COCO, LAION, or ImageNet.                                      |
+| Latent diffusion (LDM)        | Stable Diffusion architecture — enabled open-source, affordable text-to-image generation. Foundation of entire open-source GenAI ecosystem.                          |
 
 ---
 
@@ -1237,13 +1252,14 @@ For the RealNVP affine coupling $\mathbf{y}_b = \mathbf{z}_b \odot \exp(s(\mathb
 **Looking forward: What this section enables.** The architectures introduced here (VAE, U-Net, diffusion backbone) are the components of the next section on CNNs (§14-08), where the U-Net's convolutional architecture is analysed mathematically. The attention mechanism that enables text conditioning in diffusion (cross-attention) connects to the transformer section (§14-05). The flow matching framework connects to score SDEs and the broader theory of stochastic processes. Understanding diffusion model training objectives is essential for modern multimodal AI: text-to-image (Stable Diffusion, Flux), text-to-video (Sora, MovieGen), text-to-audio (AudioLDM, Stable Audio), and 3D generation (Zero-1-to-3, DreamFusion) all use the same mathematical skeleton.
 
 **The central unifying idea.** Every generative model is a different strategy for the same problem: learn a mapping from a simple distribution (Gaussian noise) to the complex data distribution. VAEs do it with a probabilistic encoder-decoder. GANs do it with a minimax game. Flows do it with an invertible deterministic map. Diffusion models do it with a learned iterative denoiser. Flow matching does it with a learned velocity field for an ODE. The mathematical differences are:
+
 - What notion of "distance" between distributions is optimised (KL, JSD, Wasserstein, score matching, OT)
 - Whether the mapping is explicit or implicit
 - Whether likelihood is tractable or bounded
 
 Understanding all these simultaneously gives you the vocabulary to design new generative models and understand why they work.
 
-```
+```text
 POSITION IN CURRICULUM
 ════════════════════════════════════════════════════════════════════════
 
@@ -1277,21 +1293,21 @@ POSITION IN CURRICULUM
 
 ## References
 
-1. Kingma & Welling (2013). *Auto-Encoding Variational Bayes*. arXiv:1312.6114
-2. Goodfellow et al. (2014). *Generative Adversarial Nets*. NeurIPS 2014
-3. Dinh et al. (2016). *Density Estimation using Real-valued Non-Volume Preserving Transformations*. ICLR 2017
-4. Arjovsky et al. (2017). *Wasserstein GAN*. ICML 2017
-5. van den Oord et al. (2017). *Neural Discrete Representation Learning* (VQ-VAE). NeurIPS 2017
-6. Ho et al. (2020). *Denoising Diffusion Probabilistic Models*. NeurIPS 2020
-7. Song et al. (2021). *Score-Based Generative Modeling through Stochastic Differential Equations*. ICLR 2021
-8. Song et al. (2021). *Denoising Diffusion Implicit Models*. ICLR 2021
-9. Ho & Salimans (2022). *Classifier-Free Diffusion Guidance*. NeurIPS Workshop 2021
-10. Rombach et al. (2022). *High-Resolution Image Synthesis with Latent Diffusion Models*. CVPR 2022
-11. Lipman et al. (2022). *Flow Matching for Generative Modeling*. ICLR 2023
-12. Song et al. (2023). *Consistency Models*. ICML 2023
-13. Esser et al. (2024). *Scaling Rectified Flow Transformers for High-Resolution Image Synthesis* (SD3). ICML 2024
-14. Sahoo et al. (2024). *Simple and Effective Masked Diffusion Language Models*. arXiv:2406.07524
-15. Murphy (2023). *Probabilistic Machine Learning: Advanced Topics*. MIT Press
+1. Kingma & Welling (2013). _Auto-Encoding Variational Bayes_. arXiv:1312.6114
+2. Goodfellow et al. (2014). _Generative Adversarial Nets_. NeurIPS 2014
+3. Dinh et al. (2016). _Density Estimation using Real-valued Non-Volume Preserving Transformations_. ICLR 2017
+4. Arjovsky et al. (2017). _Wasserstein GAN_. ICML 2017
+5. van den Oord et al. (2017). _Neural Discrete Representation Learning_ (VQ-VAE). NeurIPS 2017
+6. Ho et al. (2020). _Denoising Diffusion Probabilistic Models_. NeurIPS 2020
+7. Song et al. (2021). _Score-Based Generative Modeling through Stochastic Differential Equations_. ICLR 2021
+8. Song et al. (2021). _Denoising Diffusion Implicit Models_. ICLR 2021
+9. Ho & Salimans (2022). _Classifier-Free Diffusion Guidance_. NeurIPS Workshop 2021
+10. Rombach et al. (2022). _High-Resolution Image Synthesis with Latent Diffusion Models_. CVPR 2022
+11. Lipman et al. (2022). _Flow Matching for Generative Modeling_. ICLR 2023
+12. Song et al. (2023). _Consistency Models_. ICML 2023
+13. Esser et al. (2024). _Scaling Rectified Flow Transformers for High-Resolution Image Synthesis_ (SD3). ICML 2024
+14. Sahoo et al. (2024). _Simple and Effective Masked Diffusion Language Models_. arXiv:2406.07524
+15. Murphy (2023). _Probabilistic Machine Learning: Advanced Topics_. MIT Press
 
 ---
 
@@ -1368,6 +1384,7 @@ The GAN generator minimises $D_{\mathrm{JS}}(p_r \| p_g) = \frac{1}{2}D_{\mathrm
 ### B.3 Diffusion as Infinitely Deep VAE
 
 A diffusion model with $T$ steps can be viewed as a $T$-layer hierarchical VAE where:
+
 - Each "layer" has Gaussian transitions (linear encoder/decoder)
 - The ELBO decomposes into $T$ KL terms
 - The simplified objective drops the per-step weighting
@@ -1394,11 +1411,13 @@ This is more numerically stable near $t=0$ (clean data) and $t=T$ (pure noise), 
 $$\mathcal{L}_\lambda = \mathbb{E}_{\lambda\sim p(\lambda)}\mathbb{E}_{\mathbf{x}_0,\boldsymbol{\varepsilon}}\!\left[w(\lambda)\lVert\boldsymbol{\varepsilon} - \boldsymbol{\varepsilon}_{\boldsymbol{\theta}}(\mathbf{x}_\lambda,\lambda)\rVert_2^2\right]$$
 
 **Cholesky for VAE covariance.** When computing KL for a diagonal Gaussian:
+
 ```python
 # Numerically stable: work in log-variance space
 log_var = encoder(x)            # predict log(sigma^2)
 kl = -0.5 * (1 + log_var - mu**2 - exp(log_var))
-```
+```text
+
 Never compute `sigma = sqrt(exp(log_var))` then `sigma**2` — this introduces unnecessary numerical error.
 
 ### C.2 FID Computation: Matrix Square Root
@@ -1444,6 +1463,7 @@ where $\phi_{\text{img}}$ and $\phi_{\text{txt}}$ are the CLIP image and text en
 ### D.2 Human Evaluation
 
 Automated metrics correlate imperfectly with human judgment. Standard human eval protocols:
+
 - **Side-by-side preference:** Raters choose which of two images is better/more faithful to prompt
 - **Likert scale:** Rate quality 1-5 on multiple axes (fidelity, diversity, text alignment, artefacts)
 - **ELO rating:** Compute relative ranking from pairwise comparisons (used in DALL-E 3, Midjourney)
@@ -1451,6 +1471,7 @@ Automated metrics correlate imperfectly with human judgment. Standard human eval
 ### D.3 Distributional Metrics for Language
 
 For discrete diffusion / autoregressive models on text:
+
 - **Perplexity:** $\operatorname{PPL} = \exp(-\frac{1}{T}\sum_t \log p_\theta(x_t\mid x_{<t}))$ — standard LM evaluation
 - **MAUVE (Pillutla et al., 2021):** Measures divergence between human and model text distributions in a shared embedding space
 - **Diversity:** Distinct-n (fraction of unique n-grams), self-BLEU (lower = more diverse)
@@ -1459,26 +1480,26 @@ For discrete diffusion / autoregressive models on text:
 
 ## Appendix E: Notation Summary
 
-| Symbol | Meaning |
-|---|---|
-| $p_{\text{data}}(\mathbf{x})$ | True data distribution |
-| $p_{\boldsymbol{\theta}}(\mathbf{x})$ | Model distribution with parameters $\boldsymbol{\theta}$ |
-| $q_{\boldsymbol{\phi}}(\mathbf{z}\mid\mathbf{x})$ | Encoder / approximate posterior with parameters $\boldsymbol{\phi}$ |
-| $p(\mathbf{z}) = \mathcal{N}(\mathbf{0},I)$ | Prior distribution over latents |
-| $\mathcal{L}(\boldsymbol{\theta},\boldsymbol{\phi};\mathbf{x})$ | ELBO (evidence lower bound) |
-| $G_{\boldsymbol{\theta}}, D_{\boldsymbol{\phi}}$ | GAN generator and discriminator |
-| $f: \mathcal{Z}\to\mathcal{X}$ | Normalizing flow (forward direction) |
-| $J_f(\mathbf{z})$ | Jacobian matrix of $f$ at $\mathbf{z}$ |
-| $\bar\alpha_t = \prod_{s=1}^t(1-\beta_s)$ | Cumulative noise schedule |
-| $\boldsymbol{\varepsilon}_{\boldsymbol{\theta}}(\mathbf{x}_t,t)$ | Noise prediction network (diffusion) |
-| $s_{\boldsymbol{\theta}}(\mathbf{x},t)$ | Score network: $s_{\boldsymbol{\theta}} \approx \nabla_\mathbf{x}\log p_t(\mathbf{x})$ |
-| $\mathbf{v}_{\boldsymbol{\theta}}(\mathbf{x},t)$ | Velocity field (flow matching) |
-| $W_1(p,q)$ | Wasserstein-1 (earth-mover) distance |
-| $D_{\mathrm{JS}}(p\|q)$ | Jensen-Shannon divergence |
-| $\mathrm{FID}$ | Fréchet Inception Distance (lower = better) |
-| $\mathrm{IS}$ | Inception Score (higher = better) |
-| $w$ | CFG guidance scale |
-| $\sigma_t$ | DDIM sampling noise level ($\sigma_t=0$ = deterministic) |
+| Symbol                                                           | Meaning                                                                                |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| $p_{\text{data}}(\mathbf{x})$                                    | True data distribution                                                                 |
+| $p_{\boldsymbol{\theta}}(\mathbf{x})$                            | Model distribution with parameters $\boldsymbol{\theta}$                               |
+| $q_{\boldsymbol{\phi}}(\mathbf{z}\mid\mathbf{x})$                | Encoder / approximate posterior with parameters $\boldsymbol{\phi}$                    |
+| $p(\mathbf{z}) = \mathcal{N}(\mathbf{0},I)$                      | Prior distribution over latents                                                        |
+| $\mathcal{L}(\boldsymbol{\theta},\boldsymbol{\phi};\mathbf{x})$  | ELBO (evidence lower bound)                                                            |
+| $G_{\boldsymbol{\theta}}, D_{\boldsymbol{\phi}}$                 | GAN generator and discriminator                                                        |
+| $f: \mathcal{Z}\to\mathcal{X}$                                   | Normalizing flow (forward direction)                                                   |
+| $J_f(\mathbf{z})$                                                | Jacobian matrix of $f$ at $\mathbf{z}$                                                 |
+| $\bar\alpha_t = \prod_{s=1}^t(1-\beta_s)$                        | Cumulative noise schedule                                                              |
+| $\boldsymbol{\varepsilon}_{\boldsymbol{\theta}}(\mathbf{x}_t,t)$ | Noise prediction network (diffusion)                                                   |
+| $s_{\boldsymbol{\theta}}(\mathbf{x},t)$                          | Score network: $s_{\boldsymbol{\theta}} \approx \nabla_\mathbf{x}\log p_t(\mathbf{x})$ |
+| $\mathbf{v}_{\boldsymbol{\theta}}(\mathbf{x},t)$                 | Velocity field (flow matching)                                                         |
+| $W_1(p,q)$                                                       | Wasserstein-1 (earth-mover) distance                                                   |
+| $D_{\mathrm{JS}}(p\|q)$                                          | Jensen-Shannon divergence                                                              |
+| $\mathrm{FID}$                                                   | Fréchet Inception Distance (lower = better)                                            |
+| $\mathrm{IS}$                                                    | Inception Score (higher = better)                                                      |
+| $w$                                                              | CFG guidance scale                                                                     |
+| $\sigma_t$                                                       | DDIM sampling noise level ($\sigma_t=0$ = deterministic)                               |
 
 ---
 
@@ -1502,6 +1523,7 @@ The continuous-time score matching objective with weighting function $\lambda(t)
 $$\mathcal{L}_{\text{weighted}} = \mathbb{E}_{t\sim\mathcal{U}(0,T)}\!\left[\lambda(t)\,\mathbb{E}_{\mathbf{x}_0,\mathbf{x}_t}\!\left[\lVert s_{\boldsymbol{\theta}}(\mathbf{x}_t,t) - \nabla_{\mathbf{x}_t}\log p_t(\mathbf{x}_t\mid\mathbf{x}_0)\rVert_2^2\right]\right]$$
 
 **Choice of $\lambda(t)$:**
+
 - $\lambda = g(t)^2$ (likelihood weighting): gives the exact log-likelihood gradient
 - $\lambda = 1$ (simplified, Ho et al.): uniform weighting, good empirical performance
 - $\lambda = \text{SNR}(t)^{-1}$ (Min-SNR, Hang et al.): prevents gradient dominance at high noise levels
@@ -1531,6 +1553,7 @@ $$\frac{d}{dt}[\mathbf{x}_t = k] = \sum_{j} Q_t[k,j][\mathbf{x}_t = j]$$
 $$q(\mathbf{x}_t^i \mid \mathbf{x}_0^i) = (1-e^{-t})\delta_{\text{MASK}} + e^{-t}\delta_{\mathbf{x}_0^i}$$
 
 **Reverse process.** The posterior $q(\mathbf{x}_{t-1}^i \mid \mathbf{x}_t^i, \mathbf{x}_0^i)$:
+
 - If $\mathbf{x}_t^i = \mathbf{x}_0^i$: token survives with prob $\propto e^{-\beta_{t-1}}/e^{-\beta_t}$, gets masked otherwise
 - If $\mathbf{x}_t^i = \text{MASK}$: remains masked with prob $1-e^{-\beta_{t-1}}(1-e^{\beta_t-\beta_{t-1}})/(1-e^{-\beta_t})$, or unmasked to $\mathbf{x}_0^i$
 
@@ -1539,6 +1562,7 @@ The denoising network $p_{\boldsymbol{\theta}}(\mathbf{x}_0 \mid \mathbf{x}_t)$ 
 ### G.2 Connection to BERT
 
 Masked language models (BERT, Devlin et al. 2018) can be viewed as training a single step ($t = 0.15T$) of a discrete diffusion model:
+
 - BERT masks 15% of tokens randomly
 - The model predicts the original tokens
 - This is the discrete diffusion denoising objective at a fixed noise level
@@ -1573,6 +1597,7 @@ The joint sequence formulation allows richer text-image interaction than cross-a
 ### H.3 Flux Architecture
 
 **Flux (Black Forest Labs, 2024)** combines:
+
 - **Flow matching** (rectified flows) instead of diffusion
 - **MMDiT** transformer backbone
 - **Rotary position embeddings (RoPE)** for spatial encoding in image tokens
@@ -1641,6 +1666,7 @@ The **denoiser** $D_{\boldsymbol{\theta}}(\mathbf{x};\sigma)$ predicts $\mathbf{
 $$D_{\boldsymbol{\theta}}(\mathbf{x};\sigma) = c_{\text{skip}}(\sigma)\mathbf{x} + c_{\text{out}}(\sigma)F_{\boldsymbol{\theta}}(c_{\text{in}}(\sigma)\mathbf{x}; c_{\text{noise}}(\sigma))$$
 
 where the preconditioning functions $c_{\text{skip}}, c_{\text{out}}, c_{\text{in}}, c_{\text{noise}}$ are chosen to:
+
 - Normalise inputs and outputs to unit variance for stable training
 - Interpolate between the identity (at $\sigma\to 0$) and pure noise prediction (at $\sigma\to\infty$)
 
@@ -1675,14 +1701,16 @@ With $N=35$ steps, EDM achieves competitive FID to DDPM with 1000 steps.
 ### K.1 Architecture Choices
 
 **Encoder.** Typically a CNN (for images) or transformer (for sequences):
-```
+
+```text
 x [B, C, H, W]
 → ResBlocks + downsampling → h [B, 512, H/8, W/8]
 → Flatten → Linear → (mu [B, d], log_var [B, d])
 ```
 
 **Decoder.** Mirrors encoder with transposed convolutions or upsampling:
-```
+
+```text
 z [B, d]
 → Linear → Reshape [B, 512, H/8, W/8]
 → ResBlocks + upsampling → x_hat [B, C, H, W]
@@ -1701,13 +1729,13 @@ The adversarial loss (from a patch-level discriminator) is critical for sharpnes
 
 ### K.3 Debugging Common Failures
 
-| Symptom | Likely Cause | Fix |
-|---|---|---|
-| Blurry reconstructions | KL too high or no perceptual loss | Add perceptual loss + adversarial term |
-| KL = 0 (all dims) | Posterior collapse | Use KL annealing or free bits |
-| NaN in training | Numerical instability in KL | Use `log_var` clipping: `log_var.clamp(-30, 20)` |
-| Artifacts at edges | Insufficient decoder capacity | Add skip connections or larger decoder |
-| Poor generation quality | Latent space not smooth | Increase $\beta$ or add Gaussian MMD regulariser |
+| Symptom                 | Likely Cause                      | Fix                                              |
+| ----------------------- | --------------------------------- | ------------------------------------------------ |
+| Blurry reconstructions  | KL too high or no perceptual loss | Add perceptual loss + adversarial term           |
+| KL = 0 (all dims)       | Posterior collapse                | Use KL annealing or free bits                    |
+| NaN in training         | Numerical instability in KL       | Use `log_var` clipping: `log_var.clamp(-30, 20)` |
+| Artifacts at edges      | Insufficient decoder capacity     | Add skip connections or larger decoder           |
+| Poor generation quality | Latent space not smooth           | Increase $\beta$ or add Gaussian MMD regulariser |
 
 ---
 
@@ -1884,12 +1912,12 @@ The mathematical framework extends diffusion from Euclidean space to Lie groups 
 
 RLHF for language models (§14-06) and diffusion guidance share the same structure:
 
-| Language Model (RLHF) | Diffusion Model (CFG) |
-|---|---|
-| Base policy $\pi_{\text{ref}}$ | Unconditional model $p_\theta(\mathbf{x})$ |
-| Reward model $r(y)$ | Classifier $\log p(y\mid\mathbf{x})$ |
-| KL penalty $D_{\mathrm{KL}}(\pi\|\pi_{\text{ref}})$ | Implicit in CFG formula |
-| Fine-tuned policy $\pi_\theta$ | Guided model $\tilde{p}_\theta(\mathbf{x}\mid y)$ |
+| Language Model (RLHF)                               | Diffusion Model (CFG)                             |
+| --------------------------------------------------- | ------------------------------------------------- |
+| Base policy $\pi_{\text{ref}}$                      | Unconditional model $p_\theta(\mathbf{x})$        |
+| Reward model $r(y)$                                 | Classifier $\log p(y\mid\mathbf{x})$              |
+| KL penalty $D_{\mathrm{KL}}(\pi\|\pi_{\text{ref}})$ | Implicit in CFG formula                           |
+| Fine-tuned policy $\pi_\theta$                      | Guided model $\tilde{p}_\theta(\mathbf{x}\mid y)$ |
 
 In both cases, we want to sample from $\pi^* \propto \pi_{\text{ref}}\cdot e^{r/\beta}$ (the tilted distribution) without retraining the base model. CFG is an efficient approximation to this in diffusion; PPO is the standard approach for LLMs.
 
@@ -1937,26 +1965,26 @@ Since this holds for all $A$, the integrand is the density of $X$. $\square$
 
 ### R.1 Generative Model Objectives
 
-| Model | Training Objective | Generation |
-|---|---|---|
-| Autoregressive | $\max\sum_t\log p_\theta(x_t\mid x_{<t})$ | Ancestral sampling |
-| VAE | $\max\mathbb{E}_q[\log p_\theta(\mathbf{x}\mid\mathbf{z})] - D_{\mathrm{KL}}(q_\phi\|p)$ | Sample $\mathbf{z}\sim p$, decode |
-| Flow | $\max\log p_Z(f^{-1}(\mathbf{x})) + \log|\det J_{f^{-1}}|$ | Sample $\mathbf{z}\sim p_Z$, apply $f$ |
-| GAN | $\min_G\max_D\mathbb{E}[\log D(\mathbf{x})] + \mathbb{E}[\log(1-D(G(\mathbf{z})))]$ | Sample $\mathbf{z}\sim p_z$, apply $G$ |
-| DDPM | $\min\mathbb{E}\lVert\boldsymbol{\varepsilon} - \boldsymbol{\varepsilon}_\theta(\mathbf{x}_t,t)\rVert^2$ | Iterative denoising |
-| Flow Match. | $\min\mathbb{E}\lVert\mathbf{v}_\theta(\mathbf{x}_t,t) - (\mathbf{x}_1-\mathbf{x}_0)\rVert^2$ | ODE integration |
+| Model          | Training Objective                                                                                       | Generation                             |
+| -------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------- | --- | -------------------------------------- |
+| Autoregressive | $\max\sum_t\log p_\theta(x_t\mid x_{<t})$                                                                | Ancestral sampling                     |
+| VAE            | $\max\mathbb{E}_q[\log p_\theta(\mathbf{x}\mid\mathbf{z})] - D_{\mathrm{KL}}(q_\phi\|p)$                 | Sample $\mathbf{z}\sim p$, decode      |
+| Flow           | $\max\log p_Z(f^{-1}(\mathbf{x})) + \log                                                                 | \det J\_{f^{-1}}                       | $   | Sample $\mathbf{z}\sim p_Z$, apply $f$ |
+| GAN            | $\min_G\max_D\mathbb{E}[\log D(\mathbf{x})] + \mathbb{E}[\log(1-D(G(\mathbf{z})))]$                      | Sample $\mathbf{z}\sim p_z$, apply $G$ |
+| DDPM           | $\min\mathbb{E}\lVert\boldsymbol{\varepsilon} - \boldsymbol{\varepsilon}_\theta(\mathbf{x}_t,t)\rVert^2$ | Iterative denoising                    |
+| Flow Match.    | $\min\mathbb{E}\lVert\mathbf{v}_\theta(\mathbf{x}_t,t) - (\mathbf{x}_1-\mathbf{x}_0)\rVert^2$            | ODE integration                        |
 
 ### R.2 Key Formulas
 
-| Name | Formula |
-|---|---|
-| ELBO | $\mathbb{E}_q[\log p(\mathbf{x}\mid\mathbf{z})] - D_{\mathrm{KL}}(q_\phi(\mathbf{z}\mid\mathbf{x})\|p(\mathbf{z}))$ |
-| Gaussian KL | $\frac{1}{2}\sum_j(\mu_j^2 + \sigma_j^2 - \log\sigma_j^2 - 1)$ |
-| Reparam. | $\mathbf{z} = \boldsymbol{\mu} + \boldsymbol{\sigma}\odot\boldsymbol{\varepsilon}$, $\boldsymbol{\varepsilon}\sim\mathcal{N}(\mathbf{0},I)$ |
-| Optimal disc. | $D^*(\mathbf{x}) = p_r(\mathbf{x})/(p_r(\mathbf{x})+p_g(\mathbf{x}))$ |
-| Diffusion marginal | $q(\mathbf{x}_t\mid\mathbf{x}_0) = \mathcal{N}(\sqrt{\bar\alpha_t}\mathbf{x}_0, (1-\bar\alpha_t)I)$ |
-| Score-noise | $s_\theta \approx -\boldsymbol{\varepsilon}/\sqrt{1-\bar\alpha_t}$ |
-| DDIM step | $\mathbf{x}_{t-1} = \sqrt{\bar\alpha_{t-1}}\hat\mathbf{x}_0 + \sqrt{1-\bar\alpha_{t-1}}\boldsymbol{\varepsilon}_\theta$ |
-| CFG | $\tilde\boldsymbol{\varepsilon} = (1+w)\boldsymbol{\varepsilon}(\mathbf{x}_t,y) - w\boldsymbol{\varepsilon}(\mathbf{x}_t,\emptyset)$ |
-| CFM loss | $\mathbb{E}\lVert\mathbf{v}_\theta(\mathbf{x}_t,t) - (\mathbf{x}_1-\mathbf{x}_0)\rVert^2$ |
-| FID | $\lVert\boldsymbol{\mu}_r-\boldsymbol{\mu}_g\rVert_2^2 + \operatorname{tr}(\Sigma_r+\Sigma_g-2(\Sigma_r\Sigma_g)^{1/2})$ |
+| Name               | Formula                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| ELBO               | $\mathbb{E}_q[\log p(\mathbf{x}\mid\mathbf{z})] - D_{\mathrm{KL}}(q_\phi(\mathbf{z}\mid\mathbf{x})\|p(\mathbf{z}))$                         |
+| Gaussian KL        | $\frac{1}{2}\sum_j(\mu_j^2 + \sigma_j^2 - \log\sigma_j^2 - 1)$                                                                              |
+| Reparam.           | $\mathbf{z} = \boldsymbol{\mu} + \boldsymbol{\sigma}\odot\boldsymbol{\varepsilon}$, $\boldsymbol{\varepsilon}\sim\mathcal{N}(\mathbf{0},I)$ |
+| Optimal disc.      | $D^*(\mathbf{x}) = p_r(\mathbf{x})/(p_r(\mathbf{x})+p_g(\mathbf{x}))$                                                                       |
+| Diffusion marginal | $q(\mathbf{x}_t\mid\mathbf{x}_0) = \mathcal{N}(\sqrt{\bar\alpha_t}\mathbf{x}_0, (1-\bar\alpha_t)I)$                                         |
+| Score-noise        | $s_\theta \approx -\boldsymbol{\varepsilon}/\sqrt{1-\bar\alpha_t}$                                                                          |
+| DDIM step          | $\mathbf{x}_{t-1} = \sqrt{\bar\alpha_{t-1}}\hat\mathbf{x}_0 + \sqrt{1-\bar\alpha_{t-1}}\boldsymbol{\varepsilon}_\theta$                     |
+| CFG                | $\tilde\boldsymbol{\varepsilon} = (1+w)\boldsymbol{\varepsilon}(\mathbf{x}_t,y) - w\boldsymbol{\varepsilon}(\mathbf{x}_t,\emptyset)$        |
+| CFM loss           | $\mathbb{E}\lVert\mathbf{v}_\theta(\mathbf{x}_t,t) - (\mathbf{x}_1-\mathbf{x}_0)\rVert^2$                                                   |
+| FID                | $\lVert\boldsymbol{\mu}_r-\boldsymbol{\mu}_g\rVert_2^2 + \operatorname{tr}(\Sigma_r+\Sigma_g-2(\Sigma_r\Sigma_g)^{1/2})$                    |

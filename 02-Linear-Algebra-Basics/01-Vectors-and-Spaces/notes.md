@@ -183,11 +183,11 @@ That is pure vector-space computation: inner products, scaling, exponentiation o
 
 There are three complementary ways to think about vectors.
 
-| View | Core idea | Strength | Typical AI use |
-| --- | --- | --- | --- |
-| Geometric | A vector is an arrow with length and direction | Builds intuition for angle, distance, projection | Similarity, attention, clustering |
-| Algebraic | A vector is an ordered tuple of numbers | Easy to compute with componentwise rules | Arrays, tensors, embeddings, gradients |
-| Abstract | A vector is any element of a vector space | Generalizes linear algebra beyond coordinates | Function spaces, kernels, NTK, RKHS |
+| View      | Core idea                                      | Strength                                         | Typical AI use                         |
+| --------- | ---------------------------------------------- | ------------------------------------------------ | -------------------------------------- |
+| Geometric | A vector is an arrow with length and direction | Builds intuition for angle, distance, projection | Similarity, attention, clustering      |
+| Algebraic | A vector is an ordered tuple of numbers        | Easy to compute with componentwise rules         | Arrays, tensors, embeddings, gradients |
+| Abstract  | A vector is any element of a vector space      | Generalizes linear algebra beyond coordinates    | Function spaces, kernels, NTK, RKHS    |
 
 The geometric view tells you why cosine similarity matters. The algebraic view tells you how to implement it. The abstract view tells you why the same mathematics reappears for functions, distributions, and operators.
 
@@ -241,18 +241,18 @@ This branching picture is more accurate than a single chain. A normed space need
 
 The language of vectors and spaces was assembled gradually.
 
-| Period | Figure or development | Importance |
-| --- | --- | --- |
-| Ancient mechanics | Directed quantities in geometry and physics | Proto-vector intuition |
-| 17th century | Galileo and Newton | Composition of velocity and force |
-| 1843-1844 | Hamilton and Grassmann | Algebraic extension beyond ordinary 3D geometry |
-| Late 19th century | Peano and axiomatic linear algebra | Abstract vector space formulation |
-| Early 20th century | Hilbert | Infinite-dimensional inner product spaces |
-| 1920s-1930s | Banach and functional analysis | Normed complete spaces and operator theory |
-| 20th century computing | Numerical linear algebra | Matrix computation becomes practical at scale |
-| 2013 | word2vec | Semantic geometry becomes an engineering object |
-| 2017 | Transformer | Dot-product geometry becomes core architecture |
-| 2020s | Foundation models | Representation geometry becomes a first-class research topic |
+| Period                 | Figure or development                       | Importance                                                   |
+| ---------------------- | ------------------------------------------- | ------------------------------------------------------------ |
+| Ancient mechanics      | Directed quantities in geometry and physics | Proto-vector intuition                                       |
+| 17th century           | Galileo and Newton                          | Composition of velocity and force                            |
+| 1843-1844              | Hamilton and Grassmann                      | Algebraic extension beyond ordinary 3D geometry              |
+| Late 19th century      | Peano and axiomatic linear algebra          | Abstract vector space formulation                            |
+| Early 20th century     | Hilbert                                     | Infinite-dimensional inner product spaces                    |
+| 1920s-1930s            | Banach and functional analysis              | Normed complete spaces and operator theory                   |
+| 20th century computing | Numerical linear algebra                    | Matrix computation becomes practical at scale                |
+| 2013                   | word2vec                                    | Semantic geometry becomes an engineering object              |
+| 2017                   | Transformer                                 | Dot-product geometry becomes core architecture               |
+| 2020s                  | Foundation models                           | Representation geometry becomes a first-class research topic |
 
 The modern lesson is simple: vectors started as geometry, became algebra, and now serve as the organizing language of computation.
 
@@ -520,18 +520,18 @@ Let $F$ be a field, usually $\mathbb{R}$ or $\mathbb{C}$. A vector space over $F
 
 such that, for all $\mathbf{u}, \mathbf{v}, \mathbf{w} \in V$ and $\alpha, \beta \in F$, the following laws hold.
 
-| Axiom | Statement |
-| --- | --- |
-| Additive closure | $\mathbf{u} + \mathbf{v} \in V$ |
-| Commutativity | $\mathbf{u} + \mathbf{v} = \mathbf{v} + \mathbf{u}$ |
-| Associativity | $(\mathbf{u} + \mathbf{v}) + \mathbf{w} = \mathbf{u} + (\mathbf{v} + \mathbf{w})$ |
-| Zero vector | There exists $\mathbf{0} \in V$ with $\mathbf{v} + \mathbf{0} = \mathbf{v}$ |
-| Additive inverse | For each $\mathbf{v}$ there exists $-\mathbf{v}$ with $\mathbf{v} + (-\mathbf{v}) = \mathbf{0}$ |
-| Scalar closure | $\alpha \mathbf{v} \in V$ |
-| Distributivity over vector addition | $\alpha(\mathbf{u} + \mathbf{v}) = \alpha \mathbf{u} + \alpha \mathbf{v}$ |
-| Distributivity over scalar addition | $(\alpha + \beta)\mathbf{v} = \alpha \mathbf{v} + \beta \mathbf{v}$ |
-| Scalar associativity | $\alpha(\beta \mathbf{v}) = (\alpha \beta)\mathbf{v}$ |
-| Unit scalar | $1 \mathbf{v} = \mathbf{v}$ |
+| Axiom                               | Statement                                                                                       |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Additive closure                    | $\mathbf{u} + \mathbf{v} \in V$                                                                 |
+| Commutativity                       | $\mathbf{u} + \mathbf{v} = \mathbf{v} + \mathbf{u}$                                             |
+| Associativity                       | $(\mathbf{u} + \mathbf{v}) + \mathbf{w} = \mathbf{u} + (\mathbf{v} + \mathbf{w})$               |
+| Zero vector                         | There exists $\mathbf{0} \in V$ with $\mathbf{v} + \mathbf{0} = \mathbf{v}$                     |
+| Additive inverse                    | For each $\mathbf{v}$ there exists $-\mathbf{v}$ with $\mathbf{v} + (-\mathbf{v}) = \mathbf{0}$ |
+| Scalar closure                      | $\alpha \mathbf{v} \in V$                                                                       |
+| Distributivity over vector addition | $\alpha(\mathbf{u} + \mathbf{v}) = \alpha \mathbf{u} + \alpha \mathbf{v}$                       |
+| Distributivity over scalar addition | $(\alpha + \beta)\mathbf{v} = \alpha \mathbf{v} + \beta \mathbf{v}$                             |
+| Scalar associativity                | $\alpha(\beta \mathbf{v}) = (\alpha \beta)\mathbf{v}$                                           |
+| Unit scalar                         | $1 \mathbf{v} = \mathbf{v}$                                                                     |
 
 Some texts count eight axioms by folding closure into the operation definitions. Listing ten is often pedagogically clearer.
 
@@ -623,13 +623,13 @@ This last example matters in machine learning theory because kernels, Fourier me
 
 Students usually learn vector spaces faster by seeing what fails.
 
-| Set | Why it is not a vector space |
-| --- | --- |
-| $\{x \in \mathbb{R}^n : x_i > 0 \text{ for all } i\}$ | Not closed under additive inverse |
-| $\{x \in \mathbb{R}^n : \|x\| = 1\}$ | Not closed under addition or scaling |
-| Probability simplex $\Delta^{n-1}$ | Not closed under arbitrary addition or scaling |
-| $\mathbb{Z}^n$ over $\mathbb{R}$ | Not closed under real scalar multiplication |
-| A line not through the origin | Does not contain the zero vector |
+| Set                                                   | Why it is not a vector space                   |
+| ----------------------------------------------------- | ---------------------------------------------- |
+| $\{x \in \mathbb{R}^n : x_i > 0 \text{ for all } i\}$ | Not closed under additive inverse              |
+| $\{x \in \mathbb{R}^n : \|x\| = 1\}$                  | Not closed under addition or scaling           |
+| Probability simplex $\Delta^{n-1}$                    | Not closed under arbitrary addition or scaling |
+| $\mathbb{Z}^n$ over $\mathbb{R}$                      | Not closed under real scalar multiplication    |
+| A line not through the origin                         | Does not contain the zero vector               |
 
 The probability simplex is especially important in AI. It lives inside a vector space, but it is not itself a vector space because probabilities must remain nonnegative and sum to one.
 
@@ -2254,7 +2254,7 @@ Direct sum intuition
       w2
       ^
       |
-O---->* 
+O---->*
   w1   \
         \
          v = w1 + w2
@@ -2390,7 +2390,7 @@ This is the modern descendant of ridge regression (Hoerl and Kennard, 1970). In 
 ```text
 L2 constraint set in 2D
 
-      ____ 
+      ____
     /      \
    |   .    |
     \______/
@@ -2526,18 +2526,18 @@ Poor conditioning makes updates zig-zag.
 
 ## 14. Common Mistakes
 
-| Mistake | Why it is wrong | Better statement |
-| --- | --- | --- |
-| "A set closed under addition is automatically a subspace." | It must also contain the zero vector and be closed under scalar multiplication. | Check all subspace conditions, not just one. |
-| "Independent vectors are orthogonal." | Orthogonality implies independence for nonzero vectors, but independence does not imply orthogonality. | Use Gram-Schmidt when you want orthogonality. |
-| "The zero vector is not in a proper subspace." | Every subspace must contain the zero vector. | If $\mathbf{0} \notin W$, then $W$ is not a subspace. |
-| "Cosine similarity tells you Euclidean closeness." | High cosine can coexist with large Euclidean distance when norms differ a lot. | Cosine measures angle; Euclidean distance also depends on magnitude. |
-| "All vectors in high dimension are similar." | Random high-dimensional vectors are typically nearly orthogonal, not highly aligned. | Meaningful similarity is rare relative to the random baseline. |
-| "A spanning set has as many vectors as the dimension." | Spanning sets can be redundant. Dimension counts basis vectors, not all listed vectors. | Reduce to a linearly independent spanning set to find dimension. |
-| "The simplex is a vector space because it contains vectors." | It is not closed under arbitrary scaling or addition. | The simplex is a convex subset of a vector space. |
-| "Projection leaves every vector unchanged." | It leaves only vectors already in the target subspace unchanged. | Projection keeps the in-subspace component and removes the orthogonal remainder. |
-| "Two spaces of the same dimension are equal." | They are isomorphic, not literally the same set. | Same dimension means same linear structure up to coordinate relabeling. |
-| "Null$(A)$ and Null$(A^\top)$ are the same thing." | They live in different ambient spaces unless $A$ is square and special. | Right null space and left null space are distinct objects. |
+| Mistake                                                      | Why it is wrong                                                                                        | Better statement                                                                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| "A set closed under addition is automatically a subspace."   | It must also contain the zero vector and be closed under scalar multiplication.                        | Check all subspace conditions, not just one.                                     |
+| "Independent vectors are orthogonal."                        | Orthogonality implies independence for nonzero vectors, but independence does not imply orthogonality. | Use Gram-Schmidt when you want orthogonality.                                    |
+| "The zero vector is not in a proper subspace."               | Every subspace must contain the zero vector.                                                           | If $\mathbf{0} \notin W$, then $W$ is not a subspace.                            |
+| "Cosine similarity tells you Euclidean closeness."           | High cosine can coexist with large Euclidean distance when norms differ a lot.                         | Cosine measures angle; Euclidean distance also depends on magnitude.             |
+| "All vectors in high dimension are similar."                 | Random high-dimensional vectors are typically nearly orthogonal, not highly aligned.                   | Meaningful similarity is rare relative to the random baseline.                   |
+| "A spanning set has as many vectors as the dimension."       | Spanning sets can be redundant. Dimension counts basis vectors, not all listed vectors.                | Reduce to a linearly independent spanning set to find dimension.                 |
+| "The simplex is a vector space because it contains vectors." | It is not closed under arbitrary scaling or addition.                                                  | The simplex is a convex subset of a vector space.                                |
+| "Projection leaves every vector unchanged."                  | It leaves only vectors already in the target subspace unchanged.                                       | Projection keeps the in-subspace component and removes the orthogonal remainder. |
+| "Two spaces of the same dimension are equal."                | They are isomorphic, not literally the same set.                                                       | Same dimension means same linear structure up to coordinate relabeling.          |
+| "Null$(A)$ and Null$(A^\top)$ are the same thing."           | They live in different ambient spaces unless $A$ is square and special.                                | Right null space and left null space are distinct objects.                       |
 
 ---
 
@@ -2575,14 +2575,15 @@ A =
 \end{pmatrix},
 $$
 
-find:
-   - $(a)$ a basis for $\mathrm{null}(A)$
-   - $(b)$ a basis for $\mathrm{col}(A)$
-   - $(c)$ a basis for $\mathrm{row}(A)$
-   - $(d)$ the rank and nullity, verifying rank-nullity
-   - $(e)$ a nonzero vector in $\mathrm{null}(A^\top)$
+   find:
 
-5. **Projection matrices.**
+   $(a)$ a basis for $\mathrm{null}(A)$
+   $(b)$ a basis for $\mathrm{col}(A)$
+   $(c)$ a basis for $\mathrm{row}(A)$
+   $(d)$ the rank and nullity, verifying rank-nullity
+   $(e)$ a nonzero vector in $\mathrm{null}(A^\top)$
+
+1. **Projection matrices.**
    - $(a)$ Compute the orthogonal projector onto the line spanned by $(1,2,2)^\top$.
    - $(b)$ Verify $P^2=P$ and $P^\top=P$.
    - $(c)$ Compute $I-P$ and identify its target subspace.
@@ -2599,18 +2600,18 @@ $$
 
 compute $P_A = A(A^\top A)^{-1}A^\top$ and interpret the result geometrically.
 
-6. **High-dimensional geometry.**
+1. **High-dimensional geometry.**
    - $(a)$ Suppose $\mathbf{x}, \mathbf{y}$ are independent random unit vectors in $\mathbb{R}^{100}$. What are the expected value and approximate variance of $\langle \mathbf{x}, \mathbf{y} \rangle$?
    - $(b)$ For 500 points and $\varepsilon=0.1$, estimate a Johnson-Lindenstrauss target dimension $k$ up to constants.
    - $(c)$ Show that all distinct standard basis vectors in $\mathbb{R}^d$ are at Euclidean distance $\sqrt{2}$ from one another.
 
-7. **Attention geometry.** Let $W_Q \in \mathbb{R}^{512 \times 64}$.
+2. **Attention geometry.** Let $W_Q \in \mathbb{R}^{512 \times 64}$.
    - $(a)$ What is the maximum possible rank of $W_Q$?
    - $(b)$ What is the dimension of its null space if the rank is maximal?
    - $(c)$ What kinds of input directions are lost under this projection?
    - $(d)$ Why is $W_Q W_K^\top$ low rank?
 
-8. **Norms and distances.**
+3. **Norms and distances.**
    - $(a)$ For $\mathbf{v}=(3,-4,0,1)^\top$, compute $\|\mathbf{v}\|_1$, $\|\mathbf{v}\|_2$, and $\|\mathbf{v}\|_\infty$.
    - $(b)$ Verify $\|\mathbf{v}\|_\infty \leq \|\mathbf{v}\|_2 \leq \|\mathbf{v}\|_1$.
    - $(c)$ For
@@ -2625,26 +2626,26 @@ $$
 
 compute $\|A\|_F$ and $\|A\|_2$.
 
-9. **Quotient-space thinking.** Suppose a representation is unchanged when you add any vector from a subspace $W$. Explain why the meaningful information lives in $V/W$ rather than in $V$ itself.
+1. **Quotient-space thinking.** Suppose a representation is unchanged when you add any vector from a subspace $W$. Explain why the meaningful information lives in $V/W$ rather than in $V$ itself.
 
-10. **Regularization geometry.** Sketch or describe the L1 and L2 unit balls in $\mathbb{R}^2$, then explain geometrically why L1 tends to produce sparse solutions and L2 typically does not.
+2. **Regularization geometry.** Sketch or describe the L1 and L2 unit balls in $\mathbb{R}^2$, then explain geometrically why L1 tends to produce sparse solutions and L2 typically does not.
 
 ---
 
 ## 16. Why This Matters for AI
 
-| Aspect | Why vectors and spaces matter |
-| --- | --- |
-| Embeddings | Every token, position, and feature is represented as a vector in a learned space. |
-| Attention | Attention is built from inner products, low-rank projections, and weighted sums. |
-| Representation learning | Features live in subspaces, not just in scalar coordinates. |
-| Compression | Low-rank methods, adapters, and LoRA rely on dimension, span, and rank. |
-| Optimization | Gradients are vectors in parameter space, and regularization is geometric constraint design. |
-| Generalization theory | RKHS, NTK, margin bounds, and norm-based complexity all use vector-space language. |
-| Numerical stability | Orthogonality, conditioning, and norm control determine whether training remains stable. |
-| Interpretability | Linear probes, concept vectors, activation steering, and superposition are all geometric analyses. |
-| Retrieval and search | Similarity search depends on metrics, angle, and concentration in high dimensions. |
-| Probabilistic modeling | Logits live in vector spaces and probabilities live in simplices embedded in them. |
+| Aspect                  | Why vectors and spaces matter                                                                      |
+| ----------------------- | -------------------------------------------------------------------------------------------------- |
+| Embeddings              | Every token, position, and feature is represented as a vector in a learned space.                  |
+| Attention               | Attention is built from inner products, low-rank projections, and weighted sums.                   |
+| Representation learning | Features live in subspaces, not just in scalar coordinates.                                        |
+| Compression             | Low-rank methods, adapters, and LoRA rely on dimension, span, and rank.                            |
+| Optimization            | Gradients are vectors in parameter space, and regularization is geometric constraint design.       |
+| Generalization theory   | RKHS, NTK, margin bounds, and norm-based complexity all use vector-space language.                 |
+| Numerical stability     | Orthogonality, conditioning, and norm control determine whether training remains stable.           |
+| Interpretability        | Linear probes, concept vectors, activation steering, and superposition are all geometric analyses. |
+| Retrieval and search    | Similarity search depends on metrics, angle, and concentration in high dimensions.                 |
+| Probabilistic modeling  | Logits live in vector spaces and probabilities live in simplices embedded in them.                 |
 
 The short version is that vectors and spaces are not one topic among many. They are the common substrate of model architecture, learning dynamics, representation quality, and theoretical analysis.
 
@@ -2673,8 +2674,8 @@ If this chapter gives you one durable mental model, let it be this: deep learnin
 
 ### Core Linear Algebra and Geometry
 
-- Sheldon Axler, *Linear Algebra Done Right* (official site): [https://linear.axler.net/](https://linear.axler.net/)
-- Roman Vershynin, *High-Dimensional Probability* (author page): [https://www.math.uci.edu/~rvershyn/papers/HDP-book/HDP-book.html](https://www.math.uci.edu/~rvershyn/papers/HDP-book/HDP-book.html)
+- Sheldon Axler, _Linear Algebra Done Right_ (official site): [https://linear.axler.net/](https://linear.axler.net/)
+- Roman Vershynin, _High-Dimensional Probability_ (author page): [https://www.math.uci.edu/~rvershyn/papers/HDP-book/HDP-book.html](https://www.math.uci.edu/~rvershyn/papers/HDP-book/HDP-book.html)
 - William B. Johnson and Joram Lindenstrauss (1984), "Extensions of Lipschitz mappings into a Hilbert space": [https://web.stanford.edu/class/cs114/readings/JL-Johnson.pdf](https://web.stanford.edu/class/cs114/readings/JL-Johnson.pdf)
 - Sanjoy Dasgupta and Anupam Gupta (2003), "An Elementary Proof of the Johnson-Lindenstrauss Lemma": [https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=bcd7068ee41305cb4dc5f133379cc22801cf744d](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=bcd7068ee41305cb4dc5f133379cc22801cf744d)
 - Nachman Aronszajn (1950), "Theory of Reproducing Kernels": [https://www.ams.org/journals/tran/1950-068-03/S0002-9947-1950-0051437-7/](https://www.ams.org/journals/tran/1950-068-03/S0002-9947-1950-0051437-7/)

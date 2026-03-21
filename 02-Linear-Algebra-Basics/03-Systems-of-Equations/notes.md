@@ -38,9 +38,9 @@ The linear case is the foundation because it is both completely understood and u
 
 ## Companion Notebooks
 
-| Notebook | Description |
-| --- | --- |
-| [theory.ipynb](theory.ipynb) | Interactive examples for row reduction, least squares, conditioning, and iterative solvers |
+| Notebook                           | Description                                                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| [theory.ipynb](theory.ipynb)       | Interactive examples for row reduction, least squares, conditioning, and iterative solvers                   |
 | [exercises.ipynb](exercises.ipynb) | Guided practice on consistency, Gaussian elimination, least squares, Newton updates, and AI-flavored systems |
 
 ## Learning Objectives
@@ -382,7 +382,7 @@ The entire chapter is really about characterising these three cases precisely, t
 ### 1.6 Historical Timeline
 
 - Babylonian mathematics already solved small systems by elimination-like reasoning in commercial and geometric contexts.
-- The Chinese *Nine Chapters on the Mathematical Art* described the **fangcheng** method, a tabular elimination scheme that is recognisably proto-Gaussian elimination.
+- The Chinese _Nine Chapters on the Mathematical Art_ described the **fangcheng** method, a tabular elimination scheme that is recognisably proto-Gaussian elimination.
 - Cramer introduced determinant-based formulas for square systems in the 18th century.
 - Gauss systematised elimination and least squares in astronomical computation.
 - Jordan refined the full reduction process now called Gauss-Jordan elimination.
@@ -403,12 +403,15 @@ A system of $m$ linear equations in $n$ unknowns has the form
 $$
 a_{11}x_1 + a_{12}x_2 + \cdots + a_{1n}x_n = b_1
 $$
+
 $$
 a_{21}x_1 + a_{22}x_2 + \cdots + a_{2n}x_n = b_2
 $$
+
 $$
 \vdots
 $$
+
 $$
 a_{m1}x_1 + a_{m2}x_2 + \cdots + a_{mn}x_n = b_m.
 $$
@@ -645,8 +648,8 @@ Forward elimination always produces an REF. It is not unique, but the pivot stru
 
 RREF imposes two extra conditions:
 
-4. each pivot equals $1$
-5. each pivot is the only non-zero entry in its column
+1. each pivot equals $1$
+2. each pivot is the only non-zero entry in its column
 
 Example:
 
@@ -923,11 +926,11 @@ That is the canonical shape of a consistent underdetermined linear system.
 
 For $Ax = b$ with $A \in \mathbb{R}^{m \times n}$ and rank $r$, the possibilities can be summarised as follows.
 
-| rank(A) | rank([A\|b]) | relation to n | solution set |
-| --- | --- | --- | --- |
-| $r = n$ | $r = n$ | full column rank | unique solution |
-| $r < n$ | $r < n$ | consistent but rank-deficient | infinitely many solutions |
-| $r$ | $r+1$ | augmented rank larger | no solution |
+| rank(A) | rank([A\|b]) | relation to n                 | solution set              |
+| ------- | ------------ | ----------------------------- | ------------------------- |
+| $r = n$ | $r = n$      | full column rank              | unique solution           |
+| $r < n$ | $r < n$      | consistent but rank-deficient | infinitely many solutions |
+| $r$     | $r+1$        | augmented rank larger         | no solution               |
 
 More explicitly:
 
@@ -1545,15 +1548,19 @@ and then for each step:
 $$
 \alpha_k = \frac{r_k^\top r_k}{p_k^\top A p_k},
 $$
+
 $$
 x_{k+1} = x_k + \alpha_k p_k,
 $$
+
 $$
 r_{k+1} = r_k - \alpha_k A p_k,
 $$
+
 $$
 \beta_k = \frac{r_{k+1}^\top r_{k+1}}{r_k^\top r_k},
 $$
+
 $$
 p_{k+1} = r_{k+1} + \beta_k p_k.
 $$
@@ -1634,14 +1641,14 @@ GMRES is a good example of a recurring pattern in numerical linear algebra: turn
 
 ### 7.6 Krylov Subspace Methods Summary
 
-| Method | Matrix type | Cost per iteration | Memory | Typical use |
-| --- | --- | --- | --- | --- |
-| Jacobi | broad but fragile | sparse matvec + vector ops | low | simple baseline, parallel smoothing |
-| Gauss-Seidel | broad but sequential | sparse matvec-like updates | low | small systems, relaxation |
-| CG | SPD | matvec + a few dot products | low | kernel systems, normal equations, SPD problems |
-| MINRES | symmetric indefinite | matvec + vector ops | low | saddle-like symmetric systems |
-| GMRES | general non-singular | matvec + orthogonalisation | growing | non-symmetric large systems |
-| LSQR | least squares / rectangular | bidiagonalisation-based | low | large sparse least squares |
+| Method       | Matrix type                 | Cost per iteration          | Memory  | Typical use                                    |
+| ------------ | --------------------------- | --------------------------- | ------- | ---------------------------------------------- |
+| Jacobi       | broad but fragile           | sparse matvec + vector ops  | low     | simple baseline, parallel smoothing            |
+| Gauss-Seidel | broad but sequential        | sparse matvec-like updates  | low     | small systems, relaxation                      |
+| CG           | SPD                         | matvec + a few dot products | low     | kernel systems, normal equations, SPD problems |
+| MINRES       | symmetric indefinite        | matvec + vector ops         | low     | saddle-like symmetric systems                  |
+| GMRES        | general non-singular        | matvec + orthogonalisation  | growing | non-symmetric large systems                    |
+| LSQR         | least squares / rectangular | bidiagonalisation-based     | low     | large sparse least squares                     |
 
 The main lesson is not to memorise solver names. It is to match system structure to algorithm structure.
 
@@ -1664,12 +1671,15 @@ or in components
 $$
 F_1(x_1,\ldots,x_n) = 0,
 $$
+
 $$
 F_2(x_1,\ldots,x_n) = 0,
 $$
+
 $$
 \vdots
 $$
+
 $$
 F_n(x_1,\ldots,x_n) = 0.
 $$
@@ -2462,18 +2472,18 @@ This is why eigenvalues, singular values, and condition numbers are not separate
 
 ## 14. Common Mistakes
 
-| Mistake | Why it is wrong | Fix |
-| --- | --- | --- |
-| "If $m=n$, the system must have a unique solution." | Square only means the matrix is square. It does not imply full rank. Singular square systems may have no solution or infinitely many. | Check rank or determinant; uniqueness requires full rank. |
-| "Gaussian elimination is only for square systems." | Row reduction works for any $m \times n$ matrix and is one of the best tools for understanding rectangular systems. | Use elimination on any augmented matrix to reveal rank and solution structure. |
-| "Homogeneous systems might have no solution." | $x=0$ always solves $Ax=0$. | The real question is whether non-zero solutions exist. |
-| "Least squares solves the original system exactly." | Least squares solves the closest projection problem, not the exact system unless $b \in \mathrm{col}(A)$. | Always inspect the residual. |
-| "Normal equations are always fine because the formula is simple." | Forming $A^\top A$ squares the condition number and can destroy accuracy. | Prefer QR or SVD for harder least-squares problems. |
-| "A small residual means a highly accurate solution." | For ill-conditioned systems, the residual can be small while the actual solution error is large. | Consider conditioning as well as residual size. |
-| "Free variables can be ignored after finding one solution." | Free variables encode the entire family of exact solutions. | Write the full affine solution: particular plus null-space basis. |
-| "Iterative methods always converge if you run them long enough." | Convergence depends on matrix structure and the chosen method. Some iterations diverge. | Check assumptions such as SPD, diagonal dominance, or spectral-radius conditions. |
-| "The inverse is the natural way to solve every linear system." | Explicit inversion is usually slower and less stable than factorisation-based solving. | Solve $Ax=b$ directly using LU, QR, or Cholesky as appropriate. |
-| "Optimization is separate from systems of equations." | Stationarity, KKT conditions, Newton steps, and fixed points are all equation systems. | Reframe optimization algorithms through their associated systems. |
+| Mistake                                                           | Why it is wrong                                                                                                                       | Fix                                                                               |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| "If $m=n$, the system must have a unique solution."               | Square only means the matrix is square. It does not imply full rank. Singular square systems may have no solution or infinitely many. | Check rank or determinant; uniqueness requires full rank.                         |
+| "Gaussian elimination is only for square systems."                | Row reduction works for any $m \times n$ matrix and is one of the best tools for understanding rectangular systems.                   | Use elimination on any augmented matrix to reveal rank and solution structure.    |
+| "Homogeneous systems might have no solution."                     | $x=0$ always solves $Ax=0$.                                                                                                           | The real question is whether non-zero solutions exist.                            |
+| "Least squares solves the original system exactly."               | Least squares solves the closest projection problem, not the exact system unless $b \in \mathrm{col}(A)$.                             | Always inspect the residual.                                                      |
+| "Normal equations are always fine because the formula is simple." | Forming $A^\top A$ squares the condition number and can destroy accuracy.                                                             | Prefer QR or SVD for harder least-squares problems.                               |
+| "A small residual means a highly accurate solution."              | For ill-conditioned systems, the residual can be small while the actual solution error is large.                                      | Consider conditioning as well as residual size.                                   |
+| "Free variables can be ignored after finding one solution."       | Free variables encode the entire family of exact solutions.                                                                           | Write the full affine solution: particular plus null-space basis.                 |
+| "Iterative methods always converge if you run them long enough."  | Convergence depends on matrix structure and the chosen method. Some iterations diverge.                                               | Check assumptions such as SPD, diagonal dominance, or spectral-radius conditions. |
+| "The inverse is the natural way to solve every linear system."    | Explicit inversion is usually slower and less stable than factorisation-based solving.                                                | Solve $Ax=b$ directly using LU, QR, or Cholesky as appropriate.                   |
+| "Optimization is separate from systems of equations."             | Stationarity, KKT conditions, Newton steps, and fixed points are all equation systems.                                                | Reframe optimization algorithms through their associated systems.                 |
 
 ---
 
@@ -2486,6 +2496,7 @@ This is why eigenvalues, singular values, and condition numbers are not separate
    (d) $\begin{bmatrix} 1 & 1 & 1 & \vline & 6 \\ 0 & 1 & 2 & \vline & 7 \\ 1 & 0 & -1 & \vline & 1 \end{bmatrix}$
 
 2. **Particular solution and null space**: for
+
    $$
    A =
    \begin{pmatrix}
@@ -2494,9 +2505,11 @@ This is why eigenvalues, singular values, and condition numbers are not separate
    1 & 2 & 1 & 2
    \end{pmatrix},
    $$
+
    (a) find the RREF, (b) identify pivot and free variables, (c) find a particular solution to $Ax = (1,1,2)^\top$, (d) find a basis for $\mathrm{null}(A)$, and (e) verify rank-nullity.
 
 3. **Least squares**: with
+
    $$
    X =
    \begin{pmatrix}
@@ -2511,9 +2524,11 @@ This is why eigenvalues, singular values, and condition numbers are not separate
    2 \\ 3 \\ 3.5 \\ 5
    \end{pmatrix},
    $$
+
    derive the normal equations, solve for $w^\star$, compute the residual, verify orthogonality to the column space, and then compare with ridge regularisation using $\lambda = 0.5$.
 
 4. **Conditioning**: for
+
    $$
    A =
    \begin{pmatrix}
@@ -2521,15 +2536,19 @@ This is why eigenvalues, singular values, and condition numbers are not separate
    999 & 998
    \end{pmatrix},
    $$
+
    compute the determinant, solve $Ax=b$, perturb $b$ slightly, and quantify how much the solution changes. Interpret the result using the condition number.
 
 5. **Newton's method for a nonlinear system**: solve
+
    $$
    F(x,y) = (x^2 + y^2 - 1,\ x - y^2) = 0
    $$
+
    by deriving the Jacobian and performing two Newton steps from $(1,1)$.
 
 6. **Iterative methods**: for
+
    $$
    A =
    \begin{pmatrix}
@@ -2542,6 +2561,7 @@ This is why eigenvalues, singular values, and condition numbers are not separate
    1 \\ 2
    \end{pmatrix},
    $$
+
    solve using Cholesky, then compare Jacobi, Gauss-Seidel, and two steps of CG.
 
 7. **Constrained system**: minimise $f(x,y)=x^2 + 2y^2$ subject to $x+y=3$. Write the Lagrangian, derive the KKT system, solve it, and then repeat with the extra constraint $x-y=1$.
@@ -2575,18 +2595,18 @@ This is why eigenvalues, singular values, and condition numbers are not separate
 
 ## 16. Why This Matters for AI (2026 Perspective)
 
-| Aspect | Impact |
-| --- | --- |
-| Linear regression and probing | Fitting linear probes, calibration heads, and readout layers reduces to exact or regularised linear systems. |
-| Newton and second-order optimisation | K-FAC, Shampoo, SOAP, and related optimizers are structured approximations to very large curvature-system solves. |
-| Overparameterisation | Modern deep networks often operate in underdetermined regimes, so the geometry of the solution set and the implicit bias of the solver matter. |
-| Deep equilibrium models | Forward pass solves a nonlinear fixed-point system; backward pass solves an implicit linear system. |
-| Gaussian processes and Bayesian inference | Kernel methods are fundamentally system-solving pipelines, usually with SPD matrices. |
-| Constrained decoding and RLHF | Normalization, KL constraints, and structured generation can all be expressed as coupled constraint systems. |
-| Numerical stability | Condition numbers explain why damping, normalization, scaling, and mixed precision are operational necessities rather than cosmetic choices. |
-| PINNs and scientific AI | Solving PDE systems with neural surrogates makes equation-solving central to modern AI-for-science workflows. |
-| Sparse and efficient attention | Approximate attention mechanisms preserve or relax the original attention system structure to gain scale. |
-| Interpretability | Many attribution and decomposition techniques boil down to solving linear systems for component contributions. |
+| Aspect                                    | Impact                                                                                                                                         |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Linear regression and probing             | Fitting linear probes, calibration heads, and readout layers reduces to exact or regularised linear systems.                                   |
+| Newton and second-order optimisation      | K-FAC, Shampoo, SOAP, and related optimizers are structured approximations to very large curvature-system solves.                              |
+| Overparameterisation                      | Modern deep networks often operate in underdetermined regimes, so the geometry of the solution set and the implicit bias of the solver matter. |
+| Deep equilibrium models                   | Forward pass solves a nonlinear fixed-point system; backward pass solves an implicit linear system.                                            |
+| Gaussian processes and Bayesian inference | Kernel methods are fundamentally system-solving pipelines, usually with SPD matrices.                                                          |
+| Constrained decoding and RLHF             | Normalization, KL constraints, and structured generation can all be expressed as coupled constraint systems.                                   |
+| Numerical stability                       | Condition numbers explain why damping, normalization, scaling, and mixed precision are operational necessities rather than cosmetic choices.   |
+| PINNs and scientific AI                   | Solving PDE systems with neural surrogates makes equation-solving central to modern AI-for-science workflows.                                  |
+| Sparse and efficient attention            | Approximate attention mechanisms preserve or relax the original attention system structure to gain scale.                                      |
+| Interpretability                          | Many attribution and decomposition techniques boil down to solving linear systems for component contributions.                                 |
 
 ---
 
@@ -2635,11 +2655,11 @@ LLM Mathematics         -> all of them together
 
 ## References
 
-- Gilbert Strang, *MIT 18.06 Linear Algebra* course materials and notes: [https://web.mit.edu/18.06/www/](https://web.mit.edu/18.06/www/)
-- Richard Barrett et al., *Templates for the Solution of Linear Systems*: [https://www.netlib.org/templates/templates.html](https://www.netlib.org/templates/templates.html)
-- Lloyd N. Trefethen and David Bau III, *Numerical Linear Algebra*, SIAM, 1997.
-- Gene H. Golub and Charles F. Van Loan, *Matrix Computations*, 4th ed., Johns Hopkins University Press, 2013.
-- Jonathan Richard Shewchuk, *An Introduction to the Conjugate Gradient Method Without the Agonizing Pain*: [https://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf](https://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf)
+- Gilbert Strang, _MIT 18.06 Linear Algebra_ course materials and notes: [https://web.mit.edu/18.06/www/](https://web.mit.edu/18.06/www/)
+- Richard Barrett et al., _Templates for the Solution of Linear Systems_: [https://www.netlib.org/templates/templates.html](https://www.netlib.org/templates/templates.html)
+- Lloyd N. Trefethen and David Bau III, _Numerical Linear Algebra_, SIAM, 1997.
+- Gene H. Golub and Charles F. Van Loan, _Matrix Computations_, 4th ed., Johns Hopkins University Press, 2013.
+- Jonathan Richard Shewchuk, _An Introduction to the Conjugate Gradient Method Without the Agonizing Pain_: [https://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf](https://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf)
 - Y. Saad and M. H. Schultz, "GMRES: A Generalized Minimal Residual Algorithm for Solving Nonsymmetric Linear Systems": [https://epubs.siam.org/doi/10.1137/0907058](https://epubs.siam.org/doi/10.1137/0907058)
 - Ashish Vaswani et al., "Attention Is All You Need" (2017): [https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762)
 - Shaojie Bai, J. Zico Kolter, and Vladlen Koltun, "Deep Equilibrium Models" (2019): [https://arxiv.org/abs/1909.01377](https://arxiv.org/abs/1909.01377)

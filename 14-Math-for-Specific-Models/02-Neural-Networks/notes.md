@@ -25,9 +25,9 @@ The treatment assumes you have completed the Linear Models section (§14-01) —
 
 ## Companion Notebooks
 
-| Notebook | Description |
-|---|---|
-| [theory.ipynb](theory.ipynb) | Interactive derivations: activation function zoo, backprop from scratch, He init variance experiment, Adam dynamics, BatchNorm train/eval gap, residual gradient flow, NTK, double descent |
+| Notebook                           | Description                                                                                                                                                                                           |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive derivations: activation function zoo, backprop from scratch, He init variance experiment, Adam dynamics, BatchNorm train/eval gap, residual gradient flow, NTK, double descent            |
 | [exercises.ipynb](exercises.ipynb) | 10 graded problems: UAT width bound, backprop by hand, Xavier derivation, Adam update, dropout ensemble, BatchNorm affine, residual Jacobian, NTK kernel matrix, LoRA gradient analysis, scaling laws |
 
 ## Learning Objectives
@@ -72,7 +72,7 @@ After completing this section, you will:
   - [4.5 Numerical Gradient Checking](#45-numerical-gradient-checking)
 - [5. Weight Initialisation](#5-weight-initialisation)
   - [5.1 Signal Propagation at Initialisation](#51-signal-propagation-at-initialisation)
-  - [5.2 Xavier/Glorot Initialisation](#52-xavierglot-initialisation)
+  - [5.2 Xavier/Glorot Initialisation](#52-xavierglorot-initialisation)
   - [5.3 He (Kaiming) Initialisation](#53-he-kaiming-initialisation)
   - [5.4 Orthogonal Initialisation](#54-orthogonal-initialisation)
   - [5.5 Mean-Field Theory of Initialisation](#55-mean-field-theory-of-initialisation)
@@ -118,7 +118,7 @@ After completing this section, you will:
   - [13.1 Infinite-Width Limit and Kernel Ridge Regression](#131-infinite-width-limit-and-kernel-ridge-regression)
   - [13.2 Lazy Training vs Feature Learning](#132-lazy-training-vs-feature-learning)
   - [13.3 NTK Spectrum and Convergence Rate](#133-ntk-spectrum-and-convergence-rate)
-  - [13.4 Beyond NTK: μP and Feature Learning](#134-beyond-ntk-p-and-feature-learning)
+  - [13.4 Beyond NTK: μP and Feature Learning](#134-beyond-ntk-μp-and-feature-learning)
 - [14. Deep Learning Connections to Modern AI](#14-deep-learning-connections-to-modern-ai)
   - [14.1 MLP Sublayers in Transformers](#141-mlp-sublayers-in-transformers)
   - [14.2 LoRA Revisited: Full Neural-Network Perspective](#142-lora-revisited-full-neural-network-perspective)
@@ -170,7 +170,7 @@ Every modern large language model contains neural networks in multiple roles:
 
 ### 1.4 Historical Timeline 1943–2024
 
-```
+```text
 NEURAL NETWORK HISTORY
 ════════════════════════════════════════════════════════════════════════
 
@@ -203,7 +203,6 @@ NEURAL NETWORK HISTORY
 ════════════════════════════════════════════════════════════════════════
 ```
 
-
 ---
 
 ## 2. Network Architecture as Composed Maps
@@ -224,6 +223,7 @@ $$|\boldsymbol{\theta}| = \sum_{l=1}^{L} d_l(d_{l-1} + 1) = \sum_{l=1}^{L} (d_l 
 For a 4-layer MLP with widths $[768, 3072, 3072, 768]$ (a single transformer FFN block with $d=768$): $(768 \cdot 3072 + 3072) + (3072 \cdot 768 + 768) \approx 4.7\text{M}$ parameters. A 96-layer GPT-4 architecture at $d=12288$ has FFN blocks alone contributing $\sim 150\text{B}$ parameters.
 
 **Notation conventions (from `NOTATION_GUIDE.md`):**
+
 - $\mathbf{x} \in \mathbb{R}^{d_0}$: input vector (bold lowercase)
 - $W^{[l]}$: weight matrix at layer $l$ (uppercase, square bracket for layer index)
 - $\mathbf{h}^{[l]}$: post-activation hidden state at layer $l$ (bold lowercase, square bracket)
@@ -232,12 +232,13 @@ For a 4-layer MLP with widths $[768, 3072, 3072, 768]$ (a single transformer FFN
 ### 2.2 Computation Graph as DAG
 
 Any computation can be represented as a **directed acyclic graph (DAG)** where:
+
 - **Nodes** are variables (scalars, vectors, matrices)
 - **Edges** represent functional dependencies: an edge from $u$ to $v$ means $v = g(u, \ldots)$
 
 For an MLP, the forward pass traces a path $\mathbf{x} \to \mathbf{z}^{[1]} \to \mathbf{h}^{[1]} \to \cdots \to \mathbf{z}^{[L]} \to \mathcal{L}$. The **topological order** of the DAG determines the execution order: every node is computed only after all its inputs are available.
 
-```
+```text
 COMPUTATION GRAPH (2-layer MLP)
 ════════════════════════════════════════════════════════════════════════
 
@@ -255,7 +256,7 @@ COMPUTATION GRAPH (2-layer MLP)
 ════════════════════════════════════════════════════════════════════════
 ```
 
-**Key insight:** The DAG representation separates the *structure* of the computation from the *values* flowing through it. PyTorch/TensorFlow build this graph dynamically during the forward pass, which is why arbitrary Python control flow (if statements, loops) is supported — the graph is just whatever operations were actually executed.
+**Key insight:** The DAG representation separates the _structure_ of the computation from the _values_ flowing through it. PyTorch/TensorFlow build this graph dynamically during the forward pass, which is why arbitrary Python control flow (if statements, loops) is supported — the graph is just whatever operations were actually executed.
 
 **For AI:** Transformer architectures have more complex DAGs than simple chains — residual connections create parallel paths, and multi-head attention merges multiple branches. The backward pass through these complex graphs follows the same principle: sum gradients arriving at a node from multiple outgoing edges.
 
@@ -263,16 +264,16 @@ COMPUTATION GRAPH (2-layer MLP)
 
 The activation function $\sigma: \mathbb{R} \to \mathbb{R}$ is applied pointwise: $\sigma(\mathbf{z})_i = \sigma(z_i)$. The choice of activation profoundly affects (1) gradient flow, (2) expressivity, (3) biological plausibility (sometimes), and (4) training stability.
 
-| Activation | Formula | Derivative | Range | Issues |
-|---|---|---|---|---|
-| Sigmoid | $1/(1+e^{-z})$ | $\sigma(z)(1-\sigma(z))$ | $(0,1)$ | Saturates at $\pm\infty$, vanishing gradients |
-| Tanh | $(e^z - e^{-z})/(e^z+e^{-z})$ | $1 - \tanh^2(z)$ | $(-1,1)$ | Saturates at $\pm\infty$, zero-centred |
-| ReLU | $\max(0,z)$ | $\mathbf{1}[z>0]$ | $[0,\infty)$ | Dying ReLU (negative half always zero) |
-| Leaky ReLU | $\max(\alpha z, z)$ | $\alpha$ if $z<0$ else $1$ | $\mathbb{R}$ | Fixes dying ReLU, adds hyperparameter |
-| ELU | $e^z - 1$ if $z<0$ else $z$ | smooth | $(-1,\infty)$ | Smooth negative, mean-zero activations |
-| GELU | $z\Phi(z)$ | $\Phi(z) + z\phi(z)$ | $\mathbb{R}$ | Default in BERT, GPT; smooth gating |
-| SiLU/Swish | $z \cdot \sigma(z)$ | $\sigma(z)(1 + z(1-\sigma(z)))$ | $\mathbb{R}$ | Non-monotone, used in LLaMA |
-| Mish | $z\tanh(\ln(1+e^z))$ | complex | $\mathbb{R}$ | Smooth, non-monotone, EfficientNet |
+| Activation | Formula                       | Derivative                      | Range         | Issues                                        |
+| ---------- | ----------------------------- | ------------------------------- | ------------- | --------------------------------------------- |
+| Sigmoid    | $1/(1+e^{-z})$                | $\sigma(z)(1-\sigma(z))$        | $(0,1)$       | Saturates at $\pm\infty$, vanishing gradients |
+| Tanh       | $(e^z - e^{-z})/(e^z+e^{-z})$ | $1 - \tanh^2(z)$                | $(-1,1)$      | Saturates at $\pm\infty$, zero-centred        |
+| ReLU       | $\max(0,z)$                   | $\mathbf{1}[z>0]$               | $[0,\infty)$  | Dying ReLU (negative half always zero)        |
+| Leaky ReLU | $\max(\alpha z, z)$           | $\alpha$ if $z<0$ else $1$      | $\mathbb{R}$  | Fixes dying ReLU, adds hyperparameter         |
+| ELU        | $e^z - 1$ if $z<0$ else $z$   | smooth                          | $(-1,\infty)$ | Smooth negative, mean-zero activations        |
+| GELU       | $z\Phi(z)$                    | $\Phi(z) + z\phi(z)$            | $\mathbb{R}$  | Default in BERT, GPT; smooth gating           |
+| SiLU/Swish | $z \cdot \sigma(z)$           | $\sigma(z)(1 + z(1-\sigma(z)))$ | $\mathbb{R}$  | Non-monotone, used in LLaMA                   |
+| Mish       | $z\tanh(\ln(1+e^z))$          | complex                         | $\mathbb{R}$  | Smooth, non-monotone, EfficientNet            |
 
 **ReLU geometry.** $\text{ReLU}(z) = \max(0,z)$ partitions the input space into two regions: $\{z>0\}$ (identity, gradient 1) and $\{z\leq 0\}$ (zero output, gradient 0). A network with ReLU is **piecewise linear** — the function is linear on each polyhedral region of the partition, and the number of regions grows exponentially with depth (§12.2). This piecewise-linear structure makes ReLU networks analytically tractable and computationally efficient (no exponential evaluation).
 
@@ -294,7 +295,6 @@ With sigmoid or tanh: MLPs represent **smooth nonlinear functions**. The univers
 
 **For AI:** The piecewise-linear structure of ReLU networks means transformers with ReLU FFNs partition the token embedding space into polyhedral regions, with the same linear map applied to all tokens in a region. GELU/SiLU networks are smooth versions of this: they softly interpolate between identity and zero rather than hard switching.
 
-
 ---
 
 ## 3. Universal Approximation Theory
@@ -315,6 +315,7 @@ Sigmoidal functions (including logistic sigmoid and tanh) are discriminatory. Re
 **What the theorem guarantees:** For any target function and tolerance, a shallow network exists that approximates it. The network may need $m \to \infty$ neurons.
 
 **What the theorem does NOT guarantee:**
+
 1. The **width needed** for a given $\epsilon$ and $f$ (may be exponential in $d$)
 2. Whether **gradient descent** finds the approximating weights
 3. Whether the approximation **generalises** from $[0,1]^d$ to nearby points
@@ -324,7 +325,7 @@ Sigmoidal functions (including logistic sigmoid and tanh) are discriminatory. Re
 
 ### 3.2 Barron 1993: Function Class and Approximation Rate
 
-Cybenko's theorem tells us a shallow network *exists* but not *how wide* it needs to be. Barron (1993) gave an explicit rate by defining a function class with controlled spectral content.
+Cybenko's theorem tells us a shallow network _exists_ but not _how wide_ it needs to be. Barron (1993) gave an explicit rate by defining a function class with controlled spectral content.
 
 **Definition (Barron class).** A function $f: \mathbb{R}^d \to \mathbb{R}$ belongs to the **Barron class** $\mathcal{B}_C$ if it has a Fourier representation $f(\mathbf{x}) = \int e^{i\boldsymbol{\omega}^\top\mathbf{x}}\hat{f}(\boldsymbol{\omega})\,d\boldsymbol{\omega}$ with finite spectral norm:
 
@@ -352,6 +353,7 @@ This gives a **depth-exponential-width tradeoff**: going from depth $k$ to depth
 **Why the hat function?** $t^{(k)}$ is a "triangle wave" with $2^k$ oscillations on $[0,1]$. A depth-$k$ recursive composition makes $2^k$ oscillations with only $O(k)$ parameters by reusing the same pattern. Any single-layer network must independently represent each oscillation — requiring width $\Omega(2^k)$.
 
 **Extensions:**
+
 - **Montufar et al. (2014):** Lower bound on the number of linear regions of a ReLU network: $\Omega\left(\lfloor n/d \rfloor^{(L-1)d} n^d\right)$ for width $n$, depth $L$, input dim $d$.
 - **Eldan & Shamir (2016):** A specific radially symmetric function in $\mathbb{R}^d$ requires width $\Omega(d)$ for depth-2 networks but only $O(1)$ for depth-3 networks.
 - **Cohen et al. (2016):** Sum-product networks and tensor decompositions — connections between depth and tensor rank.
@@ -362,18 +364,17 @@ This gives a **depth-exponential-width tradeoff**: going from depth $k$ to depth
 
 **Width is efficient for non-hierarchical functions.** For functions that do not have recursive structure (e.g., a radial function $f(\mathbf{x}) = g(\|\mathbf{x}\|)$ for smooth $g$), depth beyond 2 provides minimal benefit and only width helps.
 
-**The theorem gap.** Universal approximation theorems say: *there exists* a network that approximates $f$. They do not say: *gradient descent will find it*. This gap — between approximation theory and optimisation theory — is where most of the interesting open questions in deep learning live. The NTK (§13) partially bridges this gap by showing that in the infinite-width limit, gradient descent converges to a kernel regression solution.
+**The theorem gap.** Universal approximation theorems say: _there exists_ a network that approximates $f$. They do not say: _gradient descent will find it_. This gap — between approximation theory and optimisation theory — is where most of the interesting open questions in deep learning live. The NTK (§13) partially bridges this gap by showing that in the infinite-width limit, gradient descent converges to a kernel regression solution.
 
 **Table: Approximation theorems summary**
 
-| Theorem | What it proves | Width needed | Depth |
-|---|---|---|---|
-| Cybenko (1989) | Dense in $C([0,1]^d)$ | Unbounded | 1 hidden layer |
-| Hornik (1991) | Same for non-polynomial $\sigma$ | Unbounded | 1 hidden layer |
-| Barron (1993) | $O(1/m)$ for $\mathcal{B}_C$ class | $m$ for $O(1/m)$ error | 1 hidden layer |
-| Telgarsky (2016) | Depth exp saves width | $\Omega(2^{k/2})$ for depth-$k/2$ | Exponential savings |
-| Montufar (2014) | Linear regions count | Polynomial | Exponential growth |
-
+| Theorem          | What it proves                     | Width needed                      | Depth               |
+| ---------------- | ---------------------------------- | --------------------------------- | ------------------- |
+| Cybenko (1989)   | Dense in $C([0,1]^d)$              | Unbounded                         | 1 hidden layer      |
+| Hornik (1991)    | Same for non-polynomial $\sigma$   | Unbounded                         | 1 hidden layer      |
+| Barron (1993)    | $O(1/m)$ for $\mathcal{B}_C$ class | $m$ for $O(1/m)$ error            | 1 hidden layer      |
+| Telgarsky (2016) | Depth exp saves width              | $\Omega(2^{k/2})$ for depth-$k/2$ | Exponential savings |
+| Montufar (2014)  | Linear regions count               | Polynomial                        | Exponential growth  |
 
 ---
 
@@ -466,10 +467,10 @@ $$\text{rel error} = \frac{\|\nabla_{\boldsymbol{\theta}}^{\text{analytic}}\math
 - $> 10^{-3}$: Bug in backward pass
 
 **When gradient checking fails:**
+
 - Kink in activation function at $z = 0$ for ReLU/Leaky-ReLU — the numerical gradient samples both sides of the kink
 - Batch normalisation with running statistics (must be in training mode)
 - Dropout (must use the same mask for both forward passes)
-
 
 ---
 
@@ -533,13 +534,13 @@ $$q^{[l]} := \frac{1}{d_l}\|\mathbf{h}^{[l]}\|^2, \qquad c^{[l]} := \frac{(\math
 In the infinite-width limit, both quantities obey deterministic recursions determined by $(\sigma_W^2, \sigma_b^2)$.
 
 **Two phases:**
+
 - **Ordered phase** ($c^{[l]} \to 1$): Different inputs become indistinguishable — network is unable to distinguish $\mathbf{x}$ from $\mathbf{x}'$. Over-smoothing.
 - **Chaotic phase** ($c^{[l]} \to 0$): Different inputs diverge exponentially — tiny differences in input lead to wildly different outputs. Unstable.
 
 **Edge of chaos:** The boundary between phases is the initialisation where $c^{[l]}$ neither vanishes nor saturates — information about input differences propagates through arbitrary depth. Xavier and He initialisations are designed to operate at or near the edge of chaos for their respective activation functions.
 
 **Correlation length $\xi$.** Near the edge of chaos, the correlation length diverges: $\xi \sim 1/(1 - \lambda_1)$ where $\lambda_1$ is the largest eigenvalue of the Jacobian covariance. Large $\xi$ means gradients can carry information across many layers — a necessary condition for training deep networks.
-
 
 ---
 
@@ -611,7 +612,6 @@ By the chain rule of probability: $\log p(\mathbf{x}) = \sum_t \log p(x_t | x_{<
 **Bits per byte (BPB).** In practice, loss is reported in **bits per byte** rather than nats per token: $\text{BPB} = \mathcal{L}_{\text{CLM}} / \log 2 \cdot d_{\text{bytes/token}}$ where $d_{\text{bytes/token}} \approx 4$ for BPE tokenisers on English text. GPT-4 achieves approximately 0.7–0.8 BPB on English text.
 
 **Perplexity:** $\text{PPL} = \exp(\mathcal{L}_{\text{CLM}})$. For a uniform distribution over vocabulary of size $V$: $\text{PPL} = V$. A perfect model: $\text{PPL} = 1$. Current LLMs: $\text{PPL} \approx 3$–10 on standard benchmarks.
-
 
 ---
 
@@ -719,6 +719,7 @@ Smoothly decays from $\eta_{\max}$ to $\eta_{\min}$ following a cosine curve. Th
 ### 7.7 Loss Landscape Geometry
 
 **Saddle points dominate.** For a random function in $\mathbb{R}^n$, the fraction of critical points that are local minima decays as $2^{-n}$ — the vast majority are saddle points. In neural network losses, this means:
+
 - Most non-convergence is due to saddle points, not local minima
 - Gradient descent with noise (SGD) escapes saddle points via the random perturbation
 - Pure gradient flow converges to saddle points — SGD's noise is beneficial
@@ -734,7 +735,6 @@ The Hessian trace appears — flat minima (small $\lambda_i$) have better PAC-Ba
 **Sharpness-Aware Minimisation (SAM)** explicitly minimises the maximum loss in a ball around $\boldsymbol{\theta}$:
 $$\min_{\boldsymbol{\theta}} \max_{\|\boldsymbol{\epsilon}\|\leq\rho} \mathcal{L}(\boldsymbol{\theta} + \boldsymbol{\epsilon})$$
 SAM requires two forward-backward passes per step but consistently improves generalisation on vision and language tasks.
-
 
 ---
 
@@ -771,6 +771,7 @@ This provides cheap uncertainty quantification without Bayesian computation.
 ### 8.3 Data Augmentation as Implicit Regularisation
 
 **Manifold hypothesis.** Natural data (images, text, audio) lies near a low-dimensional manifold $\mathcal{M}$ embedded in high-dimensional space. Data augmentation applies transformations that remain on or near $\mathcal{M}$:
+
 - **Images:** random crops, flips, colour jitter, rotations, Gaussian blur (all preserve semantic content)
 - **Text:** back-translation, synonym replacement, random deletion
 - **Audio:** pitch shift, time stretch, additive noise
@@ -820,6 +821,7 @@ Forgetting to switch to eval mode (in PyTorch: `model.eval()`) causes a systemat
 $$\hat{x}_i = \frac{x_i - \mu}{\sqrt{\sigma^2 + \epsilon}}, \qquad \mu = \frac{1}{d}\sum_i x_i, \qquad \sigma^2 = \frac{1}{d}\sum_i (x_i - \mu)^2$$
 
 **Why transformers use LayerNorm, not BatchNorm:**
+
 1. **Variable sequence length.** Language model inputs have variable length — batch statistics are ill-defined.
 2. **Autoregressive inference.** At inference time, each token is generated one at a time (batch size = 1). BatchNorm with batch size 1 is just the identity (mean and variance of a single element are trivially 0 and 0).
 3. **Batch-size independence.** LayerNorm statistics depend only on the current sample, making it suitable for both training and inference without a train/test gap.
@@ -843,7 +845,6 @@ $$\frac{\partial \mathcal{L}}{\partial \mathbf{z}} = \frac{\gamma}{\sqrt{\sigma_
 This gradient projection removes the component of the upstream gradient that would shift the batch mean or scale — preventing large parameter updates from causing covariate shift in the next layer. The effect is a **second-order-like curvature correction** applied to the gradient.
 
 **Sharpness reduction.** Santurkar et al. (2018) showed empirically that BatchNorm reduces the maximum eigenvalue of the loss Hessian by $\sim$50–100$\times$, directly explaining why it allows larger learning rates and more stable training.
-
 
 ---
 
@@ -918,6 +919,7 @@ where $T$ is a learned gate. ResNets simplify this to $T = \mathbf{1}$ (always c
 $$\frac{\partial \mathbf{h}_T}{\partial \mathbf{h}_t} = \prod_{k=t}^{T-1} \frac{\partial \mathbf{h}_{k+1}}{\partial \mathbf{h}_k} = \prod_{k=t}^{T-1} \text{diag}(\tanh'(\mathbf{z}_k)) W^\top$$
 
 Since $\|\text{diag}(\tanh'(\mathbf{z}_k))\|_2 \leq 1$ and $\|\text{diag}(\tanh'(\mathbf{z}_k))W^\top\|_2 \leq \|W\|_2$:
+
 - If $\|W\|_2 < 1$: gradient norm $\leq \|W\|_2^{T-t} \to 0$ exponentially
 - If $\|W\|_2 > 1$: gradient norm $\geq (1/\sqrt{d}\|W\|_2)^{T-t} \to \infty$ exponentially (for random $W$)
 
@@ -954,13 +956,13 @@ $$\chi_1 := \sigma_W^2 \mathbb{E}_{z \sim \mathcal{N}(0, q^{[l]})}[\sigma'(z)^2]
 **The grokking phenomenon (Power et al., 2022).** For certain algorithmic tasks (modular addition, permutation group composition), neural networks first **memorise** the training set (train accuracy $\to 100\%$, test accuracy $\approx$ random), then after many more steps **generalise** (test accuracy $\to 100\%$) — even with early stopping based on training loss.
 
 **Mathematical explanation.** Two competing regularisation effects:
+
 1. **Memorisation** (fast): the network finds a large-norm solution that perfectly fits training data
 2. **Generalisation** (slow): weight decay gradually shrinks the solution to a lower-norm region with a qualitatively different algorithm
 
 Grokking occurs when there exists a small-norm solution that generalises, but the optimisation path first passes through a large-norm memorising solution. Weight decay provides the eventual drive toward the generalising solution — but it operates slowly against a steep gradient pointing toward memorisation.
 
 **Connection to double descent.** Grokking is a temporal analogue of double descent (§12.4): as training continues, the model transitions from an overfitting regime to a generalising regime. The transition requires crossing a "grokking threshold" in weight norm.
-
 
 ---
 
@@ -973,6 +975,7 @@ Grokking occurs when there exists a small-norm solution that generalises, but th
 **Intuition:** The function $g_k$ is a "sawtooth" with $2^k$ teeth, representable recursively. Each level of the recursion corresponds to one layer.
 
 **Eldan & Shamir (2016).** There exists a radially symmetric function $f: \mathbb{R}^d \to \mathbb{R}$ such that:
+
 - Any depth-3 network can approximate $f$ with width $O(d)$ neurons
 - Any depth-2 network approximating $f$ requires width $\Omega(e^d)$ neurons
 
@@ -1039,6 +1042,7 @@ $$\Theta(\mathbf{x}, \mathbf{x}') = \|W_2\|^2 (\mathbf{x}^\top \mathbf{x}') + \|
 ### 13.2 Lazy Training vs Feature Learning
 
 **Lazy training (NTK regime).** When network weights change little during training — $\boldsymbol{\theta}_T \approx \boldsymbol{\theta}_0$ — the network is in the NTK regime. This happens for:
+
 - Very large initialisation scale $\sigma_W^2 \to \infty$ (gradients are small relative to weights)
 - Very small learning rate $\eta \to 0$
 - Infinite width $n \to \infty$ (NTK theorem)
@@ -1056,6 +1060,7 @@ $$\mathcal{L}(t) = \mathcal{L}(0) \cdot \exp(-2\lambda_{\min}(\Theta) t)$$
 where $\lambda_{\min}(\Theta)$ is the smallest eigenvalue of the NTK matrix on training data. If $\Theta$ is PSD (which Jacot et al. proved for infinite-width networks), $\lambda_{\min} > 0$ and gradient flow converges exponentially.
 
 **Positive-definiteness of NTK.** For commonly used activations (tanh, ReLU, GELU) and non-degenerate data, $\Theta^*$ is strictly positive definite. This guarantees that:
+
 1. Gradient flow achieves zero training loss
 2. The convergence rate depends on the condition number $\kappa(\Theta) = \lambda_{\max}/\lambda_{\min}$
 
@@ -1065,16 +1070,15 @@ Large $\kappa$ means slow convergence — analogous to poorly-conditioned linear
 
 **Maximal Update Parametrisation (μP).** The standard (NTK) parametrisation scales weights as $W \sim \mathcal{N}(0, 1/n)$, placing the network in the NTK regime at infinite width. The **μP** (pronounced "mu-P") parametrisation (Yang & Hu, 2021) scales weights differently:
 
-| Layer type | NTK param | μP param |
-|---|---|---|
-| Input weights $W^{[1]}$ | $\sigma_W^2 = 1/n$ | $\sigma_W^2 = 1/d_{\text{in}}$ |
+| Layer type               | NTK param          | μP param                             |
+| ------------------------ | ------------------ | ------------------------------------ |
+| Input weights $W^{[1]}$  | $\sigma_W^2 = 1/n$ | $\sigma_W^2 = 1/d_{\text{in}}$       |
 | Hidden weights $W^{[l]}$ | $\sigma_W^2 = 1/n$ | $\sigma_W^2 = 1/n$, lr $\propto 1/n$ |
-| Output weights $W^{[L]}$ | $\sigma_W^2 = 1/n$ | $\sigma_W^2 = 1/n^2$ |
+| Output weights $W^{[L]}$ | $\sigma_W^2 = 1/n$ | $\sigma_W^2 = 1/n^2$                 |
 
 Under μP, the width $n \to \infty$ limit is the **feature learning regime** — updates to the hidden layer are $O(1)$ rather than $O(1/n)$, so features change meaningfully.
 
 **Hyperparameter transfer.** A key practical implication: optimal hyperparameters (learning rate, weight decay) transfer from small-width to large-width models under μP. This means you can tune hyperparameters on a cheap small model and transfer them to a large model — a significant practical advantage.
-
 
 ---
 
@@ -1123,6 +1127,7 @@ where $\|\cdot\|_c$ is the column-wise norm and $m$ is a learnable magnitude vec
 **Superposition hypothesis (Elhage et al., 2022).** A network with $d$ neurons can represent more than $d$ features by encoding them as nearly-orthogonal directions in $\mathbb{R}^d$. If features are sparse (rarely co-active), the interference between non-orthogonal features is negligible most of the time. Formally: if $\mathbf{f} \in \mathbb{R}^k$ with $k > d$ is the feature vector and $W \in \mathbb{R}^{d \times k}$ is the encoding matrix, the reconstruction error $\|W^\top W \mathbf{f} - \mathbf{f}\|^2$ can be small when $\mathbf{f}$ is sparse.
 
 **Circuits.** A "circuit" is a subgraph of the neural network that computes a specific function. Elhage et al. identified circuits for:
+
 - **Induction heads** (attend to previous occurrence of current token)
 - **Name mover heads** (move subject name to output position)
 - **Factual association** (retrieve entity attributes from MLP layers)
@@ -1132,6 +1137,7 @@ where $\|\cdot\|_c$ is the column-wise norm and $m$ is a learnable magnitude vec
 ### 14.4 Scaling Laws and Chinchilla
 
 **Kaplan et al. (2020) scaling laws.** For autoregressive language models, test loss follows a power law in:
+
 - Model parameters $N$: $\mathcal{L}(N) \approx (N_c/N)^\alpha$
 - Dataset tokens $D$: $\mathcal{L}(D) \approx (D_c/D)^\beta$
 - Compute $C$: $\mathcal{L}(C) \approx (C_c/C)^\gamma$
@@ -1146,25 +1152,24 @@ $$N_{\text{opt}} \propto \sqrt{C}, \qquad D_{\text{opt}} \propto \sqrt{C}$$
 
 **Implications for architecture.** The Chinchilla result implies that, for a fixed compute budget, it is more efficient to train a smaller model for longer than a larger model for fewer steps. This has shifted the community toward smaller but more efficiently trained models (Mistral 7B, LLaMA-3.1 8B).
 
-
 ---
 
 ## 15. Common Mistakes
 
-| # | Mistake | Why It's Wrong | Fix |
-|---|---|---|---|
-| 1 | Using sigmoid activation in deep hidden layers | Max derivative is 0.25 — gradients shrink by $4\times$ per sigmoid layer, causing vanishing gradients for depth $> 5$ | Use ReLU, GELU, or SiLU in hidden layers; sigmoid only at output for binary classification |
-| 2 | Forgetting `model.eval()` at test time | BatchNorm uses batch statistics in train mode (wrong at inference) and Dropout drops neurons (also wrong) | Always call `model.eval()` before inference and `model.train()` before training |
-| 3 | Initialising all weights to zero | All neurons compute the same function and receive the same gradient — symmetry breaking never occurs, network stays at zero | Always use random initialisation (Xavier/He); biases can be zero |
-| 4 | Same learning rate for all parameters | Parameters at different depths have vastly different gradient magnitudes; a LR good for the output layer explodes the input layer | Use Adam (adaptive per-parameter LR) or layer-wise LR scaling; reduce LR for embeddings and input projections |
-| 5 | Not normalising inputs | Large input magnitudes cause large pre-activations, saturating sigmoid/tanh or creating scale-dependent ReLU patterns | Normalise inputs to zero-mean, unit-variance; use BatchNorm/LayerNorm after first layer |
-| 6 | Computing cross-entropy as `log(softmax(z))` explicitly | Numerical overflow: $\exp(z_i)$ overflows for $z_i > 709$ (float32 max) before log is applied | Use `log_softmax(z)` (numerically stable: subtracts max before exp) or the fused `cross_entropy_loss` function |
-| 7 | Comparing logits directly as probabilities | Network logits are not probabilities — they can be any real number, including negative | Apply softmax/sigmoid to convert to probabilities; or use argmax for classification (logits preserve rank) |
-| 8 | Not clipping gradients in RNNs/LSTMs | Spectral radius $> 1$ causes exponential gradient growth, leading to NaN parameters in a few steps | Apply global norm gradient clipping ($\tau = 1.0$–5.0) whenever training RNNs |
-| 9 | Applying weight decay to bias and normalisation parameters | Biases and LayerNorm/BatchNorm parameters should not be regularised — they are already controlled by the normalisation scale | Exclude biases and norm parameters from the weight decay parameter group in the optimiser |
-| 10 | Evaluating loss without reducing over batch | Broadcasting bugs cause shape mismatches in loss computation; some losses return per-sample vectors | Always check loss shape; ensure loss is reduced to a scalar before backward pass; print `loss.shape` during debugging |
-| 11 | Setting learning rate without warmup for transformers | Adam's adaptive estimates are unreliable for first $\sim 1000$ steps (bias correction catches up); high LR early causes divergence | Add 1–5% linear warmup; use cosine decay schedule for remainder |
-| 12 | Training with large batches without adjusting LR | Larger batches produce less noisy gradients, requiring larger effective learning rate to maintain similar dynamics | Apply linear scaling rule: $\eta_{\text{new}} = \eta_{\text{base}} \cdot B_{\text{new}} / B_{\text{base}}$ with warmup |
+| #   | Mistake                                                    | Why It's Wrong                                                                                                                     | Fix                                                                                                                    |
+| --- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 1   | Using sigmoid activation in deep hidden layers             | Max derivative is 0.25 — gradients shrink by $4\times$ per sigmoid layer, causing vanishing gradients for depth $> 5$              | Use ReLU, GELU, or SiLU in hidden layers; sigmoid only at output for binary classification                             |
+| 2   | Forgetting `model.eval()` at test time                     | BatchNorm uses batch statistics in train mode (wrong at inference) and Dropout drops neurons (also wrong)                          | Always call `model.eval()` before inference and `model.train()` before training                                        |
+| 3   | Initialising all weights to zero                           | All neurons compute the same function and receive the same gradient — symmetry breaking never occurs, network stays at zero        | Always use random initialisation (Xavier/He); biases can be zero                                                       |
+| 4   | Same learning rate for all parameters                      | Parameters at different depths have vastly different gradient magnitudes; a LR good for the output layer explodes the input layer  | Use Adam (adaptive per-parameter LR) or layer-wise LR scaling; reduce LR for embeddings and input projections          |
+| 5   | Not normalising inputs                                     | Large input magnitudes cause large pre-activations, saturating sigmoid/tanh or creating scale-dependent ReLU patterns              | Normalise inputs to zero-mean, unit-variance; use BatchNorm/LayerNorm after first layer                                |
+| 6   | Computing cross-entropy as `log(softmax(z))` explicitly    | Numerical overflow: $\exp(z_i)$ overflows for $z_i > 709$ (float32 max) before log is applied                                      | Use `log_softmax(z)` (numerically stable: subtracts max before exp) or the fused `cross_entropy_loss` function         |
+| 7   | Comparing logits directly as probabilities                 | Network logits are not probabilities — they can be any real number, including negative                                             | Apply softmax/sigmoid to convert to probabilities; or use argmax for classification (logits preserve rank)             |
+| 8   | Not clipping gradients in RNNs/LSTMs                       | Spectral radius $> 1$ causes exponential gradient growth, leading to NaN parameters in a few steps                                 | Apply global norm gradient clipping ($\tau = 1.0$–5.0) whenever training RNNs                                          |
+| 9   | Applying weight decay to bias and normalisation parameters | Biases and LayerNorm/BatchNorm parameters should not be regularised — they are already controlled by the normalisation scale       | Exclude biases and norm parameters from the weight decay parameter group in the optimiser                              |
+| 10  | Evaluating loss without reducing over batch                | Broadcasting bugs cause shape mismatches in loss computation; some losses return per-sample vectors                                | Always check loss shape; ensure loss is reduced to a scalar before backward pass; print `loss.shape` during debugging  |
+| 11  | Setting learning rate without warmup for transformers      | Adam's adaptive estimates are unreliable for first $\sim 1000$ steps (bias correction catches up); high LR early causes divergence | Add 1–5% linear warmup; use cosine decay schedule for remainder                                                        |
+| 12  | Training with large batches without adjusting LR           | Larger batches produce less noisy gradients, requiring larger effective learning rate to maintain similar dynamics                 | Apply linear scaling rule: $\eta_{\text{new}} = \eta_{\text{base}} \cdot B_{\text{new}} / B_{\text{base}}$ with warmup |
 
 ---
 
@@ -1259,28 +1264,27 @@ For a depth-$L$ residual network where each block satisfies $\|F^{[l]}(\mathbf{h
 
 (c) Simulate the Chinchilla result: for fixed $C$ FLOPS, parameterise models as $C = 6ND$ (approximately). Optimise the allocation $(N, D)$ numerically to minimise the predicted loss $\mathcal{L}(N, D) = \frac{A_N}{N^\alpha} + \frac{A_D}{D^\beta} + \epsilon$ and verify the optimal $N \propto D$ relationship.
 
-
 ---
 
 ## 17. Why This Matters for AI (2026 Perspective)
 
-| Concept | AI/LLM Impact | Where You See It |
-|---|---|---|
-| **Universal approximation** | Theoretical justification that NNs can represent any target function — but says nothing about learning efficiency | Foundational argument for neural architectures; explains why we use NNs over fixed-basis methods |
-| **Depth separation** | Explains why 96-layer GPT-4 >> 2-layer shallow network of same parameter count | Architecture design: 32–96 transformer layers standard; 1-layer baselines consistently weaker |
-| **Backpropagation** | All gradient-based training of LLMs reduces to this — 175B gradient computations per forward pass, same cost as forward | PyTorch autograd, FlashAttention (fused backprop), gradient checkpointing |
-| **He initialisation** | Without it, 96-layer pre-activation ResNets/transformers have vanishing gradients at init | PyTorch `nn.Linear` default, `init.kaiming_normal_`, σ$W_Q$/$W_K$ scaling |
-| **Adam / AdamW** | De-facto standard optimiser for all LLM training (GPT, LLaMA, Gemini, Claude) | AdamW with β₁=0.9, β₂=0.999; cosine decay + warmup is universal recipe |
-| **Dropout** | Regularisation in pre-2022 transformers; MC Dropout for uncertainty; dropout in attention weights | BERT, GPT-2 use p=0.1; modern LLMs reduce/remove dropout at scale |
-| **Residual connections** | Enabled training of 100→1000+ layer networks; identity gradient path prevents vanishing | Every transformer block: x' = x + Attn(LN(x)), x'' = x' + FFN(LN(x')) |
-| **LayerNorm / RMSNorm** | Stabilises transformer training; enables pre-norm architecture for deep models | LN: BERT, GPT-2/3; RMSNorm: LLaMA, Mistral, Falcon — all modern LLMs |
-| **Grokking** | Phase transition from memorisation to generalisation; explains delayed improvement on benchmarks during training | Algorithmic reasoning (math, code) benchmarks; continual pre-training phenomena |
-| **NTK / lazy training** | Infinite-width networks = kernel methods; explains linear probing success on frozen features | Linear probing, NLP probing classifiers, transfer learning theory |
-| **Feature learning / μP** | Optimal hyperparameter transfer from small to large models; enables efficient large-scale hyperparameter search | GPT-4 hyperparameter search via μP; implemented in Tensor Programs libraries |
-| **FFN as key-value memory** | Factual associations stored in FFN weights; model editing targets specific MLP layers | ROME, MEMIT model editing; factual knowledge attribution; KV cache analysis |
-| **LoRA / DoRA** | Efficient fine-tuning of LLMs with 100–1000× parameter reduction; standard PEFT technique | Hugging Face PEFT library; RLHF uses LoRA for policy fine-tuning; inference adapters |
-| **Mechanistic interpretability** | Understanding which circuits implement specific behaviours; induction heads explain in-context learning | Anthropic Circuits work; EleutherAI probing; Neel Nanda's TransformerLens library |
-| **Scaling laws / Chinchilla** | Optimal compute allocation (model size vs. training tokens); predicts final loss from intermediate checkpoints | Chinchilla: 20 tokens/param optimal; Llama-3 70B trained 15T tokens (much more than Chinchilla optimal for inference efficiency) |
+| Concept                          | AI/LLM Impact                                                                                                           | Where You See It                                                                                                                 |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Universal approximation**      | Theoretical justification that NNs can represent any target function — but says nothing about learning efficiency       | Foundational argument for neural architectures; explains why we use NNs over fixed-basis methods                                 |
+| **Depth separation**             | Explains why 96-layer GPT-4 >> 2-layer shallow network of same parameter count                                          | Architecture design: 32–96 transformer layers standard; 1-layer baselines consistently weaker                                    |
+| **Backpropagation**              | All gradient-based training of LLMs reduces to this — 175B gradient computations per forward pass, same cost as forward | PyTorch autograd, FlashAttention (fused backprop), gradient checkpointing                                                        |
+| **He initialisation**            | Without it, 96-layer pre-activation ResNets/transformers have vanishing gradients at init                               | PyTorch `nn.Linear` default, `init.kaiming_normal_`, σ$W_Q$/$W_K$ scaling                                                        |
+| **Adam / AdamW**                 | De-facto standard optimiser for all LLM training (GPT, LLaMA, Gemini, Claude)                                           | AdamW with β₁=0.9, β₂=0.999; cosine decay + warmup is universal recipe                                                           |
+| **Dropout**                      | Regularisation in pre-2022 transformers; MC Dropout for uncertainty; dropout in attention weights                       | BERT, GPT-2 use p=0.1; modern LLMs reduce/remove dropout at scale                                                                |
+| **Residual connections**         | Enabled training of 100→1000+ layer networks; identity gradient path prevents vanishing                                 | Every transformer block: x' = x + Attn(LN(x)), x'' = x' + FFN(LN(x'))                                                            |
+| **LayerNorm / RMSNorm**          | Stabilises transformer training; enables pre-norm architecture for deep models                                          | LN: BERT, GPT-2/3; RMSNorm: LLaMA, Mistral, Falcon — all modern LLMs                                                             |
+| **Grokking**                     | Phase transition from memorisation to generalisation; explains delayed improvement on benchmarks during training        | Algorithmic reasoning (math, code) benchmarks; continual pre-training phenomena                                                  |
+| **NTK / lazy training**          | Infinite-width networks = kernel methods; explains linear probing success on frozen features                            | Linear probing, NLP probing classifiers, transfer learning theory                                                                |
+| **Feature learning / μP**        | Optimal hyperparameter transfer from small to large models; enables efficient large-scale hyperparameter search         | GPT-4 hyperparameter search via μP; implemented in Tensor Programs libraries                                                     |
+| **FFN as key-value memory**      | Factual associations stored in FFN weights; model editing targets specific MLP layers                                   | ROME, MEMIT model editing; factual knowledge attribution; KV cache analysis                                                      |
+| **LoRA / DoRA**                  | Efficient fine-tuning of LLMs with 100–1000× parameter reduction; standard PEFT technique                               | Hugging Face PEFT library; RLHF uses LoRA for policy fine-tuning; inference adapters                                             |
+| **Mechanistic interpretability** | Understanding which circuits implement specific behaviours; induction heads explain in-context learning                 | Anthropic Circuits work; EleutherAI probing; Neel Nanda's TransformerLens library                                                |
+| **Scaling laws / Chinchilla**    | Optimal compute allocation (model size vs. training tokens); predicts final loss from intermediate checkpoints          | Chinchilla: 20 tokens/param optimal; Llama-3 70B trained 15T tokens (much more than Chinchilla optimal for inference efficiency) |
 
 ---
 
@@ -1291,13 +1295,14 @@ For a depth-$L$ residual network where each block satisfies $\|F^{[l]}(\mathbf{h
 **The unifying theme** is that neural networks learn to map inputs into a **representation space** where a simple (linear) readout can solve the task. All the mathematical machinery — backpropagation, initialisation, normalisation, regularisation, optimisation — serves one purpose: ensuring that gradient descent finds a good representation efficiently. Understanding each component through the lens of its role in representation learning makes the theory coherent rather than a collection of disconnected tricks.
 
 **Looking forward.** The next section (§14-03, Probabilistic Models) develops the probabilistic framework that underlies:
+
 - The loss functions derived in §6 (cross-entropy = Gaussian/Bernoulli MLE; contrastive losses = mutual information)
 - The Bayesian perspective on regularisation (weight decay = Gaussian prior; dropout = variational inference)
 - Generative models that produce rather than classify: VAEs, diffusion models, and autoregressive language models
 
 The Transformer architecture (§14-05) applies neural networks to sequence modelling, replacing recurrence with attention — but every individual transformer operation (linear projections, LayerNorm, MLP) is exactly what we derived here. RNNs and LSTMs (§14-04) fill in the historical bridge between the sequential inductive bias and the attention mechanism.
 
-```
+```text
 CURRICULUM POSITION — NEURAL NETWORKS
 ════════════════════════════════════════════════════════════════════════
 
@@ -1328,26 +1333,26 @@ CURRICULUM POSITION — NEURAL NETWORKS
 
 ## References
 
-1. Cybenko, G. (1989). Approximation by superpositions of a sigmoidal function. *Mathematics of Control, Signals and Systems*, 2(4), 303–314.
-2. Barron, A. R. (1993). Universal approximation bounds for superpositions of a sigmoidal function. *IEEE Transactions on Information Theory*, 39(3), 930–945.
-3. Telgarsky, M. (2016). Benefits of depth in neural networks. *COLT 2016*.
-4. Glorot, X., & Bengio, Y. (2010). Understanding the difficulty of training deep feedforward neural networks. *AISTATS 2010*.
-5. He, K., Zhang, X., Ren, S., & Sun, J. (2015). Delving deep into rectifiers. *ICCV 2015*.
-6. Ioffe, S., & Szegedy, C. (2015). Batch normalization. *ICML 2015*.
-7. Kingma, D. P., & Ba, J. (2015). Adam: A method for stochastic optimization. *ICLR 2015*.
-8. Loshchilov, I., & Hutter, F. (2019). Decoupled weight decay regularization. *ICLR 2019*.
-9. He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep residual learning for image recognition. *CVPR 2016*.
-10. Jacot, A., Gabriel, F., & Hongler, C. (2018). Neural tangent kernel. *NeurIPS 2018*.
-11. Belkin, M., Hsu, D., Ma, S., & Mandal, S. (2019). Reconciling modern machine learning practice and the classical bias-variance trade-off. *PNAS 2019*.
-12. Hu, E. J., et al. (2022). LoRA: Low-rank adaptation of large language models. *ICLR 2022*.
-13. Geva, M., et al. (2021). Transformer feed-forward layers are key-value memories. *EMNLP 2021*.
-14. Power, A., et al. (2022). Grokking: Generalization beyond overfitting on small algorithmic datasets. *ICLR 2022*.
-15. Hoffmann, J., et al. (2022). Training compute-optimal large language models (Chinchilla). *NeurIPS 2022*.
-16. Yang, G., & Hu, E. J. (2021). Feature learning in infinite-width neural networks. *ICML 2021*.
-17. Elhage, N., et al. (2022). Toy models of superposition. *Transformer Circuits Thread*.
-18. Santurkar, S., et al. (2018). How does batch normalization help optimization? *NeurIPS 2018*.
-19. Poole, B., et al. (2016). Exponential expressivity in deep neural networks through transient chaos. *NeurIPS 2016*.
-20. Montufar, G., et al. (2014). On the number of linear regions of deep neural networks. *NeurIPS 2014*.
+1. Cybenko, G. (1989). Approximation by superpositions of a sigmoidal function. _Mathematics of Control, Signals and Systems_, 2(4), 303–314.
+2. Barron, A. R. (1993). Universal approximation bounds for superpositions of a sigmoidal function. _IEEE Transactions on Information Theory_, 39(3), 930–945.
+3. Telgarsky, M. (2016). Benefits of depth in neural networks. _COLT 2016_.
+4. Glorot, X., & Bengio, Y. (2010). Understanding the difficulty of training deep feedforward neural networks. _AISTATS 2010_.
+5. He, K., Zhang, X., Ren, S., & Sun, J. (2015). Delving deep into rectifiers. _ICCV 2015_.
+6. Ioffe, S., & Szegedy, C. (2015). Batch normalization. _ICML 2015_.
+7. Kingma, D. P., & Ba, J. (2015). Adam: A method for stochastic optimization. _ICLR 2015_.
+8. Loshchilov, I., & Hutter, F. (2019). Decoupled weight decay regularization. _ICLR 2019_.
+9. He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep residual learning for image recognition. _CVPR 2016_.
+10. Jacot, A., Gabriel, F., & Hongler, C. (2018). Neural tangent kernel. _NeurIPS 2018_.
+11. Belkin, M., Hsu, D., Ma, S., & Mandal, S. (2019). Reconciling modern machine learning practice and the classical bias-variance trade-off. _PNAS 2019_.
+12. Hu, E. J., et al. (2022). LoRA: Low-rank adaptation of large language models. _ICLR 2022_.
+13. Geva, M., et al. (2021). Transformer feed-forward layers are key-value memories. _EMNLP 2021_.
+14. Power, A., et al. (2022). Grokking: Generalization beyond overfitting on small algorithmic datasets. _ICLR 2022_.
+15. Hoffmann, J., et al. (2022). Training compute-optimal large language models (Chinchilla). _NeurIPS 2022_.
+16. Yang, G., & Hu, E. J. (2021). Feature learning in infinite-width neural networks. _ICML 2021_.
+17. Elhage, N., et al. (2022). Toy models of superposition. _Transformer Circuits Thread_.
+18. Santurkar, S., et al. (2018). How does batch normalization help optimization? _NeurIPS 2018_.
+19. Poole, B., et al. (2016). Exponential expressivity in deep neural networks through transient chaos. _NeurIPS 2016_.
+20. Montufar, G., et al. (2014). On the number of linear regions of deep neural networks. _NeurIPS 2014_.
 
 ---
 
@@ -1426,15 +1431,14 @@ The term $QK^\top/\sqrt{d_k} \in \mathbb{R}^{n \times m}$ is the matrix of atten
 
 **Peak learning rates by model size** (approximate, based on published papers):
 
-| Model | $N$ (params) | $\eta_{\max}$ | Batch size | $T_{\text{warm}}$ |
-|---|---|---|---|---|
-| LLaMA-7B | 7B | $3 \times 10^{-4}$ | 4M tokens | 2000 steps |
-| LLaMA-65B | 65B | $1.5 \times 10^{-4}$ | 4M tokens | 2000 steps |
-| GPT-3 175B | 175B | $6 \times 10^{-5}$ | 3.2M tokens | 375M tokens |
-| Chinchilla 70B | 70B | $1 \times 10^{-4}$ | 1.5M tokens | - |
+| Model          | $N$ (params) | $\eta_{\max}$        | Batch size  | $T_{\text{warm}}$ |
+| -------------- | ------------ | -------------------- | ----------- | ----------------- |
+| LLaMA-7B       | 7B           | $3 \times 10^{-4}$   | 4M tokens   | 2000 steps        |
+| LLaMA-65B      | 65B          | $1.5 \times 10^{-4}$ | 4M tokens   | 2000 steps        |
+| GPT-3 175B     | 175B         | $6 \times 10^{-5}$   | 3.2M tokens | 375M tokens       |
+| Chinchilla 70B | 70B          | $1 \times 10^{-4}$   | 1.5M tokens | -                 |
 
 Larger models use smaller learning rates — consistent with the Adam effective step size scaling as $\eta/\sqrt{\hat{v}}$. For very large models, the gradient variance $\hat{v}$ is larger, so a smaller $\eta$ is needed for the same effective step size.
-
 
 ---
 
@@ -1450,6 +1454,7 @@ Larger models use smaller learning rates — consistent with the Adam effective 
 - **Variance of activation:** $\text{Var}(\text{ReLU}(z)) = \sigma^2/2$ — precisely the He init $\sigma^2 = 2/d_{\text{in}}$ factor
 
 **The dying ReLU problem.** A neuron "dies" when its pre-activation is always negative. This happens when:
+
 1. A large negative bias develops during training
 2. A weight update pushes the neuron into the negative region for all training examples
 
@@ -1466,6 +1471,7 @@ Once dead, the neuron never receives a nonzero gradient (since $\partial\text{Re
 **Stochastic interpretation:** $\text{GELU}(z) = \mathbb{E}_{m \sim \text{Bernoulli}(\Phi(z))}[m \cdot z]$. The neuron stochastically gates its input proportional to the probability that a standard normal exceeds $z$. This is a **differentiable** and **smooth** version of ReLU where the gating probability increases smoothly from 0 to 1.
 
 **Comparison to ReLU:**
+
 - Both compute a form of $z \cdot [\text{gate}]$, but ReLU's gate is hard ($\mathbf{1}[z > 0]$) while GELU's is soft ($\Phi(z)$)
 - GELU is smooth everywhere (differentiable at $z = 0$), while ReLU has a kink
 - GELU is slightly negative for $z \in (-0.17, 0)$ (non-monotone in this small region) — this is by design, providing a slight regularisation effect
@@ -1486,17 +1492,17 @@ Once dead, the neuron never receives a nonzero gradient (since $\partial\text{Re
 
 ## Appendix C: Optimiser Comparison Table
 
-| Optimiser | Update | LR sensitivity | Memory | Best for |
-|---|---|---|---|---|
-| SGD | $-\eta g$ | High | $1\times\theta$ | Convex, simple losses |
-| SGD+Mom | $-v$, $v = \gamma v + \eta g$ | Medium | $2\times\theta$ | CV with LR schedule |
-| AdaGrad | $-\eta g/\sqrt{G}$ | Low | $2\times\theta$ | Sparse gradients (NLP embeds) |
-| RMSProp | $-\eta g/\sqrt{v}$, $v = \rho v + (1-\rho)g^2$ | Low-medium | $2\times\theta$ | RNN training |
-| Adam | $-\eta \hat{m}/(\sqrt{\hat{v}}+\epsilon)$ | Low | $3\times\theta$ | General deep learning |
-| AdamW | Adam + direct weight decay | Low | $3\times\theta$ | Transformer LLM training |
-| LAMB | Layer-wise adaptive moments | Very low | $3\times\theta$ | Very large batch training |
-| Lion | Sign(momentum) update | Low | $2\times\theta$ | Efficient training, same quality |
-| Sophia | Second-order Hessian diagonal | Very low | $3\times\theta$ | Language models, fewer steps |
+| Optimiser | Update                                         | LR sensitivity | Memory          | Best for                         |
+| --------- | ---------------------------------------------- | -------------- | --------------- | -------------------------------- |
+| SGD       | $-\eta g$                                      | High           | $1\times\theta$ | Convex, simple losses            |
+| SGD+Mom   | $-v$, $v = \gamma v + \eta g$                  | Medium         | $2\times\theta$ | CV with LR schedule              |
+| AdaGrad   | $-\eta g/\sqrt{G}$                             | Low            | $2\times\theta$ | Sparse gradients (NLP embeds)    |
+| RMSProp   | $-\eta g/\sqrt{v}$, $v = \rho v + (1-\rho)g^2$ | Low-medium     | $2\times\theta$ | RNN training                     |
+| Adam      | $-\eta \hat{m}/(\sqrt{\hat{v}}+\epsilon)$      | Low            | $3\times\theta$ | General deep learning            |
+| AdamW     | Adam + direct weight decay                     | Low            | $3\times\theta$ | Transformer LLM training         |
+| LAMB      | Layer-wise adaptive moments                    | Very low       | $3\times\theta$ | Very large batch training        |
+| Lion      | Sign(momentum) update                          | Low            | $2\times\theta$ | Efficient training, same quality |
+| Sophia    | Second-order Hessian diagonal                  | Very low       | $3\times\theta$ | Language models, fewer steps     |
 
 **Lion** (Chen et al., 2023): Uses only the sign of the first moment: $\theta \leftarrow \theta - \eta \cdot \text{sign}(\beta_1 m + (1-\beta_1)g)$; then $m \leftarrow \beta_1 m + (1-\beta_1)g$. More memory-efficient than Adam (no $v_t$) with comparable quality. Google Brain used it for Gemini pre-training.
 
@@ -1506,7 +1512,7 @@ Once dead, the neuron never receives a nonzero gradient (since $\partial\text{Re
 
 ## Appendix D: Practical Debugging Checklist
 
-```
+```text
 NEURAL NETWORK DEBUGGING PROTOCOL
 ════════════════════════════════════════════════════════════════════════
 
@@ -1541,7 +1547,6 @@ NEURAL NETWORK DEBUGGING PROTOCOL
 ════════════════════════════════════════════════════════════════════════
 ```
 
-
 ---
 
 ## Appendix E: Mathematical Properties Glossary
@@ -1553,6 +1558,7 @@ NEURAL NETWORK DEBUGGING PROTOCOL
 **Permutation symmetry.** For a two-hidden-layer network, permuting the neurons in layer 1 (simultaneously permuting rows of $W^{[1]}$ and rows of $W^{[2]}$) gives the same function. This means every non-degenerate critical point has at least $(d_1!)$ equivalent points — a form of non-uniqueness that does not affect training but makes the loss landscape highly symmetric.
 
 **Implications for optimisation:**
+
 1. Local minima that are not global minima **do exist** (e.g., Du & Lee, 2018 constructed examples)
 2. However, for overparameterised networks on smooth losses, all local minima that are not global minima are **measure-zero saddle points** in practice
 3. SGD's noise prevents convergence to saddle points (random perturbation provides escape direction)
@@ -1587,6 +1593,7 @@ where $L_\sigma = 1$ for ReLU, GELU, tanh (all 1-Lipschitz). The product of spec
 **No-Free-Lunch (NFL) theorem (Wolpert, 1996).** Averaged over all possible data distributions, every supervised learning algorithm has the same expected out-of-sample error. There is no universally best learning algorithm.
 
 **Implication for neural networks.** Neural networks are not universally better than other methods — they encode specific **inductive biases**:
+
 - **MLPs:** Smooth function composition; no preference for spatial locality
 - **CNNs:** Local feature detection; translation equivariance; weight sharing
 - **RNNs:** Sequential processing; long-range memory (LSTM)
@@ -1602,7 +1609,7 @@ NFL says: neural networks only outperform other methods when the data distributi
 
 ### F.1 Log-Sum-Exp (Numerically Stable)
 
-```
+```text
 log(exp(a) + exp(b)) = a + log(1 + exp(b - a))    [if a > b]
                      = log(exp(a) + exp(b))
 ```
@@ -1625,16 +1632,17 @@ Temperature sampling is used in LLM text generation: $T = 0.7$–$1.0$ gives rea
 ### F.3 Gradient Norm Monitoring
 
 During training, log gradient norms per layer every 100 steps:
-```
+
+```text
 global_norm = sqrt(sum(||grad||^2 for all params))
 per_layer_norm[l] = ||grad_W^[l]||_F
 ```
 
 **Healthy patterns:**
+
 - Global norm: stable $\in [0.1, 10]$ for typical models; spikes (up to $100\times$ normal) are ok if gradient clipping catches them
 - Per-layer norms: roughly equal across layers (may decrease for early layers in plain networks; should be roughly equal for ResNets)
 - Ratio $\|\Delta\boldsymbol{\theta}\|/\|\boldsymbol{\theta}\|$ (update ratio): should be $\sim 10^{-3}$ (LR/grad magnitude); too large = LR too high, too small = LR too low
-
 
 ---
 
@@ -1651,6 +1659,7 @@ Under the assumption that gradients $g_1, \ldots, g_t$ are i.i.d. with $\mathbb{
 $$\mathbb{E}[m_t] = (1-\beta_1)\sum_{k=1}^t \beta_1^{t-k} \bar{g} = (1-\beta_1^t)\bar{g}$$
 
 So $m_t$ estimates $(1-\beta_1^t)\bar{g}$, not $\bar{g}$. The factor $(1-\beta_1^t)$ is:
+
 - At $t=1$: $(1-0.9) = 0.1$ — gradient underestimated by $10\times$
 - At $t=10$: $(1-0.9^{10}) \approx 0.65$ — underestimated by $1.5\times$
 - At $t=100$: $(1-0.9^{100}) \approx 1$ — fully converged
@@ -1728,7 +1737,6 @@ The history of activation functions mirrors the history of our understanding of 
 
 The progression: step (not differentiable) → sigmoid (differentiable but saturating) → ReLU (non-saturating, sparse) → GELU/SiLU (smooth, non-monotone gating) reflects accumulating understanding of what properties matter for deep learning.
 
-
 ---
 
 ## Appendix I: Connections Between Sections
@@ -1737,20 +1745,20 @@ The progression: step (not differentiable) → sigmoid (differentiable but satur
 
 The following table shows how every concept in §14-01 (Linear Models) generalises to §14-02 (Neural Networks):
 
-| Linear Models (§14-01) | Neural Networks (§14-02) | Mathematical Relationship |
-|---|---|---|
-| OLS $\hat{\boldsymbol{\beta}} = (X^\top X)^{-1}X^\top\mathbf{y}$ | Full fine-tuning with MSE loss | NN generalises OLS by learning features $\phi(\mathbf{x})$ |
-| Ridge regression $\hat{\boldsymbol{\beta}}_\lambda$ | Weight decay (AdamW) | Same $\ell^2$ penalty; connects AdamW to Bayesian Gaussian prior |
-| Lasso soft-thresholding | Dropout, sparse attention | Both induce sparsity; dropout ≈ Bernoulli prior on weights |
-| Logistic regression gradient $X^\top(\hat{p}-y)/n$ | Backpropagation output delta $\boldsymbol{\delta}^{[L]} = \hat{p}-y$ | Identical formula — neural networks generalise LR |
-| OLS hat matrix $H = X(X^\top X)^{-1}X^\top$ | Attention matrix $A = \text{softmax}(QK^\top/\sqrt{d_k})$ | Both are projection/averaging matrices; A is learned and input-dependent |
-| Ridge bias-variance tradeoff | Training/test error with regularisation | Same mathematical framework; ridge is linear case |
-| Bayesian posterior = Ridge MAP | NTK kernel regression | Both are kernel methods; NTK kernel is architecture-dependent |
-| Double descent at interpolation threshold | Grokking phase transition | Both: non-monotone test error vs. complexity/time |
-| LoRA $\Delta W = BA$, low rank | LoRA in neural networks | Identical construction; generalises to any layer |
-| NTK introduction | Full NTK theory (§13) | §14-01 NTK is for linear networks; §14-02 extends to nonlinear |
-| LDA/QDA | Pre-training + linear probes | LDA = linear readout on Gaussian features; probe = linear readout on learned features |
-| SVM dual $\sum \alpha_i y_i \mathbf{x}_i$ | Last-layer features as support vectors | Linear separability in feature space; SVM = optimal linear classifier |
+| Linear Models (§14-01)                                           | Neural Networks (§14-02)                                             | Mathematical Relationship                                                             |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| OLS $\hat{\boldsymbol{\beta}} = (X^\top X)^{-1}X^\top\mathbf{y}$ | Full fine-tuning with MSE loss                                       | NN generalises OLS by learning features $\phi(\mathbf{x})$                            |
+| Ridge regression $\hat{\boldsymbol{\beta}}_\lambda$              | Weight decay (AdamW)                                                 | Same $\ell^2$ penalty; connects AdamW to Bayesian Gaussian prior                      |
+| Lasso soft-thresholding                                          | Dropout, sparse attention                                            | Both induce sparsity; dropout ≈ Bernoulli prior on weights                            |
+| Logistic regression gradient $X^\top(\hat{p}-y)/n$               | Backpropagation output delta $\boldsymbol{\delta}^{[L]} = \hat{p}-y$ | Identical formula — neural networks generalise LR                                     |
+| OLS hat matrix $H = X(X^\top X)^{-1}X^\top$                      | Attention matrix $A = \text{softmax}(QK^\top/\sqrt{d_k})$            | Both are projection/averaging matrices; A is learned and input-dependent              |
+| Ridge bias-variance tradeoff                                     | Training/test error with regularisation                              | Same mathematical framework; ridge is linear case                                     |
+| Bayesian posterior = Ridge MAP                                   | NTK kernel regression                                                | Both are kernel methods; NTK kernel is architecture-dependent                         |
+| Double descent at interpolation threshold                        | Grokking phase transition                                            | Both: non-monotone test error vs. complexity/time                                     |
+| LoRA $\Delta W = BA$, low rank                                   | LoRA in neural networks                                              | Identical construction; generalises to any layer                                      |
+| NTK introduction                                                 | Full NTK theory (§13)                                                | §14-01 NTK is for linear networks; §14-02 extends to nonlinear                        |
+| LDA/QDA                                                          | Pre-training + linear probes                                         | LDA = linear readout on Gaussian features; probe = linear readout on learned features |
+| SVM dual $\sum \alpha_i y_i \mathbf{x}_i$                        | Last-layer features as support vectors                               | Linear separability in feature space; SVM = optimal linear classifier                 |
 
 ### I.2 How This Section Connects Forward
 
@@ -1769,6 +1777,7 @@ The following table shows how every concept in §14-01 (Linear Models) generalis
 An alternative, arguably more elegant proof of the universal approximation theorem uses the Stone-Weierstrass theorem from functional analysis.
 
 **Stone-Weierstrass Theorem.** Let $K$ be a compact Hausdorff space and $\mathcal{A} \subseteq C(K)$ be a subalgebra (closed under addition, scalar multiplication, and pointwise multiplication) such that:
+
 1. $\mathcal{A}$ separates points: for $x \neq y \in K$, there exists $f \in \mathcal{A}$ with $f(x) \neq f(y)$
 2. $\mathcal{A}$ contains the constant functions
 
@@ -1779,7 +1788,6 @@ Then $\mathcal{A}$ is dense in $C(K)$ with the sup-norm.
 For non-polynomial $\sigma$ (including sigmoid, tanh, ReLU), the argument requires more care: the key property is that the linear span of neurons already separates points (for discriminatory $\sigma$), so no closure under products is needed.
 
 **Lore and limitations.** The Stone-Weierstrass route provides clean proof structure but is less constructive than Cybenko's original proof. Both proofs are non-constructive: they prove existence of an approximating network but give no algorithm to find it. The constructive approximation theory (Barron, 1993, §3.2) provides explicit width bounds at the cost of restricting the function class.
-
 
 ---
 
@@ -1836,7 +1844,7 @@ scores -= scores.max(-1, keepdims=True)  # log-sum-exp trick
 exp_scores = np.exp(scores)
 weights = exp_scores / exp_scores.sum(-1, keepdims=True)
 output = weights @ V
-```
+```text
 
 ### L.2 Gradient Clipping
 
@@ -1860,7 +1868,7 @@ def adam_step(theta, grad, m, v, t, lr=1e-3, b1=0.9, b2=0.999, eps=1e-8):
     v_hat = v / (1 - b2**t)               # bias correction
     theta -= lr * m_hat / (np.sqrt(v_hat) + eps)
     return theta, m, v
-```
+```text
 
 ### L.4 He Initialisation
 
@@ -1876,7 +1884,6 @@ def he_init(fan_in, fan_out, activation='relu'):
         std = np.sqrt(1.0 / fan_in)  # LeCun
     return np.random.randn(fan_out, fan_in) * std
 ```
-
 
 ---
 
@@ -1933,6 +1940,7 @@ A learned gating mechanism: the first branch produces values, the second produce
 **SwiGLU** (Shazeer, 2020): Replace $\sigma$ with SiLU: $\text{SwiGLU}(\mathbf{x}) = (\text{SiLU}(W_1\mathbf{x})) \odot (W_2\mathbf{x})$
 
 Used in PaLM, LLaMA-2/3, Mistral, Gemma. Parameter counts differ from vanilla FFN:
+
 - Vanilla FFN: $2 \times 4d \times d = 8d^2$
 - SwiGLU FFN: $3 \times (8d/3) \times d = 8d^2$ (same total flops with $8d/3$ expansion)
 
@@ -1956,12 +1964,11 @@ Only the top-$r$ experts (typically $r=2$) process each token, making the effect
 
 **Mathematical property:** MoE is a piecewise function — each "piece" corresponds to a particular combination of active experts. With $K=8$ experts and $r=2$ active, there are $\binom{8}{2} = 28$ possible expert combinations, each defining a different linear map for that input region. This is similar to the piecewise-linear structure of ReLU networks but at a much coarser granularity.
 
-
 ---
 
 ## Appendix O: Quick Reference Card
 
-```
+```text
 NEURAL NETWORKS: KEY EQUATIONS
 ════════════════════════════════════════════════════════════════════════
 
@@ -2019,4 +2026,3 @@ NEURAL NETWORKS: KEY EQUATIONS
 
 ════════════════════════════════════════════════════════════════════════
 ```
-

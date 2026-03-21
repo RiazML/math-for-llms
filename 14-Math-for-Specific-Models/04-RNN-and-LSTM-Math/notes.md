@@ -25,9 +25,9 @@ In 2026, attention mechanisms and transformers dominate NLP, but recurrent archi
 
 ## Companion Notebooks
 
-| Notebook | Description |
-|---|---|
-| [theory.ipynb](theory.ipynb) | Interactive demos: RNN forward pass, BPTT gradient flow, LSTM gate visualisation, spectral radius stability, attention alignment |
+| Notebook                           | Description                                                                                                                         |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| [theory.ipynb](theory.ipynb)       | Interactive demos: RNN forward pass, BPTT gradient flow, LSTM gate visualisation, spectral radius stability, attention alignment    |
 | [exercises.ipynb](exercises.ipynb) | 8 graded problems: vanilla RNN, BPTT, LSTM gates, GRU, spectral analysis, gradient clipping, Bahdanau attention, character-level LM |
 
 ## Learning Objectives
@@ -129,7 +129,7 @@ This bottleneck is fundamental and cannot be avoided in fixed-dimensional recurr
 
 ### 1.3 Historical Timeline
 
-```
+```text
 RECURRENT NETWORKS: TIMELINE
 ════════════════════════════════════════════════════════════════════════
 
@@ -163,7 +163,7 @@ The key inflection points: (1) 1991–1997: the vanishing gradient problem motiv
 
 An RNN is most clearly understood by **unrolling** the recurrence into a directed acyclic graph (DAG). For a sequence of length $T$, we create $T$ copies of the same computation, connected by the hidden state:
 
-```
+```text
 UNROLLED RNN COMPUTATION GRAPH
 ════════════════════════════════════════════════════════════════════════
 
@@ -197,6 +197,7 @@ The unrolled graph makes the backward pass visible: gradients flow backward thro
 $$\mathbf{h}_t = \sigma(W_h \mathbf{h}_{t-1} + W_x \mathbf{x}_t + \mathbf{b}_h), \quad t = 1, 2, \ldots, T$$
 
 where:
+
 - $W_h \in \mathbb{R}^{d \times d}$ — **hidden-to-hidden weight matrix** (recurrent weights)
 - $W_x \in \mathbb{R}^{d \times p}$ — **input-to-hidden weight matrix**
 - $\mathbf{b}_h \in \mathbb{R}^d$ — **hidden bias**
@@ -210,6 +211,7 @@ $$\mathbf{h}_t = \sigma\!\left(W \begin{bmatrix} \mathbf{h}_{t-1} \\ \mathbf{x}_
 This concatenated form reveals that the RNN is simply an MLP applied to the concatenation of the previous hidden state and the current input — the recurrence comes entirely from feeding $\mathbf{h}_{t-1}$ back in.
 
 **Non-examples that fail to be valid RNNs:**
+
 - A network that uses a different $W_h^{(t)}$ at each step is not an RNN (it is an unrolled MLP); it cannot handle variable-length sequences and does not share parameters.
 - Setting $W_h = 0$ reduces the RNN to an MLP with no memory; each output depends only on the current input.
 - Using $\sigma = $ identity produces a linear dynamical system; useful for analysis but unstable in practice without spectral control.
@@ -222,12 +224,12 @@ $$\hat{\mathbf{y}}_t = \text{softmax}(W_o \mathbf{h}_t + \mathbf{b}_o)$$
 
 where $W_o \in \mathbb{R}^{k \times d}$ and $k$ is the vocabulary or class size. Three standard sequence architectures exist:
 
-| Architecture | Input | Output | Use Case |
-|---|---|---|---|
-| **Many-to-one** | $T$ inputs | 1 output (at $t=T$) | Sentiment classification |
-| **One-to-many** | 1 input | $T$ outputs | Image captioning |
-| **Many-to-many (sync)** | $T$ inputs | $T$ outputs | Language modelling, POS tagging |
-| **Many-to-many (async)** | $T_x$ inputs | $T_y$ outputs | Machine translation (encoder-decoder) |
+| Architecture             | Input        | Output              | Use Case                              |
+| ------------------------ | ------------ | ------------------- | ------------------------------------- |
+| **Many-to-one**          | $T$ inputs   | 1 output (at $t=T$) | Sentiment classification              |
+| **One-to-many**          | 1 input      | $T$ outputs         | Image captioning                      |
+| **Many-to-many (sync)**  | $T$ inputs   | $T$ outputs         | Language modelling, POS tagging       |
+| **Many-to-many (async)** | $T_x$ inputs | $T_y$ outputs       | Machine translation (encoder-decoder) |
 
 For language modelling (predicting the next token), the loss at each step is cross-entropy:
 
@@ -242,6 +244,7 @@ The total number of trainable parameters in a vanilla RNN is:
 $$|\theta| = d \cdot d + d \cdot p + d + k \cdot d + k = d^2 + dp + d + kd + k$$
 
 Breaking this down:
+
 - $W_h$: $d^2$ parameters — dominant term for large hidden dimension
 - $W_x$: $dp$ parameters
 - $\mathbf{b}_h$: $d$ parameters
@@ -257,23 +260,25 @@ Crucially, this count is **independent of sequence length $T$**. The same $d^2 +
 The choice of $\sigma$ in recurrence is critical and non-obvious:
 
 **Tanh** ($\sigma(z) = \tanh(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}}$):
+
 - Range $(-1, 1)$: bounded outputs prevent hidden state explosion
 - Derivative: $\sigma'(z) = 1 - \tanh^2(z) \in (0, 1]$, maximised at $z=0$
 - Symmetric around zero: helps with gradient flow compared to sigmoid
 - Standard choice for vanilla RNNs
 
 **Sigmoid** ($\sigma(z) = \frac{1}{1+e^{-z}}$):
+
 - Range $(0, 1)$: natural for gate activations in LSTM/GRU
 - Not used as main recurrent activation: squashes gradients too aggressively
 
 **ReLU** ($\sigma(z) = \max(0, z)$):
+
 - Unbounded: hidden state can grow without bound if $\rho(W_h) > 1$
 - Derivative is 0 or 1: avoids vanishing gradients but enables exploding
 - Requires careful initialisation (identity init for $W_h$) and gradient clipping
 - Used in IRNN (Le et al., 2015): $W_h = I$, ReLU activation
 
 **For AI:** LSTM and GRU gates use sigmoid activations (range $(0,1)$ for gating); the candidate state uses tanh (range $(-1,1)$ for bounded updates). This combination is not arbitrary — it is the mathematical structure that enables the cell state highway (Section 4.3).
-
 
 ---
 
@@ -324,7 +329,7 @@ $$\left\|\frac{\partial \mathbf{h}_T}{\partial \mathbf{h}_k}\right\|_2 \leq \|W_
 - If $\sigma_{\max}(W_h) < 1$: gradients vanish exponentially at rate $(T-k)$. Gradients from early steps are negligible, and the network cannot learn long-range dependencies.
 - If $\sigma_{\max}(W_h) > 1$: the upper bound exceeds 1, but gradients may still explode if eigenvalues are large.
 
-```
+```text
 VANISHING vs EXPLODING GRADIENT REGIMES
 ════════════════════════════════════════════════════════════════════════
 
@@ -353,6 +358,7 @@ VANISHING vs EXPLODING GRADIENT REGIMES
 When $\|W_h\|_2 > 1$, gradients can grow exponentially, causing parameter updates to overshoot and numerical instability (NaN). The standard remedy is **gradient norm clipping**:
 
 **Algorithm (Gradient Norm Clipping).**
+
 1. Compute the gradient $\mathbf{g} = \nabla_\theta \mathcal{L}$ (full parameter vector gradient)
 2. Compute the global gradient norm: $\|\mathbf{g}\| = \sqrt{\sum_i g_i^2}$
 3. If $\|\mathbf{g}\| > \tau$ (threshold), rescale: $\mathbf{g} \leftarrow \frac{\tau}{\|\mathbf{g}\|} \mathbf{g}$
@@ -369,6 +375,7 @@ This preserves the **direction** of the gradient while capping its magnitude at 
 For very long sequences ($T \gg 1$), full BPTT is computationally prohibitive: it requires storing all $T$ hidden states and backpropagating through all $T$ steps. **Truncated BPTT** approximates the gradient by limiting the lookback window:
 
 **Algorithm (Truncated BPTT with window $k$).**
+
 1. Process sequence in chunks of length $k$
 2. For each chunk $[t, t+k]$: run forward pass, compute gradients only through the last $k$ steps
 3. Carry forward the hidden state between chunks (no gradient through the boundary)
@@ -380,10 +387,10 @@ $$\left\|\frac{\partial \mathcal{L}}{\partial W_h}\right\|_{\text{true}} - \left
 For $\rho(W_h) < 1$, the approximation error decays exponentially with $k$. In practice, $k \in [20, 100]$ is sufficient.
 
 **Trade-off:**
+
 - Small $k$: fast training, but the network cannot learn dependencies longer than $k$ steps
 - Large $k$: better gradient estimates, higher memory cost ($O(k \cdot d)$ for hidden states)
 - Truncated BPTT is the standard training procedure for language models on long documents
-
 
 ---
 
@@ -426,7 +433,7 @@ $$\mathbf{c}_t = \mathbf{f}_t \odot \mathbf{c}_{t-1} + \mathbf{i}_t \odot \tilde
 **Hidden state output:**
 $$\mathbf{h}_t = \mathbf{o}_t \odot \tanh(\mathbf{c}_t)$$
 
-```
+```text
 LSTM CELL DIAGRAM
 ════════════════════════════════════════════════════════════════════════
 
@@ -457,6 +464,7 @@ The gradient of the loss $\mathcal{L}$ with respect to the cell state at step $k
 $$\frac{\partial \mathbf{c}_T}{\partial \mathbf{c}_k} = \prod_{j=k}^{T-1} \frac{\partial \mathbf{c}_{j+1}}{\partial \mathbf{c}_j} = \prod_{j=k}^{T-1} \text{diag}(\mathbf{f}_{j+1})$$
 
 This is a product of **diagonal matrices**, which is:
+
 1. **Diagonal** (no cross-term interference between dimensions)
 2. **Elementwise controlled** — each dimension $i$ has its own independent gradient decay $\prod_{j=k}^{T-1} f_{j+1,i}$
 3. **Learnable** — the network can set $f_{j,i} \approx 1$ to preserve a dimension and $f_{j,i} \approx 0$ to reset it
@@ -474,6 +482,7 @@ $$\mathbf{h}_t = \mathbf{o}_t \odot \tanh(\mathbf{c}_t)$$
 The output gate $\mathbf{o}_t$ acts as a **filter** on the cell state: it selects which dimensions of the stored memory to expose at the current step. The $\tanh(\mathbf{c}_t)$ squashes the cell state back to $(-1,1)$, ensuring that $\mathbf{h}_t$ is bounded even if $\mathbf{c}_t$ has grown large.
 
 **Intuition for the two states:**
+
 - **Cell state $\mathbf{c}_t$**: like long-term memory in a human — holds context accumulated over many steps; not directly observable
 - **Hidden state $\mathbf{h}_t$**: like working memory — what is currently "in mind" and relevant to the immediate output; passed to the next step and to the output layer
 
@@ -499,7 +508,6 @@ The first term — the cell state gradient — can be large even for small $k$ (
 
 **Empirical observation:** In practice, LSTM gradients through the cell state are 10-100× larger than through the hidden state path for sequences longer than 20-30 steps. This is directly measurable via gradient norm tracking per pathway.
 
-
 ---
 
 ## 5. Gated Recurrent Units (GRU)
@@ -522,7 +530,7 @@ $$\mathbf{h}_t = (1 - \mathbf{z}_t) \odot \mathbf{h}_{t-1} + \mathbf{z}_t \odot 
 
 The update gate $\mathbf{z}_t$ plays the combined role of LSTM's forget and input gates: when $\mathbf{z}_t \approx 0$, the hidden state is copied unchanged ($\mathbf{h}_t \approx \mathbf{h}_{t-1}$); when $\mathbf{z}_t \approx 1$, the hidden state is replaced by the candidate.
 
-```
+```text
 GRU vs LSTM: ARCHITECTURE COMPARISON
 ════════════════════════════════════════════════════════════════════════
 
@@ -552,6 +560,7 @@ $$\frac{\partial \mathbf{h}_T}{\partial \mathbf{h}_k} = \prod_{j=k}^{T-1} \text{
 When $\mathbf{z}_t \approx 0$, this is approximately identity — analogous to the LSTM's open forget gate. The gradient highway in GRU relies on the update gate rather than a separate cell state.
 
 **Empirical comparison:**
+
 - On short sequences ($T < 50$): GRU typically matches LSTM performance
 - On long sequences ($T > 200$): LSTM's explicit cell state separation slightly outperforms GRU
 - On small datasets: GRU's lower parameter count reduces overfitting
@@ -561,14 +570,14 @@ When $\mathbf{z}_t \approx 0$, this is approximately identity — analogous to t
 
 Researchers have systematically ablated LSTM gates to understand which components are essential:
 
-| Variant | Description | Params | Notes |
-|---|---|---|---|
-| LSTM (full) | 4 gates + cell state | $4d(d+p+1)$ | Baseline |
-| LSTM - forget gate | $f_t = 1$ fixed | $3d(d+p+1)$ | Much worse on long sequences |
-| LSTM - input gate | $i_t = 1 - f_t$ | $3d(d+p+1)$ | Minimal degradation |
-| LSTM - output gate | $o_t = 1$ fixed | $3d(d+p+1)$ | Modest degradation |
-| GRU | 2 gates, 1 state | $3d(d+p+1)$ | Competitive |
-| MGU (Minimal Gated) | 1 gate | $2d(d+p+1)$ | Often competitive |
+| Variant             | Description          | Params      | Notes                        |
+| ------------------- | -------------------- | ----------- | ---------------------------- |
+| LSTM (full)         | 4 gates + cell state | $4d(d+p+1)$ | Baseline                     |
+| LSTM - forget gate  | $f_t = 1$ fixed      | $3d(d+p+1)$ | Much worse on long sequences |
+| LSTM - input gate   | $i_t = 1 - f_t$      | $3d(d+p+1)$ | Minimal degradation          |
+| LSTM - output gate  | $o_t = 1$ fixed      | $3d(d+p+1)$ | Modest degradation           |
+| GRU                 | 2 gates, 1 state     | $3d(d+p+1)$ | Competitive                  |
+| MGU (Minimal Gated) | 1 gate               | $2d(d+p+1)$ | Often competitive            |
 
 **Key finding** (Jozefowicz et al., 2015; Greff et al., 2017): The **forget gate** is the single most important gate. Removing it causes catastrophic performance degradation on long-range tasks. The output gate matters less. This explains why the GRU (which uses the update gate as a combined forget+input gate) works well: it preserves the essential forget-gate functionality.
 
@@ -583,6 +592,7 @@ A vanilla RNN (with no input, or with $\mathbf{x}_t$ viewed as a driving signal)
 $$\mathbf{h}_t = F(\mathbf{h}_{t-1}) = \sigma(W_h \mathbf{h}_{t-1} + \mathbf{b})$$
 
 The long-run behaviour of this system determines what the RNN "remembers":
+
 - **Fixed points**: $\mathbf{h}^* = F(\mathbf{h}^*)$ — stable equilibria that the hidden state converges to
 - **Limit cycles**: periodic orbits — the hidden state oscillates with period $p$
 - **Strange attractors / chaos**: sensitive dependence on $\mathbf{h}_0$; exponential divergence of trajectories
@@ -641,7 +651,6 @@ For trained RNNs, the Lyapunov spectrum directly measures the **information prop
 
 **For AI:** Lyapunov analysis was applied to transformers (Dong et al., 2021) to explain rank collapse in attention — when attention maps become rank-1, the token representations collapse to the same vector, and $\lambda_{\max} \to -\infty$. This motivates layer normalisation and residual connections as stability mechanisms.
 
-
 ---
 
 ## 7. Initialisation and Training Strategies
@@ -655,6 +664,7 @@ $$W_x \sim \mathcal{U}\!\left(-\sqrt{\frac{6}{d+p}},\; \sqrt{\frac{6}{d+p}}\righ
 This targets unit variance for the pre-activation assuming inputs have unit variance.
 
 **$W_h$ (hidden-to-hidden):** The critical matrix. Standard options:
+
 - **Gaussian, rescaled:** $W_h \sim \mathcal{N}(0, 1/d)$, giving $\rho(W_h) \approx 1$ in expectation by the circular law
 - **Orthogonal initialisation:** Draw $W_h$ from the Haar measure on $O(d)$ via QR decomposition of a random Gaussian matrix; guarantees $\rho(W_h) = 1$ exactly
 - **Identity (IRNN):** $W_h = I$; used with ReLU activation (Le et al., 2015)
@@ -667,7 +677,7 @@ This targets unit variance for the pre-activation assuming inputs have unit vari
 
 Gradient clipping (introduced in Section 3.4) is the universal remedy for exploding gradients. The algorithm:
 
-```
+```text
 GRADIENT CLIPPING ALGORITHM
 ════════════════════════════════════════════════════════════════════════
 
@@ -686,6 +696,7 @@ GRADIENT CLIPPING ALGORITHM
 ```
 
 **Choosing $\tau$:** Inspect the gradient norm histogram during early training. Set $\tau$ at approximately the 95th percentile of the norm distribution when training is stable. Typical values:
+
 - Language modelling LSTMs: $\tau = 5$
 - Character-level models: $\tau = 1$–$3$
 - Modern LLM training: $\tau = 1.0$ (GPT-3, GPT-4 training configs)
@@ -787,7 +798,6 @@ The attention weights $\alpha_{t,s}$ form an **alignment matrix**: $\alpha_{t,s}
 
 **For AI:** This mechanism is the direct precursor to **multi-head self-attention** in transformers. The transformer replaces the recurrent structure entirely, using attention to mix all positions directly — but the mathematical form of the attention score ($\mathbf{q}^\top \mathbf{k}$ replaces $\mathbf{v}^\top \tanh(W\mathbf{h})$) is a direct generalisation. Understanding Bahdanau attention makes the transformer intuition much clearer.
 
-
 ---
 
 ## 9. Applications in Modern AI
@@ -823,23 +833,25 @@ $$\mathbf{h}_t^{(\text{dec})} = \text{LSTM}(\mathbf{h}_{t-1}^{(\text{dec})}, [\m
 ### 9.3 Time-Series and Scientific ML
 
 RNNs and LSTMs remain competitive on time-series tasks where:
+
 1. **Streaming inference** is required (no future context)
 2. **Irregular sampling** is present (Neural ODE-based variants)
 3. **Long-range dependencies** are less critical than local patterns
 
 Applications:
+
 - **Financial time-series:** Stock price prediction, volatility modelling; LSTMs capture momentum effects across days-to-weeks timescales
 - **Medical signals:** ECG anomaly detection, ICU patient monitoring; LSTMs trained on 24-hour windows
 - **Weather forecasting:** GraphCast (Google, 2023) uses message-passing, but LSTM baselines remain strong for single-station forecasting
 
 **Comparison (2024 landscape):**
 
-| Method | Long-range | Streaming | Parameters | When to use |
-|---|---|---|---|---|
-| LSTM | Good | Yes | Moderate | Streaming, resource-constrained |
-| Temporal CNN | Good | Yes | Low | 1D conv for fixed-length patterns |
-| Transformer | Excellent | No | High | Offline, full-sequence tasks |
-| Mamba/SSM | Excellent | Yes | Low–Moderate | Long sequences, streaming |
+| Method       | Long-range | Streaming | Parameters   | When to use                       |
+| ------------ | ---------- | --------- | ------------ | --------------------------------- |
+| LSTM         | Good       | Yes       | Moderate     | Streaming, resource-constrained   |
+| Temporal CNN | Good       | Yes       | Low          | 1D conv for fixed-length patterns |
+| Transformer  | Excellent  | No        | High         | Offline, full-sequence tasks      |
+| Mamba/SSM    | Excellent  | Yes       | Low–Moderate | Long sequences, streaming         |
 
 ### 9.4 State Space Models and Mamba: The 2024 Connection
 
@@ -856,7 +868,7 @@ $$B_t = B(\mathbf{x}_t), \quad C_t = C(\mathbf{x}_t), \quad \Delta_t = \Delta(\m
 
 This is directly analogous to LSTM gating: $\Delta_t$ controls the effective memory timescale at each step (like the forget gate $\mathbf{f}_t$). When $\Delta_t$ is large, the state integrates over a short window; when small, over a long window. Mamba achieves transformer-level performance on language benchmarks with $O(T)$ rather than $O(T^2)$ compute.
 
-```
+```text
 LSTM ↔ MAMBA CORRESPONDENCE
 ════════════════════════════════════════════════════════════════════════
 
@@ -893,65 +905,73 @@ where $\mathbf{a}(t) = \frac{\partial \mathcal{L}}{\partial \mathbf{h}(t)}$ is t
 
 ## 10. Common Mistakes
 
-| # | Mistake | Why It's Wrong | Fix |
-|---|---|---|---|
-| 1 | Applying dropout to hidden-to-hidden connections at each step | Destroys temporal memory; different masks at each step disrupt learned structure | Apply dropout only to input/output connections, or use variational (same mask per sequence) |
-| 2 | Initialising forget gate bias to 0 | LSTM starts discarding half its memory before learning anything | Initialise $\mathbf{b}_f = 1$ (or $2$ for long sequences) |
-| 3 | Confusing cell state $\mathbf{c}_t$ with hidden state $\mathbf{h}_t$ | They serve different roles: $\mathbf{c}_t$ is long-term memory, $\mathbf{h}_t$ is working output | $\mathbf{c}_t$ accumulates via addition; $\mathbf{h}_t = \mathbf{o}_t \odot \tanh(\mathbf{c}_t)$ is filtered |
-| 4 | Using spectral radius $\rho(W_h) < 1$ as the only stability criterion | True for linear systems; the nonlinear tanh introduces additional stability that $\rho$ does not capture | Spectral radius governs linear regime; also check empirical gradient norms |
-| 5 | Teacher forcing at inference time | Teacher forcing uses ground truth tokens; at inference, only model predictions are available; distribution mismatch | Use scheduled sampling or fully autoregressive inference from step 1 |
-| 6 | Truncated BPTT with window shorter than the dependency | Gradient cannot reach earlier timesteps; long-range patterns are not learned | Set truncation window ≥ the expected dependency length |
-| 7 | Using ReLU without gradient clipping in a vanilla RNN | Unbounded activations and spectral radius > 1 cause immediate gradient explosion | Use gradient clipping ($\tau = 1$–$5$) or switch to tanh |
-| 8 | Treating bidirectional RNNs as causal | The backward pass sees future inputs; cannot be used for real-time or autoregressive generation | Use bidirectional only for offline/full-sequence tasks (classification, NER, translation encoder) |
-| 9 | Ignoring the distinction between perplexity and cross-entropy loss | Perplexity = exp(loss) — a 10% reduction in loss is a large reduction in perplexity | Track both; compare models using PPL for interpretability, loss for training stability |
-| 10 | Stacking many LSTM layers without residual connections | Deep LSTMs (6+) suffer from gradient vanishing through depth | Add residual (skip) connections between LSTM layers for depth > 3 |
-| 11 | Using the same dropout rate for all sequence lengths | Short sequences tolerate high dropout; long sequences need lower rates to preserve gradient flow | Tune dropout rate; prefer zoneout for long sequences |
+| #   | Mistake                                                               | Why It's Wrong                                                                                                      | Fix                                                                                                          |
+| --- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 1   | Applying dropout to hidden-to-hidden connections at each step         | Destroys temporal memory; different masks at each step disrupt learned structure                                    | Apply dropout only to input/output connections, or use variational (same mask per sequence)                  |
+| 2   | Initialising forget gate bias to 0                                    | LSTM starts discarding half its memory before learning anything                                                     | Initialise $\mathbf{b}_f = 1$ (or $2$ for long sequences)                                                    |
+| 3   | Confusing cell state $\mathbf{c}_t$ with hidden state $\mathbf{h}_t$  | They serve different roles: $\mathbf{c}_t$ is long-term memory, $\mathbf{h}_t$ is working output                    | $\mathbf{c}_t$ accumulates via addition; $\mathbf{h}_t = \mathbf{o}_t \odot \tanh(\mathbf{c}_t)$ is filtered |
+| 4   | Using spectral radius $\rho(W_h) < 1$ as the only stability criterion | True for linear systems; the nonlinear tanh introduces additional stability that $\rho$ does not capture            | Spectral radius governs linear regime; also check empirical gradient norms                                   |
+| 5   | Teacher forcing at inference time                                     | Teacher forcing uses ground truth tokens; at inference, only model predictions are available; distribution mismatch | Use scheduled sampling or fully autoregressive inference from step 1                                         |
+| 6   | Truncated BPTT with window shorter than the dependency                | Gradient cannot reach earlier timesteps; long-range patterns are not learned                                        | Set truncation window ≥ the expected dependency length                                                       |
+| 7   | Using ReLU without gradient clipping in a vanilla RNN                 | Unbounded activations and spectral radius > 1 cause immediate gradient explosion                                    | Use gradient clipping ($\tau = 1$–$5$) or switch to tanh                                                     |
+| 8   | Treating bidirectional RNNs as causal                                 | The backward pass sees future inputs; cannot be used for real-time or autoregressive generation                     | Use bidirectional only for offline/full-sequence tasks (classification, NER, translation encoder)            |
+| 9   | Ignoring the distinction between perplexity and cross-entropy loss    | Perplexity = exp(loss) — a 10% reduction in loss is a large reduction in perplexity                                 | Track both; compare models using PPL for interpretability, loss for training stability                       |
+| 10  | Stacking many LSTM layers without residual connections                | Deep LSTMs (6+) suffer from gradient vanishing through depth                                                        | Add residual (skip) connections between LSTM layers for depth > 3                                            |
+| 11  | Using the same dropout rate for all sequence lengths                  | Short sequences tolerate high dropout; long sequences need lower rates to preserve gradient flow                    | Tune dropout rate; prefer zoneout for long sequences                                                         |
 
 ---
 
 ## 11. Exercises
 
 **Exercise 1 (★):** Implement a vanilla RNN forward pass from scratch using only NumPy. Given matrices $W_h$, $W_x$, bias $\mathbf{b}$, and an input sequence $(\mathbf{x}_1, \ldots, \mathbf{x}_T)$:
+
 - (a) Implement the recurrence $\mathbf{h}_t = \tanh(W_h \mathbf{h}_{t-1} + W_x \mathbf{x}_t + \mathbf{b})$
 - (b) Verify that your implementation matches `numpy.dot` computations step-by-step
 - (c) Show that setting $W_h = 0$ reduces to independent per-step MLPs
 
 **Exercise 2 (★):** Derive BPTT gradients and verify numerically. Given a 2-step RNN with scalar hidden state:
+
 - (a) Compute $\frac{\partial \mathcal{L}}{\partial W_h}$ analytically via chain rule
 - (b) Verify against numerical gradient: $\frac{\partial \mathcal{L}}{\partial W_h} \approx \frac{\mathcal{L}(W_h + \epsilon) - \mathcal{L}(W_h - \epsilon)}{2\epsilon}$
 - (c) Show that the gradient decomposes as a sum over time steps
 
 **Exercise 3 (★★):** Implement all four LSTM gate equations and verify the cell-state gradient highway:
+
 - (a) Implement LSTM forward pass: compute $\mathbf{f}_t, \mathbf{i}_t, \tilde{\mathbf{c}}_t, \mathbf{o}_t, \mathbf{c}_t, \mathbf{h}_t$
 - (b) Compare to `torch.nn.LSTMCell` for numerical agreement
 - (c) Set $\mathbf{f}_t = \mathbf{1}$ and show that $\frac{\partial \mathbf{c}_T}{\partial \mathbf{c}_0} \approx I$ (identity gradient)
 - (d) Set $\mathbf{f}_t = \mathbf{0}$ and show that $\frac{\partial \mathbf{c}_T}{\partial \mathbf{c}_0} \approx 0$ (complete forgetting)
 
 **Exercise 4 (★★):** Implement GRU and compare parameter count with LSTM:
+
 - (a) Implement GRU: compute $\mathbf{z}_t, \mathbf{r}_t, \tilde{\mathbf{h}}_t, \mathbf{h}_t$
 - (b) Count parameters for both GRU and LSTM with $d=128$, $p=64$
 - (c) Show that GRU with $\mathbf{z}_t = \mathbf{0}$ copies the previous state (identity)
 - (d) Show that GRU with $\mathbf{z}_t = \mathbf{1}$ replaces state with candidate
 
 **Exercise 5 (★★):** Analyse spectral radius vs gradient norm across sequence lengths:
+
 - (a) Create RNNs with $\rho(W_h) \in \{0.5, 0.9, 1.0, 1.1\}$ using scaled orthogonal matrices
 - (b) For each, run a forward pass over $T = 100$ steps and compute $\|\frac{\partial \mathbf{h}_T}{\partial \mathbf{h}_0}\|_F$
 - (c) Plot gradient norm vs $T$ for each $\rho$ value; verify exponential decay/growth
 - (d) Compute the effective memory horizon: largest $k$ with $\|\frac{\partial \mathbf{h}_T}{\partial \mathbf{h}_{T-k}}\|_F > 0.01$
 
 **Exercise 6 (★★):** Implement gradient clipping and demonstrate its effect on training stability:
+
 - (a) Train a vanilla RNN (without clipping) on a synthetic copy task; observe gradient explosion
 - (b) Add gradient norm clipping with $\tau = 5$; compare loss curves
 - (c) Plot gradient norm histogram over training steps for both cases
 - (d) Show that clipping preserves gradient direction: $\cos(\mathbf{g}_{\text{clipped}}, \mathbf{g}_{\text{original}}) = 1$
 
 **Exercise 7 (★★★):** Build Bahdanau attention over an LSTM encoder-decoder:
+
 - (a) Implement encoder: bidirectional LSTM over source sequence
 - (b) Implement attention: compute $e_{t,s} = \mathbf{v}^\top \tanh(W_a \mathbf{h}_s + U_a \mathbf{h}_{t-1})$, then softmax
 - (c) Implement decoder: LSTM step conditioned on context vector $\mathbf{c}_t = \sum_s \alpha_{t,s} \mathbf{h}_s$
 - (d) Visualise the attention weight matrix $\alpha$ as a heatmap; verify it produces a near-diagonal pattern for a simple copy task
 
 **Exercise 8 (★★★):** Implement a character-level RNN language model and compute perplexity:
+
 - (a) Tokenise a text string at the character level; create train/validation split
 - (b) Implement RNN LM with cross-entropy loss and teacher forcing
 - (c) Implement the same architecture with LSTM instead of vanilla RNN
@@ -962,19 +982,19 @@ where $\mathbf{a}(t) = \frac{\partial \mathcal{L}}{\partial \mathbf{h}(t)}$ is t
 
 ## 12. Why This Matters for AI (2026 Perspective)
 
-| Concept | AI/ML Impact |
-|---|---|
-| Vanishing gradient (BPTT) | Motivated residual connections (ResNet), layer norm, and LSTM — foundational for all deep learning |
-| LSTM gating mechanism | Direct ancestor of Mamba's selective state spaces; gating appears in GRU, highway networks, transformer FFN gating (SwiGLU) |
-| Cell state highway | Conceptual precursor to residual connections; same mathematical structure (additive updates bypass multiplicative decay) |
-| Spectral radius stability | Motivates orthogonal initialisation, spectral normalisation (GANs), and careful weight initialisation in all deep networks |
-| Bidirectional LSTM | Architectural ancestor of BERT and all encoder-only transformers; bidirectionality as a design principle |
-| Encoder-decoder with LSTM | Foundation of seq2seq learning; Bahdanau attention directly inspired the transformer's attention mechanism |
-| Gradient clipping | Universal training trick used in GPT-3, GPT-4, LLaMA, Gemini — every large-scale LLM training run |
-| Character-level LM | Demonstrated that neural networks learn structured patterns in sequences; opened the path to GPT |
-| Teacher forcing | Still used in LLM training; scheduled sampling and RLHF address the train-test discrepancy |
-| Neural ODE | Enables continuous-time sequence models; used in latent ODE for irregular medical time-series |
-| Mamba/SSM connection | LSTMs and SSMs are unified by their gating and state-space structure; the field is revisiting recurrence at scale |
+| Concept                   | AI/ML Impact                                                                                                                |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Vanishing gradient (BPTT) | Motivated residual connections (ResNet), layer norm, and LSTM — foundational for all deep learning                          |
+| LSTM gating mechanism     | Direct ancestor of Mamba's selective state spaces; gating appears in GRU, highway networks, transformer FFN gating (SwiGLU) |
+| Cell state highway        | Conceptual precursor to residual connections; same mathematical structure (additive updates bypass multiplicative decay)    |
+| Spectral radius stability | Motivates orthogonal initialisation, spectral normalisation (GANs), and careful weight initialisation in all deep networks  |
+| Bidirectional LSTM        | Architectural ancestor of BERT and all encoder-only transformers; bidirectionality as a design principle                    |
+| Encoder-decoder with LSTM | Foundation of seq2seq learning; Bahdanau attention directly inspired the transformer's attention mechanism                  |
+| Gradient clipping         | Universal training trick used in GPT-3, GPT-4, LLaMA, Gemini — every large-scale LLM training run                           |
+| Character-level LM        | Demonstrated that neural networks learn structured patterns in sequences; opened the path to GPT                            |
+| Teacher forcing           | Still used in LLM training; scheduled sampling and RLHF address the train-test discrepancy                                  |
+| Neural ODE                | Enables continuous-time sequence models; used in latent ODE for irregular medical time-series                               |
+| Mamba/SSM connection      | LSTMs and SSMs are unified by their gating and state-space structure; the field is revisiting recurrence at scale           |
 
 ---
 
@@ -992,7 +1012,7 @@ The **Transformer architecture** (Section 14-05) is the natural successor to att
 
 The transformer eliminates the recurrent bottleneck entirely: instead of compressing history into a fixed-size state, it simply keeps all previous token representations in memory (the KV cache) and attends to all of them at each step. The trade-off is the $O(T^2)$ attention cost — which is why, in 2024, the field is revisiting recurrence through Mamba and other linear-attention variants that combine the constant-time-per-step property of RNNs with the long-range memory of attention.
 
-```
+```text
 POSITION IN CURRICULUM
 ════════════════════════════════════════════════════════════════════════
 
@@ -1027,4 +1047,3 @@ POSITION IN CURRICULUM
 ```
 
 The mathematics of this section — gating, state updates, gradient flow through time — will reappear throughout the remainder of the curriculum. Every time you see a residual connection, a gating mechanism (SwiGLU, GLU, Mamba's selective scan), or a KV cache, you are seeing a descendant of the ideas developed here.
-
