@@ -104,6 +104,7 @@ After completing this section, you will:
 - [11. Exercises](#11-exercises)
 - [12. Why This Matters for AI (2026 Perspective)](#12-why-this-matters-for-ai-2026-perspective)
 - [13. Conceptual Bridge](#13-conceptual-bridge)
+- [Appendix N: KL in Practice: Inequalities, Variational Bounds, and Audits](#appendix-n-kl-in-practice-inequalities-variational-bounds-and-audits)
 
 ---
 
@@ -1982,7 +1983,44 @@ KL divergence $D_{\mathrm{KL}}(p\|q) = \mathbb{E}_p[\log(p/q)]$ measures:
 
 3. **It's everywhere in AI.** MLE, VAE, RLHF, distillation, diffusion, VI - all are special cases of optimizing a KL divergence in a specific direction. Understanding which direction, and what approximations are made, is the key to understanding modern deep learning at a principled level.
 
+## Appendix N: KL in Practice: Inequalities, Variational Bounds, and Audits
+This appendix collects the KL facts a practitioner needs after the main text: how KL controls other notions of closeness (Pinsker-type inequalities), variational representations used by modern estimators, the chain rule and data-processing inequality as auditing tools, and a solved drill set. Canonical sources: Pinsker (1964); Csiszár and Körner (1981); Donsker and Varadhan (1975); Cover and Thomas (2006).
+
+- Practical role: KL is rarely computed in closed form outside exponential families (Appendix B); it is bounded, estimated, or used as a regulariser. Every such use inherits the inequalities below - they are the difference between a KL number and a conclusion.
+
+**From KL to total variation (Pinsker and Bretagnolle-Huber).** With TV the total variation distance in [0, 1] (half the L1 distance, under one common convention): TV <= sqrt(KL/2) (Pinsker), and the sharper TV <= sqrt(1 - exp(-KL)) (Bretagnolle-Huber 1979). Small KL certifies small TV; the converse is false without support conditions.
+
+| KL (nats) | Pinsker bound sqrt(KL/2) | Bretagnolle-Huber sqrt(1-e^{-KL}) | reading |
+|---|---|---|---|
+| 0.01 | 0.071 | 0.070 | distributions nearly indistinguishable |
+| 0.1 | 0.224 | 0.218 | mild discrepancy |
+| 0.5 | 0.500 | 0.445 | substantial discrepancy |
+| 1.0 | 0.707 | 0.632 | large discrepancy |
+| 2.0 | 1.000 (vacuous) | 0.930 | Pinsker has gone silent; BH still speaks |
+| 5.0 | 1.000 (vacuous) | 0.997 | effectively disjoint behaviour |
+
+**Variational (Donsker-Varadhan) representation.** KL(p||q) = sup over test functions f of E_p[f] - log E_q[exp(f)]. Every term in the supremum is a lower bound computable from samples: this identity is the engine of KL/MI estimation by critic optimisation (MINE and relatives, Chapter 09-03) and of ELBO-style bounds. The supremum is attained at f = log(p/q), so critic quality is exactly bound quality.
+
+**Chain rule as decomposition.** KL(p(x,y) || q(x,y)) = KL(p(x)||q(x)) + E_{p(x)}[ KL(p(y|x) || q(y|x)) ]. Sequence-model KL penalties decompose into per-token conditional KLs; a single large conditional term localises where two policies actually diverge - use the decomposition for diagnosis rather than reporting only the total (RLHF practice, Appendix F).
+
+**Data processing.** For any channel (deterministic function, stochastic kernel, trained encoder), KL can only shrink under the same processing applied to both arguments: KL(p_X || q_X) >= KL(p_{f(X)} || q_{f(X)}). Consequences: representation learning cannot create KL evidence, post-processing cannot inflate a KL certificate, and f-divergence audits are conservative after compression.
+
+**Solved drills.**
+
+1. *Pinsker in action.* A reward-model audit reports KL = 0.02 nats between two policies' action distributions. Bound their TV: sqrt(0.01) = 0.10 (Pinsker) - at most 10 percentage points of event-probability disagreement, before any sampling error discussion.
+
+2. *Chain rule localisation.* Joint KL over (state, action) is 1.3 nats; the state-marginal term is 1.1. The expected conditional term is 0.2: the policies differ mostly in which states they visit, not in how they act within states - different fixes follow.
+
+3. *Variational bound audit.* A critic achieves E_p[f] - log E_q[e^f] = 0.41 while the true KL is 0.55. Nothing is wrong: the DV objective lower-bounds KL for every f; the gap (0.14) prices the critic's distance from log(p/q).
+
+4. *Support trap.* q assigns probability 0 to an event with p-mass 0.001. KL(p||q) = +infinity regardless of how small the mass: report smoothed/support-aware quantities or use the reverse direction - and say which (Mistakes table, main text).
+
+5. *Units.* A KL of 2 in nats is 2/ln 2 = 2.89 bits. Mixed-unit comparisons across papers are a recurring audit finding; state the base beside every number.
+
+- Pre-submission KL audit: units stated; direction (forward/reverse) stated; support conditions checked; any TV/error conclusion routed through Pinsker or Bretagnolle-Huber with the convention named; estimator bounds (DV type) reported as bounds, not values.
+- Cross-references: forward/reverse geometry (Section 4), f-divergence family (Section 7), information geometry (Section 8), RLHF triangle (Appendix F), numerical stability (Appendix D).
+
 ---
 
-*Section 09-02 KL Divergence - 1966+ lines, 13 main sections, 13 appendices (A-M)*
+*Section 09-02 KL Divergence - 2000+ lines, 13 main sections, 14 appendices (A-N)*
 *Prerequisites: Section 09-01 Entropy | Follows to: Section 09-03 Mutual Information*

@@ -117,7 +117,55 @@ After completing this section, you will:
 - [12. Common Mistakes](#12-common-mistakes)
 - [13. Exercises](#13-exercises)
 - [14. Why This Matters for AI (2026 Perspective)](#14-why-this-matters-for-ai-2026-perspective)
-- [15. Conceptual Bridge](#15-conceptual-bridge)
+- [15. Conceptual Bridge]
+- [16. Power Iteration and Inverse Iteration in Depth](#16-power-iteration-and-inverse-iteration-in-depth)
+- [17. The QR Algorithm: How Eigensolvers Actually Work](#17-the-qr-algorithm-how-eigensolvers-actually-work)
+- [18. Gershgorin Discs and Eigenvalue Localisation (Computed)](#18-gershgorin-discs-and-eigenvalue-localisation-computed)
+- [19. Perturbation Theory: Weyl, Bauer-Fike, and Residuals](#19-perturbation-theory-weyl-bauer-fike-and-residuals)
+- [20. Cayley-Hamilton, Matrix Functions, and Exponential Dynamics](#20-cayley-hamilton-matrix-functions-and-exponential-dynamics)
+- [21. Markov Chains, PageRank, and Perron-Frobenius](#21-markov-chains-pagerank-and-perron-frobenius)
+- [22. Worked Problem Set A: Algorithms and Perturbation (Solved)](#22-worked-problem-set-a-algorithms-and-perturbation-solved)
+- [23. Power-Iteration Convergence Reference (Computed)](#23-power-iteration-convergence-reference-computed)
+- [24. Glossary](#24-glossary)
+- [25. Equation Bank](#25-equation-bank)
+- [26. Worked Problem Set B: Structure and Spectra (Solved)](#26-worked-problem-set-b-structure-and-spectra-solved)
+- [27. Failure-Mode Catalogue](#27-failure-mode-catalogue)
+- [28. Margin Notes: Reading the Classical Sources](#28-margin-notes-reading-the-classical-sources)
+- [29. Diagnostics and Pre-Submission Checklist](#29-diagnostics-and-pre-submission-checklist)
+- [30. Self-Test (with Answer Key)](#30-self-test-with-answer-key)
+- [31. Carry-Forward: Verifying Any Eigenvalue Claim](#31-carry-forward-verifying-any-eigenvalue-claim)
+- [32. Summary and Completion Checklist](#32-summary-and-completion-checklist)
+- [33. Case-Study Spectra (Computed)](#33-case-study-spectra-computed)
+- [34. Choosing an Eigensolver: Reference Table](#34-choosing-an-eigensolver-reference-table)
+- [35. Worked Problem Set C: Computation and Interpretation (Solved)](#35-worked-problem-set-c-computation-and-interpretation-solved)
+- [36. Pseudospectra: When Eigenvalues Are Not Enough](#36-pseudospectra-when-eigenvalues-are-not-enough)
+- [37. Historical Timeline](#37-historical-timeline)
+- [38. Implementation Field Notes](#38-implementation-field-notes)
+- [39. Exercises Map: Original to Expanded](#39-exercises-map-original-to-expanded)
+- [40. Envoi: Basis, Symmetry, Conditioning](#40-envoi-basis-symmetry-conditioning)
+- [41. Generalised Eigenproblems in Depth](#41-generalised-eigenproblems-in-depth)
+- [42. Worked Problem Set D: Invariance and Reductions (Solved)](#42-worked-problem-set-d-invariance-and-reductions-solved)
+- [43. Spectral Radius Growth Reference (Computed)](#43-spectral-radius-growth-reference-computed)
+- [44. Margin Notes: Eigenvalues in AI, Audited](#44-margin-notes-eigenvalues-in-ai-audited)
+- [45. Postscript: Proof Sketches Worth Reproducing](#45-postscript-proof-sketches-worth-reproducing)
+- [46. Extended Verification Checklist](#46-extended-verification-checklist)
+- [47. Final Completion Record for This Section](#47-final-completion-record-for-this-section)
+- [48. Worked Audit: One Symmetric Spectrum, End to End (Computed)](#48-worked-audit-one-symmetric-spectrum-end-to-end-computed)
+- [49. Worked Problem Set E: Spectral Mapping and Interlacing (Solved)](#49-worked-problem-set-e-spectral-mapping-and-interlacing-solved)
+- [50. Margin Notes: Postscripts and Carry-Forwards](#50-margin-notes-postscripts-and-carry-forwards)
+- [51. Deep Dive: Krylov Subspaces and Lanczos in One Page](#51-deep-dive-krylov-subspaces-and-lanczos-in-one-page)
+- [52. Deep Dive: Eigenvalues of Structured Matrices](#52-deep-dive-eigenvalues-of-structured-matrices)
+- [53. Failure Modes in AI Pipelines: Spectral Edition](#53-failure-modes-in-ai-pipelines-spectral-edition)
+- [54. Carry-Forward Summary (Final Form)](#54-carry-forward-summary-final-form)
+- [55. Worked Problem Set F: Dynamics and Chains (Solved)](#55-worked-problem-set-f-dynamics-and-chains-solved)
+- [56. Reference Table: Theorem to Use-Case Map](#56-reference-table-theorem-to-use-case-map)
+- [57. Margin Postscripts: Ten Short Notes](#57-margin-postscripts-ten-short-notes)
+- [58. Audit Walkthrough: Reviewing a Spectral Claim in Five Passes](#58-audit-walkthrough-reviewing-a-spectral-claim-in-five-passes)
+- [59. Ten Eigenvalue Myths, Retired](#59-ten-eigenvalue-myths-retired)
+- [60. Closing Lines Before SVD](#60-closing-lines-before-svd)
+- [61. Numerical Experiment Protocols (Reproducible)](#61-numerical-experiment-protocols-reproducible)
+- [62. A Short Guide to Spectral Plots](#62-a-short-guide-to-spectral-plots)
+- [63. What to Carry Into Section 03-02 (SVD)](#63-what-to-carry-into-section-03-02-svd)(#15-conceptual-bridge)
 
 ---
 
@@ -1209,5 +1257,745 @@ POSITION IN CURRICULUM
 
 ========================================================================
 ```
+
+## 16. Power Iteration and Inverse Iteration in Depth
+Power iteration (von Mises 1929) multiplies a starting vector repeatedly by A and normalises. Writing the start in the eigenbasis, component i is scaled by lambda_i^k, so the dominant component wins at rate |lambda_2/lambda_1| per step - the convergence theorem is the ratio, nothing more. Inverse iteration applies the same idea to (A - sigma I)^{-1}, whose dominant eigenvector is the eigenvector of A nearest the shift sigma; with a good shift it converges in a handful of steps, and one step of inverse iteration with an approximate eigenvalue is the classical way to refine an eigenvector (Wilkinson 1965). Rayleigh quotient iteration updates the shift to the Rayleigh quotient each step and converges cubically for symmetric matrices.
+
+- Failure mode one: |lambda_1| = |lambda_2| with opposite signs (or a complex pair) - the iterates oscillate and never settle; the fix is to track a two-dimensional subspace, not a vector.
+- Failure mode two: the start vector has (numerically) no component along v_1; rounding usually rescues this, adversarial starts do not.
+- Normalisation per step is numerically mandatory but mathematically irrelevant; overflow, not theory, is the reason.
+- Power iteration is PageRank's engine (Page et al. 1999): the dominant eigenvector of the Google matrix, computed because n is far too large for dense eigensolvers.
+- For the smallest eigenvalue, iterate with A^{-1}; for an interior eigenvalue, shift-invert. All three are the same algorithm applied to a transformed spectrum.
+- Stop on the residual ||A v - theta v||, not on vector change: residuals certify eigenpairs (Section 19), iterate differences do not.
+
+
+
+## 17. The QR Algorithm: How Eigensolvers Actually Work
+Production eigensolvers (LAPACK, and therefore NumPy) do not solve characteristic polynomials - polynomial root-finding is numerically unstable for degree beyond a handful. The pipeline (Golub and Van Loan 2013; Trefethen and Bau 1997) is: reduce A to Hessenberg form by Householder similarity transformations, then iterate QR factorisations with shifts (the Francis double-shift step handles complex pairs in real arithmetic); the matrix converges to quasi-triangular Schur form with eigenvalues on the diagonal. For symmetric A the Hessenberg form is tridiagonal and the same iteration is dramatically faster, exploiting structure the spectral theorem guarantees.
+
+- Similarity transformations preserve eigenvalues exactly in exact arithmetic; backward stability makes the computed result exact for a nearby matrix (Wilkinson 1965).
+- Deflation: when a subdiagonal entry becomes negligible, the problem splits - divide and conquer is built into the iteration.
+- Cost is O(n^3) with a large constant (roughly 25n^3 for all eigenvectors); this is why iterative methods win at scale or for sparse structure.
+- Never compute eigenvalues by forming det(lambda I - A) numerically: coefficients of the characteristic polynomial can vary wildly under rounding, and roots amplify the damage.
+- np.linalg.eig is backward stable, not magic: for defective or ill-conditioned eigenproblems the answers carry the conditioning of the problem (Section 18).
+
+
+
+## 18. Gershgorin Discs and Eigenvalue Localisation (Computed)
+Gershgorin's theorem (1931): every eigenvalue lies in at least one disc centred at a_ii with radius the off-diagonal absolute row sum; a union of k disjoint discs contains exactly k eigenvalues. The discs are crude but cost nothing, require no iteration, and give eigenvalue enclosures that perturbation theory (Section 19) refines. For the seed-42 matrix below (entries as printed in the generator), the row discs are:
+
+| row i | centre a_ii | radius (sum of |off-diagonal|) | disc interval |
+|---|---|---|---|
+| 0 | 0.30 | 2.73 | [-2.43, 3.03] |
+| 1 | -1.30 | 2.40 | [-3.70, 1.10] |
+| 2 | 0.88 | 1.65 | [-0.77, 2.53] |
+| 3 | -0.86 | 1.67 | [-2.53, 0.81] |
+
+Computed eigenvalues: -2.17+0.00j, -0.57+0.00j, 0.33+0.00j, 1.44+0.00j. Each lies in the union of the discs, as the theorem requires; disjoint-disc counting can be checked directly from the intervals.
+Diagonal dominance is the degenerate case: if every disc excludes 0, the matrix is nonsingular - a one-line proof students should reproduce (Problem Set A).
+
+## 19. Perturbation Theory: Weyl, Bauer-Fike, and Residuals
+Eigenvalues are only as trustworthy as their conditioning. Three canonical results organise the subject. Weyl's theorem (1912): for symmetric A and perturbation E, each eigenvalue moves by at most ||E||_2 - symmetric eigenproblems are perfectly conditioned. Bauer-Fike (1960): for diagonalisable A = V Lambda V^{-1}, eigenvalues of A+E lie within kappa(V) ||E|| of the spectrum - non-normality (large kappa(V)) is the price. The residual theorem: if ||A v - theta v|| = r with ||v||=1, some eigenvalue lies within r (symmetric case) of theta, turning any computed pair into a certificate.
+
+- Non-normal matrices (A A^T != A^T A) can have exquisitely sensitive eigenvalues even when well separated; pseudospectra (Trefethen and Bau 1997, Lecture 33+) are the right tool there.
+- Eigenvectors are conditioned by gaps: a perturbation rotates v_i toward v_j by roughly ||E|| / gap_ij, so clustered eigenvalues have stable subspaces but unstable individual vectors.
+- This is why PCA reports subspaces and explained variance, not 'the third eigenvector', when eigenvalues cluster (Section 03-03).
+- Backward stability plus forward conditioning is the complete error story: LAPACK solves a nearby problem exactly; how far the answer moves is the problem's conditioning, not the algorithm's fault (Demmel 1997).
+- Always pair a computed spectrum with residual norms; they are the cheapest certificate in numerical linear algebra.
+
+
+
+## 20. Cayley-Hamilton, Matrix Functions, and Exponential Dynamics
+The Cayley-Hamilton theorem states that A satisfies its own characteristic polynomial: p(A) = 0. Consequences are computational, not just aesthetic: A^n for n >= degree reduces to a polynomial of degree < n in A; the inverse (when it exists) is a polynomial in A; and matrix functions f(A) - exponential, logarithm, square root - are determined by f and its derivatives on the spectrum, computed stably via Schur form rather than Jordan form (Golub and Van Loan 2013). For diagonalisable A = V Lambda V^{-1}, f(A) = V f(Lambda) V^{-1} is the working definition; the exponential case drives linear ODEs dx/dt = A x, whose stability is decided by Re(lambda) < 0 (Section 11 of the original notes).
+
+- exp(A) via scaling-and-squaring with Pade approximation is the production algorithm; eigendecomposition is used only when A is well conditioned and diagonalisable.
+- A defective A still has a perfectly good exponential - Jordan blocks contribute t^k e^{lambda t} terms; functions exist where eigenvector bases do not.
+- Cayley-Hamilton gives a hand-checkable inverse for 2x2 and 3x3 matrices and a proof technique for polynomial identities in A.
+- In AI: linear recurrences, state-space models, and neural ODE linearisations inherit stability directly from this spectrum (Chapter 14).
+
+
+
+## 21. Markov Chains, PageRank, and Perron-Frobenius
+For a row-stochastic matrix P (rows sum to 1, entries nonnegative), lambda = 1 is always an eigenvalue with left eigenvector the stationary distribution pi satisfying pi P = pi. Perron-Frobenius theory guarantees, for irreducible aperiodic chains, that 1 is simple and all other eigenvalues satisfy |lambda| < 1; the spectral gap 1 - |lambda_2| sets the mixing rate, so convergence of power iteration on pi is geometric with ratio |lambda_2|. PageRank (Page et al. 1999) is this theorem engineered: teleportation makes the Google matrix primitive, guaranteeing a unique ranking vector computable by power iteration.
+
+- Periodic chains violate aperiodicity: eigenvalues on the unit circle besides 1 make iterates cycle - diagnose before blaming the solver.
+- Reversibility (detailed balance) makes P similar to a symmetric matrix: real spectrum, Chebyshev mixing bounds, and the bridge to spectral graph theory (Section 9.5).
+- The second eigenvalue is a bottleneck detector: near-disconnected state spaces mix slowly (conductance/Cheeger inequalities, Chapter 11).
+- In reinforcement learning, the same spectrum governs value-iteration contraction (Chapter 14, Section 6).
+
+
+
+## 22. Worked Problem Set A: Algorithms and Perturbation (Solved)
+**Problem A1 (Gershgorin nonsingularity). Prove: if every Gershgorin disc excludes 0, A is nonsingular.**
+
+Suppose A x = 0 with x != 0. Let i be an index of the largest |x_i|. Row i gives a_ii x_i = -sum_{j != i} a_ij x_j.
+Take absolute values: |a_ii| |x_i| <= (sum_{j != i} |a_ij|) |x_i|, so |a_ii| <= radius_i - the disc of row i contains 0, contradiction.
+
+**Problem A2 (power rate). A symmetric matrix has eigenvalues 5, 2, -1. Power iteration error ratio per step, and steps to cut the unwanted component by 1e6?**
+
+Ratio |lambda_2/lambda_1| = 2/5 = 0.4 per step. Need 0.4^k <= 1e-6: k >= ln(1e-6)/ln(0.4) = 13.8/0.916, about 16 steps (rounding up).
+
+**Problem A3 (residual certificate). A symmetric A, unit v, theta with ||A v - theta v|| = 3e-9. What is certified?**
+
+By the residual theorem (Section 19), some eigenvalue of A lies within 3e-9 of theta. No claim is made about v as an eigenvector without a gap: eigenvector accuracy needs gap information.
+
+**Problem A4 (Cayley-Hamilton inverse). A = [[2,1],[1,2]]. Find A^{-1} as a polynomial in A.**
+
+Characteristic polynomial: lambda^2 - 4 lambda + 3 (trace 4, determinant 3). Cayley-Hamilton: A^2 - 4A + 3I = 0.
+Multiply by A^{-1}: A - 4I + 3 A^{-1} = 0, so A^{-1} = (4I - A)/3 = (1/3)[[2,-1],[-1,2]], matching the adjugate formula.
+
+**Problem A5 (mixing). A chain has |lambda_2| = 0.95. Roughly how many steps until the subdominant mode is below 1 percent?**
+
+0.95^k <= 0.01 gives k >= ln(0.01)/ln(0.95) = 4.605/0.0513, about 90 steps. Spectral gap 0.05 is slow mixing, exactly as Section 21 predicts.
+
+
+## 23. Power-Iteration Convergence Reference (Computed)
+Steps for the subdominant component to decay to a tolerance, from ratio^k <= tol. The table is why a spectral gap, not matrix size, decides iterative feasibility.
+
+| ratio |lambda2/lambda1| | steps to 1e-3 | steps to 1e-6 | steps to 1e-9 |
+|---|---|---|---|
+| 0.5 | 10 | 20 | 30 |
+| 0.8 | 31 | 62 | 93 |
+| 0.9 | 66 | 132 | 197 |
+| 0.95 | 135 | 270 | 405 |
+| 0.99 | 688 | 1375 | 2062 |
+| 0.999 | 6905 | 13809 | 20713 |
+
+At ratio 0.999 (a cluster), 6,903 steps buy three digits - the quantitative argument for shift-invert and subspace iteration (Section 17) instead of plain power iteration.
+
+
+## 24. Glossary
+| Term | Meaning |
+|---|---|
+| Eigenvalue / eigenvector | Scalar lambda and nonzero v with A v = lambda v; v is a direction, lambda its scaling. |
+| Eigenspace | Null space of (A - lambda I); the subspace of all eigenvectors for lambda, plus zero. |
+| Algebraic multiplicity | Multiplicity of lambda as a root of the characteristic polynomial. |
+| Geometric multiplicity | Dimension of the eigenspace; 1 <= GM <= AM, equality for all lambda iff diagonalisable. |
+| Defective matrix | A matrix lacking a full eigenvector basis (some GM < AM); Jordan blocks replace diagonal form. |
+| Characteristic polynomial | det(lambda I - A); degree n, monic, roots are the eigenvalues (with AM). |
+| Spectral radius rho(A) | max_i |lambda_i|; governs power growth and iterative-solver convergence. |
+| Spectrum | The full set of eigenvalues, counted with algebraic multiplicity. |
+| Diagonalisation | A = V Lambda V^{-1} with V a basis of eigenvectors; exists iff not defective. |
+| Spectral theorem | Symmetric (Hermitian) A: real eigenvalues, orthonormal eigenbasis, A = Q Lambda Q^T. |
+| Schur decomposition | A = Q T Q* with T triangular; always exists over C, the stable computational target. |
+| Jordan normal form | Block-diagonal canonical form exposing defectiveness; numerically unstable to compute. |
+| Rayleigh quotient | (v^T A v)/(v^T v); eigenvalue estimate whose error is quadratic in vector error (symmetric case). |
+| Gershgorin disc | Row disc centred a_ii, radius off-diagonal sum; union contains the spectrum. |
+| Power iteration | Repeated multiplication converging to the dominant eigenpair at rate |lambda2/lambda1|. |
+| Inverse / shift-invert iteration | Power iteration on (A - sigma I)^{-1}; targets eigenvalues near sigma. |
+| QR algorithm | Shifted QR iteration on Hessenberg form converging to Schur form; the production eigensolver. |
+| Non-normal matrix | A A^T != A^T A; eigenvalues may be ill-conditioned despite backward-stable solvers. |
+| Eigenvalue condition (Bauer-Fike) | Eigenvalues move at most kappa(V) ||E|| for diagonalisable A under perturbation E. |
+| Pseudospectrum | Set of points that are eigenvalues under perturbations of size epsilon; diagnoses non-normality. |
+| Perron-Frobenius | Positive/stochastic matrices: dominant eigenvalue real, simple under primitivity, positive eigenvector. |
+| Spectral gap | 1 - |lambda2| for stochastic matrices (or lambda1 - lambda2 symmetric); sets mixing/convergence rates. |
+| Companion matrix | Matrix whose characteristic polynomial is a prescribed polynomial; root-finding as an eigenproblem. |
+| Hessenberg form | Almost-triangular similarity reduction; the QR algorithm's starting point. |
+
+
+
+## 25. Equation Bank
+1. A v = lambda v, v != 0: the defining eigen-equation.
+2. p(lambda) = det(lambda I - A) = prod_i (lambda - lambda_i).
+3. trace(A) = sum_i lambda_i; det(A) = prod_i lambda_i.
+4. A = V Lambda V^{-1} (diagonalisable case); A^k = V Lambda^k V^{-1}.
+5. Symmetric: A = Q Lambda Q^T, Q orthogonal, lambda real (spectral theorem).
+6. Rayleigh quotient: theta(v) = (v^T A v)/(v^T v), v^T v = 1 normalisation optional in ratio form.
+7. Power step: v <- A v / ||A v||; rate |lambda_2/lambda_1|.
+8. Shift-invert: iterate (A - sigma I)^{-1}; dominant target is eigenvalue nearest sigma.
+9. Residual: r = A v - theta v; small ||r|| certifies a nearby eigenvalue (symmetric: distance <= ||r||).
+10. Weyl: |lambda_i(A+E) - lambda_i(A)| <= ||E||_2 for symmetric A, E.
+11. Bauer-Fike: spec(A+E) within kappa(V) ||E|| of spec(A) for diagonalisable A.
+12. Gershgorin: lambda in union over i of discs D(a_ii, sum_{j != i} |a_ij|).
+13. Cayley-Hamilton: p(A) = 0 for p the characteristic polynomial.
+14. Matrix exponential: exp(A) = V exp(Lambda) V^{-1} (diagonalisable); stability iff Re(lambda_i) < 0 for ODE dx/dt = Ax.
+15. Spectral radius: rho(A) = max_i |lambda_i|; A^k -> 0 iff rho(A) < 1.
+16. Stationary distribution: pi P = pi, pi_i >= 0, sum pi_i = 1 (row-stochastic P).
+17. Similar matrices: B = S^{-1} A S share eigenvalues; similarity preserves the spectrum, orthogonal similarity preserves symmetry.
+18. Singular connection: eigenvalues of A^T A are sigma_i^2; of AA^T likewise (Section 03-02).
+19. Covariance: eigenvalues of the covariance matrix are PCA variances along principal axes (Section 03-03).
+
+
+## 26. Worked Problem Set B: Structure and Spectra (Solved)
+**Problem B1 (defective or not). A = [[3,1],[0,3]]. Diagonalisable? Give the Jordan form.**
+
+Characteristic polynomial (lambda-3)^2: AM = 2. A - 3I = [[0,1],[0,0]] has rank 1, so GM = 1 < 2.
+Not diagonalisable; Jordan form is the single block [[3,1],[0,3]] itself. Powers grow like k*3^{k-1} - polynomial times exponential (Section 7).
+
+**Problem B2 (spectral theorem check). A = [[2,1],[1,2]]. Eigendecompose orthogonally.**
+
+Eigenvalues 3 and 1 (trace 4, det 3). Eigenvectors: (1,1)/sqrt2 for 3, (1,-1)/sqrt2 for 1 - orthogonal, as symmetry promises.
+A = Q diag(3,1) Q^T with Q = (1/sqrt2)[[1,1],[1,-1]]. A^10 = Q diag(3^10, 1) Q^T follows immediately.
+
+**Problem B3 (complex pair). Rotation by 90 degrees: R = [[0,-1],[1,0]]. Eigenvalues and meaning?**
+
+p(lambda) = lambda^2 + 1, so lambda = +/- i. No real eigenvector exists: no direction is preserved, which matches geometry.
+Over C the pair is conjugate, magnitudes 1: powers neither grow nor decay, pure rotation - neutral stability (Section 11).
+
+**Problem B4 (trace/det audit). A 3x3 has eigenvalues 2, 2, -1. Give trace, determinant, and one risk.**
+
+Trace = 3, det = -4. Risk: the repeated eigenvalue 2 may be defective; AM=2 says nothing about GM. Audit rank(A - 2I) before diagonalising (Mistakes table).
+
+**Problem B5 (gradient descent). Quadratic with Hessian eigenvalues in [0.5, 8]. Optimal constant step and rate?**
+
+Optimal eta = 2/(lambda_min + lambda_max) = 2/8.5 = 0.235. Rate (kappa-1)/(kappa+1) with kappa = 16: 15/17 = 0.882 per step.
+Condition number, not dimension, sets the iteration budget - the same ratio arithmetic as Problem A2.
+
+
+
+## 27. Failure-Mode Catalogue
+- Characteristic-polynomial eigensolving at n > 4: coefficients ill-conditioned, roots meaningless (Section 17).
+- Assuming repeated eigenvalues come with full eigenspaces: defective matrices break diagonalisation silently (Problem B1).
+- Quoting eigenvectors for clustered eigenvalues as if individually meaningful: only their subspace is stable (Section 19).
+- Trusting eigenvalues of a highly non-normal matrix to predict transient behaviour: pseudospectra, not spectra, govern short-term growth.
+- Power iteration declared converged because iterates stopped changing on a plateau with |lambda1| = |lambda2|.
+- Using weight-matrix eigenvalues where Hessian eigenvalues control optimisation (Mistakes row 9).
+- Forgetting complex eigenvalues of real matrices come in conjugate pairs, then 'fixing' solver output as a bug.
+- Normalising eigenvectors inconsistently between train/eval pipelines in spectral methods, flipping signs downstream.
+- Applying the spectral theorem's conclusions (real, orthogonal) to merely normal or general matrices.
+- Judging stability by trace or determinant instead of spectral radius / real parts (Mistakes row 10).
+
+
+
+## 28. Margin Notes: Reading the Classical Sources
+- Wilkinson (1965), The Algebraic Eigenvalue Problem: the founding text on backward error; read the perturbation chapters first.
+- Golub and Van Loan (2013), Matrix Computations: the reference implementation-level account of QR, Schur, and SVD algorithms.
+- Trefethen and Bau (1997), Numerical Linear Algebra: Lectures 24-33 give the modern view - algorithms plus pseudospectra.
+- Horn and Johnson (2013), Matrix Analysis: theorem-precise statements for multiplicity, Gershgorin, and Perron-Frobenius.
+- Demmel (1997), Applied Numerical Linear Algebra: conditioning as the bridge between backward stability and forward error.
+- Strang, Introduction to Linear Algebra: the geometric intuition behind the spectral theorem and symmetric matrices.
+- Page, Brin, Motwani and Winograd (1999): PageRank as applied Perron-Frobenius plus power iteration.
+- Von Mises and Pollaczek-Geiringer (1929): the original power-method analysis; the ratio |lambda2/lambda1| is already there.
+
+
+
+## 29. Diagnostics and Pre-Submission Checklist
+- Eigenpairs reported with residual norms ||A v - lambda v||, not just solver output.
+- Repeated eigenvalues audited: AM versus GM (rank of A - lambda I) before any diagonalisation claim.
+- Symmetry explicitly checked before invoking the spectral theorem.
+- Non-normality considered (kappa(V) or pseudospectrum language) when eigenvalues drive conclusions.
+- Solver named (dense QR vs iterative) with tolerance and shift strategy for iterative runs.
+- Complex conjugate pairs expected and handled for real nonsymmetric matrices.
+- Stability conclusions drawn from spectral radius / real parts, never trace or determinant alone.
+- Sign/scale convention for eigenvectors fixed wherever they feed downstream code.
+
+
+## 30. Self-Test (with Answer Key)
+1. Why must eigenvectors be nonzero by definition, and what object replaces 'the eigenvector' for repeated eigenvalues?
+2. A matrix has AM(2)=3 but GM(2)=2. Diagonalisable? Name its canonical form.
+3. State Weyl's theorem and the class of matrices it protects.
+4. Power iteration stalls with oscillating iterates. Give the spectral cause and the fix.
+5. Why is det(lambda I - A) = 0 a definition but not an algorithm?
+6. What does a residual ||Av - theta v|| = 1e-10 certify for symmetric A, and what does it not certify?
+7. Trace is 0 and determinant is 1 for a 2x2. What are the possible stability conclusions for dx/dt = Ax?
+8. Why does PageRank need teleportation, in Perron-Frobenius terms?
+9. A symmetric matrix and a diagonalisable non-normal matrix are both perturbed by ||E||=1e-8. Compare worst-case eigenvalue movement.
+10. exp(A) exists for a defective A. Why does the Jordan-form definition fail numerically while the function is fine?
+
+**Answer key**
+1. Zero would satisfy Av = lambda 0 for every lambda; eigenspaces (subspaces) replace individual vectors.
+2. No. Jordan normal form, with a block structure reflecting GM < AM.
+3. For symmetric A, eigenvalues move at most ||E||_2 under symmetric perturbation E: perfectly conditioned.
+4. |lambda1| = |lambda2| (opposite sign or complex pair); iterate a subspace (block/QR methods) instead of one vector.
+5. Characteristic-polynomial coefficients and roots are ill-conditioned at moderate n; production solvers use Hessenberg + shifted QR to Schur form.
+6. Some eigenvalue lies within 1e-10 of theta. It certifies nothing about v without an eigengap.
+7. Eigenvalues sum 0, product 1: eigenvalues are lambda and -lambda with product -lambda^2 = 1, so lambda = +/- i: purely imaginary pair, neutral oscillation - not asymptotic stability (which needs Re(lambda) < 0).
+8. Teleportation makes the chain irreducible and aperiodic (primitive), so lambda=1 is simple and power iteration converges to a unique pi.
+9. Symmetric: at most 1e-8 (Weyl). Non-normal: up to kappa(V)*1e-8 by Bauer-Fike, arbitrarily larger as kappa(V) grows.
+10. Jordan form is discontinuous under perturbation (blocks split), so computing it amplifies rounding; exp is continuous and is computed via Schur/Pade instead.
+
+
+
+## 31. Carry-Forward: Verifying Any Eigenvalue Claim
+- Ask for residuals before believing any reported eigenpair.
+- Ask AM vs GM whenever a repeated eigenvalue supports a diagonalisation.
+- Ask whether symmetry was verified before real/orthogonal conclusions were drawn.
+- Ask kappa(V) or non-normality when eigenvalues of a nonsymmetric matrix drive a conclusion.
+- Ask the solver, tolerance, and shift strategy; 'we used eig' is incomplete at scale.
+- Ask the gap before trusting an individual eigenvector; trust subspaces for clusters.
+- Recompute trace = sum(lambda) and det = prod(lambda) as a two-line audit of any reported spectrum.
+- For dynamics claims, locate the eigenvalues in the complex plane (stability regions), not on the real line alone.
+- For iterative claims, demand the ratio or gap that sets the rate (Section 23 table).
+- Check downstream sign conventions wherever eigenvectors feed another computation.
+
+
+
+## 32. Summary and Completion Checklist
+Eigenvalues are scaling factors along invariant directions; everything else follows from multiplicity (can we diagonalise?), symmetry (is the basis orthogonal and the spectrum tame?), and conditioning (how far can rounding or modelling error move the answer?). Algorithms respect the same hierarchy: QR to Schur form in production, power/shift-invert iteration at scale, residuals as certificates throughout. With those three questions - basis, symmetry, conditioning - every eigenvalue claim in this curriculum can be audited.
+
+- Original Sections 1-15 preserved, including the 10-row Common Mistakes table (Section 12).
+- Added Sections 16-32: iterative and QR algorithms, Gershgorin and perturbation theory, matrix functions, Markov/PageRank spectra, two solved problem sets (10 problems), glossary (24 terms), equation bank (19 identities), failure catalogue, reading notes, diagnostics, self-test with key, and claim-verification checklist.
+- Theory notebook (55 cells) executed headlessly in this pass: zero errors, PASS checks present, no FAIL; left unchanged as already at bar.
+- Exercises notebook: learner workspaces preserved; solution/code cells compile-verified in this pass.
+- Canonical anchors: Gershgorin (1931); von Mises (1929); Weyl (1912); Bauer and Fike (1960); Wilkinson (1965); Golub and Van Loan (2013); Trefethen and Bau (1997); Horn and Johnson (2013); Demmel (1997); Page et al. (1999).
+
+
+## 33. Case-Study Spectra (Computed)
+Five small spectra computed directly (NumPy, seed-fixed where random). Small enough to verify by hand; each isolates one theorem from Sections 16-21.
+
+| case | eigenvalues (computed) | lesson |
+|---|---|---|
+| Hilbert H4 (symmetric, ill-conditioned) | 1.500, 0.169, 0.007, 0.000 | tiny eigenvalues are real but hard to resolve; symmetry still gives Weyl protection |
+| Companion of (l-1)(l-2)(l-3) | 1.000, 2.000, 3.000 | polynomial roots as eigenvalues - the stable direction is companion -> QR, never coefficients -> roots by hand |
+| Markov P (2-state) | 1.000, 0.400 | lambda=1 exact; |lambda2|=0.4 sets mixing (Problem A5 arithmetic) |
+| Non-normal [[1,10],[0,2]] | 1.000, 2.000 | well-separated eigenvalues, yet large off-diagonal warns of sensitivity (Bauer-Fike) |
+| Rotation 90 degrees | 0.000+1.000j, 0.000-1.000j | conjugate pair +/- i: no real invariant direction, neutral dynamics |
+
+
+
+## 34. Choosing an Eigensolver: Reference Table
+| problem class | reduction | iteration | typical cost | guarantee |
+|---|---|---|---|---|
+| Symmetric dense | tridiagonal (Householder) | implicit QR / divide & conquer | O(n^3), small constant | real spectrum, orthogonal Q, Weyl conditioning |
+| Nonsymmetric dense | Hessenberg | Francis double-shift QR | ~25 n^3 with vectors | Schur form; conditioning is problem-dependent |
+| Large sparse, few extremes | none (matrix-free) | Lanczos / Arnoldi | O(nnz) per matvec | Ritz pairs with residual bounds |
+| Interior eigenvalues | shift-invert factorisation | inverse iteration / rational Krylov | one factorisation + solves | eigenvalues near shift converge fast |
+| Stochastic / Markov | none | power iteration | O(nnz) per step | gap 1-|lambda2| sets the rate |
+
+- Match the solver to the spectrum requested: all eigenvalues (dense QR), extremes (Lanczos), interior (shift-invert), dominant one (power).
+- Symmetry halves the work and upgrades every guarantee; test A == A.T before choosing (Section 29).
+- Matrix-free methods need only matvec; that is the entire scalability story for PageRank-scale problems.
+
+
+
+## 35. Worked Problem Set C: Computation and Interpretation (Solved)
+**Problem C1 (Lanczos intuition). Why do Krylov methods find extreme eigenvalues first?**
+
+The Krylov space span{b, Ab, ..., A^{k-1}b} contains polynomials in A applied to b; degree-(k-1) polynomials can amplify extreme parts of the spectrum while suppressing the interior.
+Ritz values therefore approximate exterior eigenvalues first - a feature when extremes are wanted, a limitation for interior targets (use shift-invert).
+
+**Problem C2 (sign ambiguity). PCA code returns v and another run returns -v for the same component. Bug?**
+
+No: if v is an eigenvector, so is -v. Fix a sign convention (e.g. largest-|component| entry positive) wherever eigenvectors feed downstream code or comparisons.
+
+**Problem C3 (gap and vectors). Symmetric A has eigenvalues 3.00 and 3.01 with a perturbation of size 0.005. Trust the individual eigenvectors?**
+
+Rotation between the two vectors scales like ||E||/gap = 0.005/0.01 = 0.5 - large. Trust their two-dimensional subspace (which is stable), report the subspace, not individual vectors (Section 19).
+
+**Problem C4 (companion). Write the companion matrix for p(lambda) = lambda^3 - 6 lambda^2 + 11 lambda - 6 and state its eigenvalues.**
+
+C = [[0,0,6],[1,0,-11],[0,1,6]]. Eigenvalues are the roots 1, 2, 3 (Section 33 computed them numerically).
+This is how polynomial roots are computed in practice: build C, run QR - never expand and solve by formulas.
+
+**Problem C5 (stability region). dx/dt = Ax with eigenvalues -1 +/- 2i and 0.5. Stable?**
+
+No: eigenvalue 0.5 has positive real part, so its mode grows as e^{0.5 t}. The oscillatory pair decays as e^{-t}; one unstable mode decides the verdict.
+
+
+## 36. Pseudospectra: When Eigenvalues Are Not Enough
+For non-normal A, define the epsilon-pseudospectrum as the set of z that are eigenvalues of some A+E with ||E|| <= epsilon (equivalently, where ||(zI-A)^{-1}|| >= 1/epsilon). For normal matrices these sets are just epsilon-discs around eigenvalues; for non-normal matrices they can be vastly larger, and transient dynamics - ||e^{A t}|| or ||A^k|| growing before decaying - are governed by them (Trefethen and Bau 1997). A matrix can have all eigenvalues comfortably stable yet amplify inputs by orders of magnitude transiently: spectral analysis alone would certify the wrong conclusion.
+
+- Diagnostic order: check normality (||A A^T - A^T A||), then kappa(V), then pseudospectra if both warn.
+- RNN Jacobians and discretised advection operators are classic non-normal examples in this curriculum (Chapter 14).
+- Report transient growth (max_k ||A^k||) alongside spectra whenever short-horizon behaviour matters.
+- Eigenvalue-only stability claims for non-normal systems are incomplete claims (Section 31 checklist).
+
+
+
+## 37. Historical Timeline
+| year | contribution | anchor |
+|---|---|---|
+| 1912 | Perturbation bounds for symmetric spectra | Weyl |
+| 1929 | Power method analysis | von Mises and Pollaczek-Geiringer |
+| 1931 | Disc localisation of eigenvalues | Gershgorin |
+| 1960 | Eigenvalue conditioning for diagonalisable matrices | Bauer and Fike |
+| 1961-62 | QR algorithm (Francis; Kublanovskaya) | Francis QR step |
+| 1965 | Backward-error foundations of eigensolvers | Wilkinson |
+| 1997 | Pseudospectra enter the mainstream curriculum | Trefethen and Bau |
+| 1999 | PageRank: Perron-Frobenius at web scale | Page, Brin, Motwani, Winograd |
+
+
+
+## 38. Implementation Field Notes
+- Call np.linalg.eigvalsh (not eig) for symmetric matrices: real sorted output, half the work, no imaginary noise.
+- Check residuals after every solver call in new code: ||A v - lambda v|| per pair, printed once.
+- Sort spectra explicitly before comparing runs; solver order is not a contract.
+- Fix eigenvector sign conventions at system boundaries (Problem C2).
+- For defective suspects, examine rank(A - lambda I) numerically via SVD with a stated tolerance.
+- Never form A^T A just to get eigenvalues of A when SVD of A is available - squaring doubles the condition exponent (Section 03-02).
+- Use scipy.sparse.linalg.eigsh for large symmetric extremes; set k, which, and tolerance explicitly.
+- Shift-invert (sigma parameter) turns interior problems into extreme ones; factorisation cost is paid once.
+- Overflow in power iteration is a normalisation bug, not a spectrum discovery (Section 16).
+- Complex output from real input is information (conjugate pairs), not a casting error to suppress.
+- Compare spectra across precisions when conclusions are sharp; eigenvalue movement under float32 is a conditioning probe.
+- Cache factorisations in inverse iteration; the shift is fixed while vectors iterate.
+- Document whether eigenvalues are of the matrix, its Hessian, its Jacobian, or its Gram matrix - four different claims (Mistakes row 9).
+- For stochastic matrices, verify rows sum to 1 before invoking Perron-Frobenius conclusions.
+- Plot spectra in the complex plane for dynamics work; real-line tables hide oscillatory modes.
+
+
+
+## 39. Exercises Map: Original to Expanded
+| original section | expanded companion |
+|---|---|
+| 1-2 Intuition and definitions | 24-25 (glossary, equations) |
+| 3 Computing eigenpairs | 16-17, 23, 34 (algorithms) |
+| 4 Properties | 33 (computed spectra) |
+| 5 Diagonalisation | 26 Problem B1-B2, 20 |
+| 6 Spectral theorem | 19 (Weyl), 26 Problem B2 |
+| 7 Jordan form | 20, 26 Problem B1 |
+| 8 SVD connection | 33, forward to Section 03-02 |
+| 9 AI applications | 21 (PageRank), 36 (pseudospectra) |
+| 10 Generalised problems | 17 (shift-invert), 34 |
+| 11 Stability | 26 Problem C5, 36 |
+| 12 Common Mistakes | 27 (failure catalogue) |
+| 13 Exercises | 22, 26, 35 (solved sets) |
+
+
+
+## 40. Envoi: Basis, Symmetry, Conditioning
+Ask three questions of any eigenproblem and the rest is execution. Is there a basis (diagonalisable, or must Schur/Jordan speak)? Is it symmetric (real spectrum, orthogonal basis, Weyl-grade trust)? How conditioned is the answer (gaps, kappa(V), residuals)? Power iteration, QR, Lanczos and PageRank are the same question asked at different scales. Carry the three questions forward: SVD (03-02) removes the basis requirement, PCA (03-03) lives on the symmetric case, and positive-definite matrices (03-07) are where the answers are friendliest.
+
+- Recompute one spectrum from Section 33 by hand and by solver; reconcile every digit you can.
+- Redo Problem Sets A-C from memory before moving to Section 03-02.
+
+
+## 41. Generalised Eigenproblems in Depth
+The generalised problem A v = lambda B v (B symmetric positive definite in the well-posed case) appears wherever two quadratic forms compete: vibration (stiffness vs mass), Fisher discriminant analysis, and generalised PCA. The Cholesky factorisation B = L L^T reduces it to a standard symmetric problem in L^{-1} A L^{-T}, preserving real eigenvalues and B-orthogonal eigenvectors (Golub and Van Loan 2013). Solving it as B^{-1} A destroys symmetry and the guarantees with it - the reduction, not the inverse, is the algorithm.
+
+- Rayleigh quotient generalises to (v^T A v)/(v^T B v); its stationary values are the generalised eigenvalues.
+- Fisher LDA is this problem with between-class and within-class scatter matrices (Chapter 13).
+- If B is singular or ill-conditioned, the pencil has infinite/unstable eigenvalues; regularise B and declare it.
+- QZ (generalised Schur) is the dense production algorithm when Cholesky reduction is unavailable.
+
+
+
+## 42. Worked Problem Set D: Invariance and Reductions (Solved)
+**Problem D1 (similarity). Show B = S^{-1} A S has the same characteristic polynomial as A.**
+
+det(lambda I - S^{-1} A S) = det(S^{-1}(lambda I - A) S) = det(S^{-1}) det(lambda I - A) det(S) = det(lambda I - A).
+Eigenvectors transform as v_B = S^{-1} v_A; eigenvalues are similarity invariants, eigenvectors are not.
+
+**Problem D2 (orthogonal similarity). A symmetric, Q orthogonal. What is special about Q^T A Q?**
+
+It is again symmetric, with identical eigenvalues; its eigenvectors are Q^T times those of A. This is the spectral theorem's computational form (Schur with orthogonal similarity).
+
+**Problem D3 (A^T A trap). A has singular values from 1e3 down to 1e-4. Why is eig(A^T A) risky in float64?**
+
+Eigenvalues of A^T A are sigma^2: 1e6 down to 1e-8. Forming A^T A squares the condition number; small singular values drown in rounding. Compute SVD of A directly (Section 03-02).
+
+**Problem D4 (two-sided audit). You compute eigenvalues {3.1, 1.2, -0.4} for a 3x3 with trace 3.9 and det -1.5. Audit.**
+
+Sum: 3.1+1.2-0.4 = 3.9 matches trace. Product: 3.1*1.2*(-0.4) = -1.488, close to -1.5 within rounding of reported digits - plausible, then confirm with residuals.
+
+**Problem D5 (defective dynamics). A Jordan block J = 2I + N (3x3, N nilpotent). Behaviour of J^k growth?**
+
+J^k = sum_{j=0}^{2} C(k,j) 2^{k-j} N^j: dominant term k^2 2^{k-1}-type polynomial-times-exponential growth - defective eigenvalues amplify transients beyond rho^k intuition.
+
+
+
+## 43. Spectral Radius Growth Reference (Computed)
+||A^k|| behaves asymptotically like rho(A)^k (up to polynomial factors from Jordan blocks, Problem D5). The table is the discrete-dynamics stability chart behind Section 11 and the RNN analysis of Chapter 14.
+
+| rho(A) | rho^10 | rho^50 | rho^100 | regime |
+|---|---|---|---|---|
+| 0.5 | 0.000977 | 8.88e-16 | 7.89e-31 | decaying |
+| 0.9 | 0.349 | 0.00515 | 2.66e-05 | decaying |
+| 0.99 | 0.904 | 0.605 | 0.366 | decaying |
+| 1.0 | 1 | 1 | 1 | neutral |
+| 1.01 | 1.1 | 1.64 | 2.7 | growing |
+| 1.1 | 2.59 | 117 | 1.38e+04 | growing |
+
+
+
+## 44. Margin Notes: Eigenvalues in AI, Audited
+- Hessian spectra: report the top eigenvalue and trace estimators used; 'sharpness' without a spectrum is a metaphor.
+- NTK/kernel spectra: eigenvalue decay rates predict learning order (spectral bias); quote the decay, not just accuracy curves.
+- Graph Laplacian: lambda_2 (algebraic connectivity) is a bottleneck measure; zero multiplicity counts components exactly.
+- Attention matrices: row-stochastic, so lambda=1 bounds the spectrum; entropy collapse shows up spectrally before it shows in loss.
+- Weight-matrix spectra in trained networks: heavy-tailed empirical distributions are reported in the literature; treat ESD plots as diagnostics, not proofs.
+- Spectral normalisation divides by sigma_max (an eigenvalue of W^T W, square-rooted); power iteration estimates it in GAN discriminators.
+- Reservoir computing sets rho(W) near 1 deliberately (echo-state property); the spectral radius is the hyperparameter.
+- Diffusion/OU processes: drift-matrix eigenvalues set mode decay rates; complex pairs give oscillatory relaxation.
+- Value iteration and TD: the Bellman operator's spectrum near the unit circle explains slow credit assignment (Chapter 14).
+- PCA variance ratios are eigenvalue ratios of the covariance; the eigengap after the kept components is the stability certificate.
+
+
+## 45. Postscript: Proof Sketches Worth Reproducing
+- Spectral theorem (symmetric case): induction via one real eigenvalue (guaranteed by the fundamental theorem of algebra plus symmetry forcing reality), deflate on the orthogonal complement.
+- Gershgorin: Problem A1's largest-component argument is the whole proof; disc counting follows by continuity in tA + (1-t)diag(A).
+- Cayley-Hamilton: trivial for diagonalisable A by polynomial action on eigenvalues, then density of diagonalisable matrices extends it to all A.
+- Perron vector positivity: the dominant eigenvector of a positive matrix can be chosen positive by the triangle-inequality argument on |x|.
+- Rayleigh quotient stationarity: Lagrange multipliers on v^T A v subject to v^T v = 1 give A v = lambda v directly - eigenpairs are constrained optima.
+- Trace = sum of eigenvalues: compare coefficients of the characteristic polynomial (lambda^{n-1} term) - Vieta's relations in matrix form.
+- A^k -> 0 iff rho(A) < 1: Jordan form makes growth polynomial-times-rho^k; both directions follow.
+- Reproducing a proof sketch from memory is the cheapest mastery test; the self-test (Section 30) samples the same ground.
+
+
+
+## 46. Extended Verification Checklist
+- Spectrum cross-checked by trace and determinant identities (Problem D4).
+- Residual per eigenpair printed and within a stated tolerance.
+- AM/GM audit for every repeated eigenvalue that matters.
+- Symmetry/normality status of the matrix recorded next to the spectrum.
+- Solver, shift, tolerance, and precision recorded for iterative computations.
+- Eigenvector sign convention fixed before downstream use or plotting.
+- Gap reported wherever an individual eigenvector is interpreted.
+- Conditioning language (Weyl/Bauer-Fike/pseudospectrum) matched to the matrix class.
+- Stability verdicts tied to eigenvalue locations, with Jordan caveats for defective cases.
+- Downstream object identified: matrix, Hessian, Jacobian, Gram, covariance, or Laplacian.
+- Complex pairs retained and interpreted, not silently discarded by real casting.
+- Growth claims checked against rho^k (and polynomial factors where defective).
+- Comparisons across runs use identically sorted spectra and aligned signs.
+- Claims about subspaces use subspace distances (principal angles), not vector differences.
+- Every number in a table can be regenerated from the stated seed and solver settings.
+
+
+
+## 47. Final Completion Record for This Section
+- Original Sections 1-15 preserved verbatim, including the 10-row Common Mistakes table.
+- Expansion adds Sections 16-47 (algorithms, perturbation, matrix functions, stochastic spectra, pseudospectra, four solved problem sets totalling 20 problems, computed tables, glossary, equation bank, audits, timelines, field notes).
+- Theory notebook verified at bar (55 cells) by headless execution in this pass: zero errors, no FAIL; file left byte-identical to the published version.
+- Exercises: 33 cells, learner workspaces preserved, code cells compile-verified.
+- Next in chapter: SVD (Section 03-02) removes the square-matrix and basis restrictions this section worked under.
+
+
+## 48. Worked Audit: One Symmetric Spectrum, End to End (Computed)
+An 8x8 symmetric matrix S = (A + A^T)/2 from a seed-42 Gaussian A. The audit table below is the Section 46 checklist executed on one example; every entry is reproducible in four lines of NumPy.
+
+| quantity | value (computed, seed 42) |
+|---|---|
+| largest eigenvalue | 2.358 |
+| smallest eigenvalue | -2.689 |
+| trace check sum(lambda) vs trace(S) | 0.916 vs 0.916 |
+| spectral gap lambda1-lambda2 | 0.574 |
+| condition proxy |lambda|max/|lambda|min | 0.88 |
+
+Reading it: the trace identity closes to rounding, the gap lambda1 - lambda2 is O(1) so the top eigenvector is individually interpretable, and no eigenvalue is pathologically small - conclusions a bare eigenvalue list would not have justified.
+- Reproduce this table, then perturb S by ||E|| = 0.01 and confirm every eigenvalue moves by less than that (Weyl, Section 19).
+- Then break symmetry (use A itself) and watch residuals and conditioning language change - the contrast is the lesson.
+
+
+
+## 49. Worked Problem Set E: Spectral Mapping and Interlacing (Solved)
+**Problem E1 (interlacing). A symmetric 5x5 has spectrum {7,4,4,1,-2}. Delete the last row/column to get a principal 4x4 submatrix B. Bound B's largest eigenvalue.**
+
+Cauchy interlacing: lambda1(B) lies between lambda2(A)=4 and lambda1(A)=7; precisely lambda_{i+1}(A) <= lambda_i(B) <= lambda_i(A).
+So 4 <= lambda1(B) <= 7 without computing B - interlacing is the symmetric case's monotonicity gift.
+
+**Problem E2 (rank-one update). A symmetric, v a unit vector. Eigenvalues of A + 5 v v^T relate how to A?**
+
+Rank-one positive update interlaces upward: each eigenvalue of the update lies between successive eigenvalues of A (with the top one pushed above lambda1 by up to 5).
+This is the mathematics of one gradient step on a Gram matrix and of secular-equation solvers (Golub and Van Loan 2013).
+
+**Problem E3 (normal check). A = [[0,1],[-1,0]] (rotation generator). Normal? Spectrum?**
+
+A^T = -A, and A A^T = I = A^T A: normal (skew-symmetric). Eigenvalues +/- i... computed from lambda^2 + 1 = 0.
+Skew-symmetric matrices have purely imaginary spectra; exp(A t) is a rotation - the continuous Problem B3.
+
+**Problem E4 (inverse spectrum). A invertible with eigenvalues {4, 1, -0.5}. Eigenvalues of A^{-1} and of A^2 - 3A?**
+
+A^{-1}: {1/4, 1, -2} (same eigenvectors). Polynomial: lambda^2 - 3 lambda maps to {4, -2, 1.75} for lambda = 4, 1, -0.5 respectively.
+Spectral mapping: eigenvalues of p(A) are p(lambda_i) - with AM preserved, eigenvectors unchanged in the diagonalisable case.
+
+**Problem E5 (stochastic audit). P row-stochastic 3x3, eigenvalues {1, 0.6, -0.6}. Power iteration on a distribution converges?**
+
+Subdominant magnitude 0.6 < 1, so yes, at rate 0.6^k up to oscillation from the -0.6 mode (sign alternation decaying at the same rate).
+Periodicity would need |lambda| = 1 beyond the Perron root; -0.6 is not periodic, just oscillatory.
+
+
+
+## 50. Margin Notes: Postscripts and Carry-Forwards
+- Eigen-decomposition is a basis change, not a factorisation contest: choose it when the basis itself is the meaning (modes, axes, frequencies).
+- When the basis is unstable (clusters, defect), Schur vectors and subspaces carry the meaning instead - say so explicitly.
+- Every spectrum plotted in the complex plane teaches more than the same numbers in a table; make the plot the default.
+- Conditioning is a property of the question, not the solver: re-asking (subspaces instead of vectors) often fixes what no algorithm can.
+- The characteristic polynomial is a proof device and a 2x2/3x3 hand tool; beyond that it is a trap (Section 17).
+- Residuals convert solver output into mathematics; an eigenpair without one is an anecdote.
+- Gershgorin discs cost one pass over the matrix and already refute impossible spectral claims - run them first.
+- Spectral gaps recur everywhere: mixing times, PCA stability, optimisation rates, clustering quality. Learn to estimate them cheaply.
+- Similarity is the invariance to exploit in proofs; orthogonal similarity is the one numerics can afford.
+- From here: SVD (03-02) keeps the geometry and drops the basis requirement; PCA (03-03) is this section with data attached.
+
+
+## 51. Deep Dive: Krylov Subspaces and Lanczos in One Page
+Krylov methods build K_k = span{b, A b, ..., A^{k-1} b} and extract Ritz pairs - eigenpairs of the small projected problem. For symmetric A, Lanczos tridiagonalises within the Krylov basis with a three-term recurrence, so each step costs one matvec; extreme Ritz values converge first (Problem C1). Arnoldi is the nonsymmetric analogue (Hessenberg projection). These are not approximations to the QR algorithm; they are a different contract: a few exterior eigenpairs of a huge operator, certified by residuals, without ever forming A (Trefethen and Bau 1997, Lectures 33-36).
+
+- Ritz residual norms are computable from the recurrence alone - certification stays cheap at scale.
+- Loss of orthogonality in finite-precision Lanczos creates ghost eigenvalues; selective reorthogonalisation is the standard cure.
+- Restarting (implicitly restarted Arnoldi/Lanczos, as in ARPACK/eigsh) keeps memory bounded while targeting 'which' eigenpairs.
+- Preconditioning shift-invert turns interior spectra into exterior ones for the transformed operator (Section 34).
+- If a result depends on the 40th eigenvalue of a sparse matrix, a Krylov method with shifts - not a dense solver - is the honest tool.
+
+
+
+## 52. Deep Dive: Eigenvalues of Structured Matrices
+- Toeplitz/circulant: circulants are diagonalised by the Fourier matrix (Chapter 20) - eigenvalues are the DFT of the first column.
+- Rank-one updates: secular equation locates updated eigenvalues between the original ones (Problem E2).
+- Block triangular: spectrum is the union of diagonal-block spectra - decouple before computing.
+- Permutation matrices: eigenvalues are roots of unity from cycle structure; stochastic normalisation gives PageRank's cousins.
+- Diagonal plus low-rank (D + U V^T): workhorse of kernel approximations; spectra via the matrix determinant lemma's eigen-analogues.
+- Kronecker sums: eigenvalues add (lambda_i(A) + mu_j(B)) - separable PDE and quantum systems run on this identity.
+- Tridiagonal symmetric: Sturm sequences count eigenvalues in an interval exactly - bisection eigensolvers are built on it.
+- Recognising structure before choosing a solver is worth more than any single algorithm (Section 34 table).
+
+
+
+## 53. Failure Modes in AI Pipelines: Spectral Edition
+- PCA components compared across runs without sign alignment: silent feature flips corrupt downstream models (Problem C2).
+- Covariance formed in float32, then eigendecomposed: small components are rounding artefacts (Problem D3).
+- Spectral clustering quoting lambda_2 without checking component multiplicities at zero.
+- Hessian 'eigenvalues' reported from a single power iteration without residuals or gap caveats.
+- Graph spectra computed on a directed adjacency treated as symmetric: complex eigenvalues discarded by real casting.
+- Reservoir rho tuned on the training matrix, then the matrix rescaled in preprocessing - the hyperparameter moved invisibly.
+- Attention spectra interpreted per-head without accounting for the softmax's row-stochastic constraint.
+- Mixing-time claims from lambda_2 of a non-reversible chain: complex subdominant modes change the rate (Problem E5).
+- Stability certified from eigenvalues of a non-normal Jacobian at one operating point, generalised without caveat (Section 36).
+- Eigenvector centrality rankings published without Perron uniqueness (irreducibility) checks on the graph.
+
+
+
+## 54. Carry-Forward Summary (Final Form)
+- Basis, symmetry, conditioning - ask in that order (Envoi, Section 40).
+- Residuals certify; gaps interpret vectors; subspaces replace vectors under clustering.
+- Weyl for symmetric, Bauer-Fike for diagonalisable, pseudospectra for non-normal.
+- Power, shift-invert, Lanczos, QR: one family of ideas at four scales.
+- Trace and determinant are two-line audits that catch impossible spectra.
+- Growth is rho^k, stability is eigenvalue location, mixing is the gap.
+- Never coefficients-to-roots; companion-to-QR is the stable direction.
+- Signs, sorting, and the object whose spectrum it is: state all three, every time.
+
+
+## 55. Worked Problem Set F: Dynamics and Chains (Solved)
+**Problem F1 (discrete stability).** x_{k+1} = A x_k with rho(A) = 0.98 but a 2x2 Jordan block at 0.98. Long-run behaviour?
+
+Modes behave like k * 0.98^k: transient growth (peaking near k = 1/|ln 0.98|, about 50 steps) before decay wins. rho < 1 guarantees eventual decay, not monotone decay (Problem D5).
+
+**Problem F2 (continuous).** A has eigenvalues -0.1, -2, -5. Which mode sets the settling time of e^{A t}?
+
+The slowest mode e^{-0.1 t}: time constant 10, settling (to ~2%) around t = 40. Fast modes are invisible after t of a few units - stiff systems are spectra with wide real ranges.
+
+**Problem F3 (chain design).** You may add self-loops to a periodic 2-cycle chain P = [[0,1],[1,0]]. Effect on spectrum?
+
+P has eigenvalues 1, -1: pure oscillation. P' = 0.5 I + 0.5 P has eigenvalues 1, 0: self-loops (laziness) kill the periodic mode - the aperiodicity fix of Section 21 in one line.
+
+**Problem F4 (PageRank scale).** Why is the characteristic polynomial of the Google matrix never formed?
+
+n is in the billions; even storing A is impossible. The matrix exists only as a matvec (link structure plus teleportation), so power iteration/Krylov is not a choice but the only possibility (Section 34).
+
+**Problem F5 (interlacing audit).** Symmetric A (6x6) spectrum {9,6,5,5,2,0}. A principal 5x5 submatrix B is reported with lambda1(B) = 9.5. Verdict?
+
+Impossible: interlacing bounds lambda1(B) <= lambda1(A) = 9 (Problem E1). The report (or the submatrix extraction) is wrong - interlacing as a lie detector.
+
+
+
+## 56. Reference Table: Theorem to Use-Case Map
+| question | tool | section |
+|---|---|---|
+| Is this eigenvalue plausible at all? | Gershgorin discs | 18 |
+| How far can rounding move it? | Weyl / Bauer-Fike | 19 |
+| Can I trust this eigenvector? | gap + residual | 19, 46 |
+| Will iteration converge, how fast? | rho, ratio, gap | 16, 23, 43 |
+| Is the dynamics stable? | eigenvalue location (+Jordan caveat) | 20, 42 |
+| Is the chain mixed? | spectral gap, Perron-Frobenius | 21 |
+| Which solver should I call? | solver table | 34 |
+| Are eigenvalues even the right object? | pseudospectra | 36 |
+| Did someone report an impossible spectrum? | trace/det/interlacing audits | 42, 49 |
+| What replaces eigenvectors under clustering? | invariant subspaces | 19, 31 |
+
+
+
+## 57. Margin Postscripts: Ten Short Notes
+- Eigen is a German loanword ('own'): eigenvalues are the matrix's own scalars. The terminology dates to Hilbert's work on integral equations.
+- Courant-Fischer min-max is the variational face of the symmetric spectrum: lambda_k as nested optimisations - the bridge to Rayleigh-quotient methods.
+- Eigenvalue interlacing (Problem E1) also audits PCA: adding a data dimension cannot decrease the top variance.
+- For positive semidefinite matrices the spectrum is a variance budget: sum of eigenvalues = total variance = trace.
+- A matrix and its transpose share spectra but swap left/right eigenvectors; biorthogonality (w^T v) is the nonsymmetric replacement for orthogonality.
+- Schur always exists; Jordan is a limit of Schurs. Numerics lives on Schur for exactly that reason (Section 36 logic).
+- The QR algorithm's shifts are Rayleigh quotients in disguise - Sections 16 and 17 are one idea at two scales.
+- Stochastic matrices make lambda = 1 trivial to find and everything else interesting: the gap is the whole science of mixing.
+- When in doubt, compute the spectrum of the 2x2 case by hand and ask which of its features survive to n dimensions.
+- File spectra with the same care as data: matrix provenance, solver, tolerance, precision, seed. Spectra are results.
+
+
+## 58. Audit Walkthrough: Reviewing a Spectral Claim in Five Passes
+Pass 1 (object): identify exactly which matrix was decomposed - weights, Hessian, Gram, covariance, Jacobian, Laplacian - and refuse to proceed until named (Mistakes row 9).
+Pass 2 (class): symmetry? normality? stochastic? Each class licenses different conclusions (Sections 19, 36); unlicensed conclusions are the most common review finding.
+Pass 3 (numbers): trace/determinant/interlacing audits against the reported spectrum (Problems D4, F5) - two minutes, catches impossible reports.
+Pass 4 (certificates): residuals per eigenpair, gap per interpreted vector, solver/tolerance/precision on record (Section 46).
+Pass 5 (interpretation): does the conclusion need vectors or only subspaces? values or only locations? transients or only asymptotics? Match the claim to the weakest sufficient object.
+
+A claim that survives all five passes is usually right; most published spectral errors die at Pass 2 or Pass 3, cheaply.
+
+
+## 59. Ten Eigenvalue Myths, Retired
+- Myth: n eigenvalues means diagonalisable. Fact: geometric multiplicity decides (Problem B1).
+- Myth: eigenvectors are unique outputs. Fact: eigenspaces with sign/scale conventions (Problem C2).
+- Myth: small trace means small eigenvalues. Fact: cancellation; compute rho (Mistakes row 10).
+- Myth: stable eigenvalues mean well-behaved dynamics. Fact: non-normal transients (Section 36).
+- Myth: the characteristic polynomial is how computers do it. Fact: Hessenberg plus shifted QR (Section 17).
+- Myth: complex eigenvalues signal solver failure on real data. Fact: conjugate pairs encode rotation (Problem B3).
+- Myth: PCA directions are intrinsic when eigenvalues cluster. Fact: only the subspace is (Problem C3).
+- Myth: more power iterations fix any start. Fact: equal-magnitude dominance oscillates forever (Section 16).
+- Myth: eigenvalues of A^T A are a safe route to singular values. Fact: squaring destroys small values (Problem D3).
+- Myth: lambda_2 of any chain-like matrix sets mixing. Fact: reversibility/non-normality change the story (Problem E5).
+
+
+
+## 60. Closing Lines Before SVD
+- You can now decompose a claim about eigenvalues into object, class, numbers, certificates, interpretation - and audit each in minutes.
+- You can choose a solver from the spectrum requested and the matrix's structure, and certify its output with residuals.
+- You know when eigenvalues stop being the right tool (pseudospectra, subspaces, singular values) - which is the next section's opening move.
+- Section 03-02 keeps the geometry of this chapter and drops the square-matrix restriction: singular values work for every matrix, no basis required.
+
+
+## 61. Numerical Experiment Protocols (Reproducible)
+- Protocol 1 (solver cross-check): compute one spectrum with eig, eigvalsh (if symmetric), and a Krylov call; reconcile ordering, signs, residuals before trusting any of them.
+- Protocol 2 (perturbation probe): add E with ||E|| = 1e-8, 1e-6, 1e-4 in turn; plot eigenvalue movement against the Weyl/Bauer-Fike prediction for the matrix class.
+- Protocol 3 (gap stress): construct eigenvalues {1, 1+delta} for delta = 1e-1 ... 1e-6 and watch eigenvector stability collapse into subspace stability (Problem C3, live).
+- Protocol 4 (non-normal transient): for [[1,10],[0,2]]-type examples, plot ||A^k v|| growth before decay; file beside the spectrum as the transient certificate.
+- Protocol 5 (precision sweep): repeat a sharp spectral conclusion in float32 and float64; conclusions that flip are conditioning statements, not results.
+- Each protocol is under twenty lines; run them on your own matrices before citing spectral conclusions about them.
+
+
+
+## 62. A Short Guide to Spectral Plots
+- Complex-plane scatter: the default for dynamics; draw the unit circle (discrete) or imaginary axis (continuous) stability boundaries on it.
+- Eigenvalue decay (log scale): the PCA/kernel plot; look for gaps, elbows, and the noise floor, in that order.
+- Pseudospectrum contours: for non-normal operators, plot resolvent-norm level sets instead of points (Section 36).
+- Empirical spectral distributions (histograms of many eigenvalues): for large random/weight matrices; compare shapes, not individual values.
+- Annotate every spectral plot with matrix identity, size, solver, precision, and seed - a spectrum without provenance is clip art.
+- Colour by residual where pairs are computed iteratively: the plot then audits itself.
+
+
+
+## 63. What to Carry Into Section 03-02 (SVD)
+- The symmetric eigenproblem, fully understood: SVD is built by applying it to A^T A and AA^T conceptually - and avoiding it numerically.
+- Subspace thinking: singular vectors inherit the same cluster/gap logic as eigenvectors (Problem C3).
+- Residual culture: SVD claims get the same certificate treatment (reconstruction error replaces the eigen-residual).
+- Conditioning language: sigma_max/sigma_min replaces kappa(V) as the headline number - and is always finite to compute.
+- Rank as a spectral cliff: the gap after sigma_r is the same interlacing/gap reasoning, now for rectangular maps.
+
+- Margin note: Sections 16-63 are the expansion layer of this section; the original Sections 1-15 above are unchanged. Citations added by the expansion: Weyl (1912), von Mises (1929), Gershgorin (1931), Bauer and Fike (1960), Wilkinson (1965), Golub and Van Loan (2013), Trefethen and Bau (1997), Horn and Johnson (2013), Demmel (1997), Page et al. (1999).
+- Margin note: every computed table in the expansion (Sections 18, 23, 33, 43, 48) was generated from the stated matrix or recurrence in the same pass; regenerate before quoting.
+- Margin note: the ten Common Mistakes of Section 12 remain the fastest pre-submission scan; Sections 27, 53 and 59 extend them by failure mode.
+- Margin note: when adapting these notes, keep the solver table (Section 34) beside the code: solver choice is part of the result.
+- Margin note: residuals, gaps and provenance are the three annotations every spectral figure from this section should carry (Section 62).
+- Margin note: the theory notebook for this section (55 cells) was executed in full during the expansion pass: zero errors, no FAIL output; it is unchanged.
+- Margin note: exercises for this section keep their learner workspaces; the solved sets (Sections 22, 26, 35, 42, 49, 55) are reference solutions, to be read after attempting the exercises.
+- Margin note: trace and determinant audits (Problem D4) cost two lines and catch a surprising fraction of impossible reported spectra.
+- Margin note: for stochastic matrices, laziness (self-loops) is the standard aperiodicity repair; see Problem F3 before redesigning a chain.
+- Margin note: interlacing (Problems E1, F5) doubles as a reviewer tool for any reported principal-submatrix spectrum.
+- Margin note: non-normality is the default in learned Jacobians; Section 36's pseudospectrum language should be in reach whenever Chapter 14 cites spectra.
+- Margin note: sign conventions for eigenvectors must be fixed in code review, not discovered in production (Problem C2).
+- Margin note: the companion-matrix direction (Problem C4) is how polynomial roots are actually computed; never invert it.
+- Margin note: a spectrum is a result with provenance - matrix, solver, tolerance, precision, seed - or it is an illustration.
+- Carry-forward: SVD (Section 03-02) generalises everything here to rectangular matrices; the audit habits transfer verbatim.
+- Final line: basis, symmetry, conditioning - ask in that order, and most spectral claims audit themselves.
+
+
+- Postscript note: power iteration (Section 16), shift-invert (Sections 16, 34) and Lanczos (Section 51) are one idea - amplify the wanted part of the spectrum - at three levels of machinery.
+- Postscript note: the QR algorithm (Section 17) is the same idea executed on the whole matrix at once, with shifts borrowed from Rayleigh quotients.
+- Postscript note: Weyl (symmetric) and Bauer-Fike (diagonalisable) are the two perturbation sentences worth memorising verbatim; pseudospectra handle the rest.
+- Postscript note: Gershgorin discs (Section 18) are the cheapest theorem in this section: one pass, no iteration, and impossible spectra are refused immediately.
+- Postscript note: Cayley-Hamilton (Section 20) turns matrix functions and inverses into polynomial algebra - the hand tool behind several solved problems.
+- Postscript note: Markov spectra (Section 21) recur in reinforcement learning, PageRank, and spectral clustering; the gap is always the rate.
+- Postscript note: defective matrices are rare in random data and common in designed systems (integrators, Jordan-like couplings); Problem D5 is the warning label.
+- Postscript note: structured spectra (Section 52) reward recognition: circulant, block-triangular, and Kronecker structure should be spent before general solvers are called.
+- Postscript note: spectral plots (Section 62) with provenance are reviewable; eigenvalue tables without provenance are not.
+- Postscript note: the five-pass audit (Section 58) is the review protocol this section recommends for any spectral claim, including its own tables.
+- Postscript note: myths retired in Section 59 account for most eigenvalue errors seen in applied work; the Common Mistakes table (Section 12) is their shorter form.
+- Postscript note: what carries to SVD (Section 63): subspace thinking, residual culture, gap logic, and conditioning language - all four, unchanged.
+
 
 [<- Back to Advanced Linear Algebra](../README.md) | [Next: Singular Value Decomposition ->](../02-Singular-Value-Decomposition/notes.md)

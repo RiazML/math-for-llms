@@ -105,6 +105,7 @@ After completing this section, you will:
 - [10. Exercises](#10-exercises)
 - [11. Why This Matters for AI (2026 Perspective)](#11-why-this-matters-for-ai-2026-perspective)
 - [12. Conceptual Bridge](#12-conceptual-bridge)
+- [13. Numerical Fourier Analysis: What the Grid Does to the Theorems](#13-numerical-fourier-analysis-what-the-grid-does-to-the-theorems)
 
 ---
 
@@ -1181,6 +1182,50 @@ Together, these theorems say: the Fourier Transform is an **invertible, energy-p
 [<- Back to Fourier Analysis](../README.md) | [Previous: Fourier Series <-](../01-Fourier-Series/notes.md) | [Next: DFT and FFT ->](../03-Discrete-Fourier-Transform-and-FFT/notes.md)
 
 ---
+
+## 13. Numerical Fourier Analysis: What the Grid Does to the Theorems
+
+### 13.1 The discrete grid is a modelling choice
+
+Every numerical Fourier computation replaces $\hat f(\xi)=\int f(t)e^{-2\pi i\xi t}dt$ with a sum over a finite window $[-T/2,T/2]$ sampled at step $\Delta t$. Three artefacts follow immediately, and each maps to a theorem in Sections 4-7:
+
+- **Truncation:** the window discards $|t|>T/2$. For slowly decaying $f$ (the sinc of Section 3) this convolves the true spectrum with the window's transform, producing ringing.
+- **Sampling:** frequencies above the Nyquist frequency $1/(2\Delta t)$ alias into lower frequencies (Section 03 develops this for the DFT).
+- **Periodization:** the FFT treats the windowed signal as periodic, so a jump between the window's ends leaks across all frequencies.
+
+### 13.2 Checking inversion honestly
+
+The inversion theorem (Section 4) holds at points of continuity and returns the midpoint $\tfrac12[f(t^+)+f(t^-)]$ at jumps. A numerical check must therefore:
+
+1. Measure recovery error at interior points, away from jumps.
+2. At a jump, compare against the straddle average of the recovered values on either side — not against the grid sample that happens to sit on the discontinuity.
+3. Expect Gibbs ringing near jumps: overshoot that narrows but does not shrink as the grid refines (Section 01).
+
+A check that demands pointwise equality at a jump is testing a statement the theorem never made (Common Mistakes, row 10).
+
+### 13.3 Duality checks and jump bands
+
+Duality pairs a smooth statement with a discontinuous one: $\mathcal{F}[\mathrm{sinc}]=\mathrm{rect}$ (theory notebook, Section 3.4 of the notebook). Numerically, error concentrates in a band around $|\xi|=0.5$ where rect jumps. The correct check excludes a band around the jump and verifies the plateau ($|\xi|<0.4$) and the exterior ($0.6<|\xi|<2$) separately; with a $\pm30$ window the plateau error is about $0.02$, while the jump band itself carries Gibbs-scale error that no refinement of $\Delta t$ at fixed window removes — only a wider window reduces it.
+
+### 13.4 Order-four and unitary checks
+
+The continuous transform satisfies $\mathcal{F}^4=I$ and $\mathcal{F}^2f(t)=f(-t)$. On a grid, repeated FFT applications accumulate window and scaling conventions, so the clean numerical witness is the unitary DFT: with the $1/\sqrt N$ normalization, applying the DFT four times returns the sample vector to machine precision (error $\sim10^{-16}$ in the theory notebook). State which object — continuous FT on a truncated grid, or unitary DFT — a numerical claim is about.
+
+### 13.5 Solved problems
+
+1. **Window choice.** A signal decays like $e^{-|t|}$. On $[-10,10]$ the discarded mass is about $e^{-10}\approx4.5\times10^{-5}$ of the peak scale: truncation error is negligible next to sampling error. For $\mathrm{sinc}(t)$, decaying like $1/t$, the same window discards far more, which is why Section 13.3's check needs the jump band excluded and a wide window.
+2. **Straddle average.** Recovered values either side of a rect jump are $1.00$ and $0.00$ (to grid accuracy). The inversion prediction at the jump is their average, $0.5$ — the Dirichlet midpoint of Common Mistakes row 10.
+3. **Convention audit.** A spectrum computed in the $\omega$-convention is larger by where the $2\pi$ sits: converting $\hat f_\omega(\omega)$ to the $\xi$-convention uses $\xi=\omega/(2\pi)$ with no extra amplitude factor in the unitary-$\xi$ convention of this curriculum (Section 2.2). Writing the convention on first use is the entire fix.
+4. **Which artefact?** A spectrum shows ripples whose spacing narrows as the window widens but whose height persists near a jump: that is truncation/Gibbs behaviour, not aliasing — aliasing would move with $\Delta t$, not with window width.
+
+### 13.6 Numerical checklist
+
+- [ ] Window width justified by the signal's decay rate.
+- [ ] Sampling step justified by the highest frequency of interest (Nyquist).
+- [ ] Inversion checked at continuity points; jumps checked by straddle average.
+- [ ] Duality/spectral checks exclude jump bands, with the band stated.
+- [ ] Convention ($\xi$ vs $\omega$, sinc normalization) written on first use.
+- [ ] Machine-precision claims made only for exact discrete identities (unitary DFT order four).
 
 ## Appendix A: Extended Properties and Derivations
 

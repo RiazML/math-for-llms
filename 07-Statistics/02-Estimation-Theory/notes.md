@@ -106,6 +106,7 @@ After completing this section, you will:
 - [11. Exercises](#11-exercises)
 - [12. Why This Matters for AI (2026 Perspective)](#12-why-this-matters-for-ai-2026-perspective)
 - [13. Conceptual Bridge](#13-conceptual-bridge)
+- [Appendix Q: Selected Solutions to Appendix P](#appendix-q-selected-solutions-to-appendix-p-with-an-estimator-audit)
 
 ---
 
@@ -1974,6 +1975,52 @@ For each of the following, state whether the model is identifiable. If not, iden
 9. **FIM for temperature scaling.** For a $K$-class classifier with logits $\mathbf{z}$ and temperature $T$, the softmax is $p_k = e^{z_k/T}/\sum_j e^{z_j/T}$. Derive the Fisher information $\mathcal{I}(T)$ for a single example and explain why Newton-Raphson temperature calibration converges in 1-2 steps.
 
 
+## Appendix Q: Selected Solutions to Appendix P, With an Estimator Audit
+
+*Appended audit expansion (phase 2). Appendix P posed the problems; this appendix works the core ones and states the audit each estimator should survive before it is trusted.*
+
+### Q.1 The estimator audit (applied throughout)
+
+| Audit question | What to compute | Failure it catches |
+|----------------|-----------------|--------------------|
+| Is the parameter identified? | whether distinct parameters give distinct laws | estimating a quantity the data cannot see |
+| Is it unbiased, and if not, how biased? | $\mathbb{E}_\theta[\hat\theta] - \theta$ exactly or asymptotically | silent systematic error |
+| What is its variance against the bound? | $\operatorname{Var}(\hat\theta)$ versus Cramér-Rao | inefficient use of data |
+| Is it consistent? | limit in probability as $n \to \infty$ | more data not helping |
+| Is it invariant where it should be? | MLE under reparametrisation $g(\hat\theta)$ | method-of-moments/plug-in mismatches |
+| Is it robust? | behaviour under contamination or misspecification | one outlier owning the answer |
+
+### Q.2 Identification answers (P.1)
+
+1. $X \sim \mathcal{N}(\mu_1 - \mu_2, 1)$: only the difference $\mu_1 - \mu_2$ is identifiable. Every pair on a line $\mu_1 - \mu_2 = c$ gives the same law, so no estimator can separate $\mu_1$ from $\mu_2$ without further structure.
+2. $p(x \mid \theta) = \theta e^{-\theta x}$: identifiable. The mean $1/\theta$ (indeed the whole density) pins down $\theta$ uniquely.
+3. Two-layer ReLU sum on scalar input: not identifiable. Permuting the two units changes nothing, and for $x$ restricted to one sign the units can trade slope against each other; the function is identifiable, the parameters are not - the standard neural-network situation.
+
+### Q.3 MLE and invariance, worked (P.2, Problem 4)
+
+Poisson data, $n = 20$, $\sum x_i = 48$.
+
+- $\hat\lambda = \bar{x} = 48/20 = 2.4$.
+- MLE of $P(X = 0) = e^{-\lambda}$: by invariance, $e^{-2.4} \approx 0.0907$.
+- MLE of the mean inter-arrival time $1/\lambda$: $1/2.4 \approx 0.4167$.
+- Audit note: invariance is a property of the MLE specifically; an unbiased estimator of $\lambda$ does not plug into $e^{-\lambda}$ unbiasedly (Jensen's inequality forbids it in general).
+
+### Q.4 Cramér-Rao for a transformed parameter (P.2, Problem 5, sketch)
+
+For $X_i \sim \mathcal{N}(\mu, 1)$ and $g(\mu) = \mu^2$: $g'(\mu) = 2\mu$ and per-sample Fisher information is 1, so any unbiased estimator of $\mu^2$ has variance at least $4\mu^2/n$.
+
+- $\bar{x}^2$ has $\mathbb{E}[\bar{x}^2] = \mu^2 + 1/n$: biased upward by exactly $1/n$.
+- Its variance is $2/n^2 + 4\mu^2/n$ (from the noncentral chi-square with one degree of freedom, scaled).
+- The biased-estimator Cramér-Rao bound, $(1 + b'(\mu))^2 / (n\mathcal{I})$ with $b(\mu) = 1/n$ constant in $\mu$, gives the same $4\mu^2/n$ floor; $\bar{x}^2$ exceeds it by $2/n^2$.
+- Ratio of achieved variance to bound: $1 + \frac{1}{2\mu^2 n} \to 1$. Hence "does not achieve for finite $n$, achieves asymptotically", as P.2 asked to show.
+
+### Q.5 Completion record (audit phase 2)
+
+- Notes: Appendices A-P preserved; Appendix Q appended (estimator audit table, identification answers, worked MLE-invariance computation, transformed-parameter Cramér-Rao derivation) with a TOC entry. The existing Common Mistakes coverage (Section 10) is retained.
+- Theory notebook: executed headlessly on a copy - 51 cells, 0 errors, 11 PASS mentions, 0 FAIL - and therefore left byte-identical (not in this commit).
+- Exercises workbook: 34 cells, compile-clean; learner workspaces untouched.
+- Canonical grounding: Lehmann and Casella, *Theory of Point Estimation* (2nd ed., 1998), for the biased Cramér-Rao form used in Q.4.
+- Verdict: section now meets the CONTRIBUTING bar (notes >= 2000 lines, theory >= 50 cells).
 ---
 
 *Section Section02 Estimation Theory - Chapter 7 Statistics - Math for LLMs curriculum*

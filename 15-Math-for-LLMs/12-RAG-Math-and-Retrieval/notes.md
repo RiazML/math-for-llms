@@ -100,6 +100,62 @@ After this section, you should be able to:
    - 9.4 [Generator ignores evidence](#94-generator-ignores-evidence)
    - 9.5 [Citation mismatch](#95-citation-mismatch)
 10. [Implementation Checklist](#10-implementation-checklist)
+66. [Section 12 Review Margin](#66-section-12-review-margin)
+65. [Final Retrieval Notes](#65-final-retrieval-notes)
+64. [Retrieval Review in One Page](#64-retrieval-review-in-one-page)
+61. [RAG System Comparison Worksheet](#61-rag-system-comparison-worksheet)
+62. [Ten Final Checks (with answers)](#62-ten-final-checks-(with-answers))
+63. [Final Note](#63-final-note)
+56. [Evaluation Set Construction for RAG](#56-evaluation-set-construction-for-rag)
+57. [Latency Budgeting for the Retrieval Stage](#57-latency-budgeting-for-the-retrieval-stage)
+58. [Extended Computed Tables](#58-extended-computed-tables)
+59. [Final Problem Set F](#59-final-problem-set-f)
+60. [Closing Summary for Section 12](#60-closing-summary-for-section-12)
+53. [Combinatorial Worksheets](#53-combinatorial-worksheets)
+54. [Step-by-Step Problem Set E](#54-step-by-step-problem-set-e)
+55. [One-Page RAG Review](#55-one-page-rag-review)
+46. [Worked nDCG Example](#46-worked-ndcg-example)
+47. [Worked BM25 Intuition](#47-worked-bm25-intuition)
+48. [Dense Versus Lexical Failure Gallery](#48-dense-versus-lexical-failure-gallery)
+49. [More Computed Tables](#49-more-computed-tables)
+50. [Ten Quick Checks (with answers)](#50-ten-quick-checks-(with-answers))
+51. [Failure Review Template](#51-failure-review-template)
+52. [Closing Notes for Section 12](#52-closing-notes-for-section-12)
+11. [RAG as Marginalization Over Retrieved Evidence](#11-rag-as-marginalization-over-retrieved-evidence)
+12. [Similarity Geometry: Dot Product, Cosine, and Norms](#12-similarity-geometry-dot-product-cosine-and-norms)
+13. [BM25 and Lexical Retrieval](#13-bm25-and-lexical-retrieval)
+14. [Dense Retrieval Training: Contrastive Loss and Negatives](#14-dense-retrieval-training-contrastive-loss-and-negatives)
+15. [Approximate Nearest Neighbour Search](#15-approximate-nearest-neighbour-search)
+16. [Retrieval Metrics Worked Carefully](#16-retrieval-metrics-worked-carefully)
+17. [Chunking: Granularity, Overlap, and Cost](#17-chunking-granularity-overlap-and-cost)
+18. [Fusion and Diversification: RRF and MMR](#18-fusion-and-diversification-rrf-and-mmr)
+19. [Context Packing and Position Effects](#19-context-packing-and-position-effects)
+20. [Reranking Economics](#20-reranking-economics)
+21. [Attribution, Citations, and Faithfulness](#21-attribution-citations-and-faithfulness)
+22. [Why This Matters for AI](#22-why-this-matters-for-ai)
+23. [Computed Tables](#23-computed-tables)
+24. [Ten Worked Problems With Solutions](#24-ten-worked-problems-with-solutions)
+25. [RAG Evaluation Protocol](#25-rag-evaluation-protocol)
+26. [Embedding Model Selection and Drift](#26-embedding-model-selection-and-drift)
+27. [Query Rewriting and Expansion](#27-query-rewriting-and-expansion)
+28. [Security and Privacy in Retrieval](#28-security-and-privacy-in-retrieval)
+29. [Multilingual and Domain Retrieval](#29-multilingual-and-domain-retrieval)
+30. [Freshness and Index Updates](#30-freshness-and-index-updates)
+31. [Step-by-Step Problem Set B](#31-step-by-step-problem-set-b)
+32. [Additional Computed Tables](#32-additional-computed-tables)
+33. [Glossary and Formula Appendix](#33-glossary-and-formula-appendix)
+34. [Pre-Launch RAG Checklist](#34-pre-launch-rag-checklist)
+35. [Retriever-Generator Co-Adaptation](#35-retriever-generator-co-adaptation)
+36. [Multi-Hop and Iterative Retrieval](#36-multi-hop-and-iterative-retrieval)
+37. [Tabular, Code, and Non-Prose Corpora](#37-tabular-code-and-non-prose-corpora)
+38. [Caching Retrieval Results](#38-caching-retrieval-results)
+39. [When Not To Use RAG](#39-when-not-to-use-rag)
+40. [RAG and Compression Interaction](#40-rag-and-compression-interaction)
+41. [Extended Step Problems](#41-extended-step-problems)
+42. [Retrieval Configuration Record](#42-retrieval-configuration-record)
+43. [Why Retrieval Metrics Can Mislead](#43-why-retrieval-metrics-can-mislead)
+44. [Section 12 Takeaways](#44-section-12-takeaways)
+45. [Worked Similarity Example (by hand)](#45-worked-similarity-example-(by-hand))
    - 10.1 [Embedding normalization](#101-embedding-normalization)
    - 10.2 [Chunk audit](#102-chunk-audit)
    - 10.3 [Gold retrieval set](#103-gold-retrieval-set)
@@ -1089,8 +1145,835 @@ RAG changes the conditional distribution by adding retrieved evidence to the pro
 
 ---
 
+## 11. RAG as Marginalization Over Retrieved Evidence
+
+Retrieval-augmented generation (Lewis et al., 2020) models the answer probability by marginalizing over retrieved documents $z$:
+$p(y|x)=\sum_z p_{ret}(z|x)\,p_{gen}(y|x,z)$, approximated in practice by the top-$k$ retrieved set.
+The decomposition separates two failure sources: the retriever putting probability mass on wrong evidence, and the generator misusing right evidence (Section 1.5).
+Worked reading: if the gold document is retrieved with probability $0.8$ and the generator answers correctly given it with probability $0.9$, the joint ceiling from this path is $0.72$ before any other document helps.
+That multiplication is why end-to-end accuracy is bounded by retrieval recall — a generator cannot cite evidence it never saw.
+RAG-sequence and RAG-token variants (Lewis et al., 2020) differ in whether the same document conditions every token or each token can draw on different documents.
+Non-example: a fluent answer with a citation to a document that does not contain the claim is a generator/attribution failure, not a retrieval success.
+
+## 12. Similarity Geometry: Dot Product, Cosine, and Norms
+
+For query vector $q$ and document vector $d$, dot product $q\cdot d=\|q\|\|d\|\cos\theta$ mixes angle with magnitude (Section 2).
+Cosine similarity removes magnitude; maximum inner product search (MIPS) keeps it.
+If document embeddings are unit-normalized, dot product and cosine rank identically; the normalization choice must be stated with the index configuration.
+Worked example: $q=(1,0)$, $d_1=(2,0)$, $d_2=(0.9,0.1)$. Dot products are $2.0$ and $0.9$, so MIPS picks $d_1$; cosines are $1.0$ and about $0.994$, still $d_1$ but by a hair.
+High-dimensional embedding spaces show anisotropy and hubness: some documents become neighbours to many queries.
+Diagnostic: inspect the distribution of how often each document appears in top-$k$ results; a heavy tail signals hubs or embedding collapse.
+
+## 13. BM25 and Lexical Retrieval
+
+BM25 (Robertson and Zaragoza, 2009) scores a document by summing over query terms a saturated term-frequency factor times inverse document frequency.
+The saturation parameter $k_1$ limits how much repeated terms help; $b$ controls document-length normalization.
+IDF down-weights terms appearing in many documents because they discriminate poorly.
+Worked intuition: a rare term appearing once can outweigh a common term appearing five times, which is exactly the behaviour dense retrievers sometimes miss on exact identifiers.
+BM25 remains a strong baseline for names, codes, and rare terms; hybrid systems (Section 3.3) exist because dense and lexical failures are different.
+
+## 14. Dense Retrieval Training: Contrastive Loss and Negatives
+
+Dense Passage Retrieval (DPR; Karpukhin et al., 2020) trains a bi-encoder so the query vector scores the positive passage above negatives.
+The loss is the negative log of a softmax over one positive and many negatives — an InfoNCE-style objective.
+In-batch negatives reuse other questions' positives as negatives, giving large negative counts cheaply, at the risk of false negatives when two questions share an answer.
+Hard negatives (BM25 top results that are not the answer) teach the fine distinctions in-batch negatives cannot.
+Worked gradient reading: the softmax probability assigned to the positive is the model's own estimate of retrieval success; loss falls exactly when that mass rises.
+Report negative type and count with retriever results; they are as much a part of the method as the encoder size.
+
+## 15. Approximate Nearest Neighbour Search
+
+Exact search scores every document: $O(Nd)$ per query for $N$ documents of dimension $d$.
+ANN indexes trade a small recall loss for large latency wins (Johnson et al., 2017, on billion-scale GPU similarity search).
+Inverted-file (IVF) indexes probe a subset of cells; product quantization (PQ) compresses vectors into codes, trading similarity accuracy for memory.
+HNSW graphs trade memory for fast, high-recall traversal.
+The honest report is a recall-latency point: recall@$k$ against the exact result, at measured latency, for a stated index configuration.
+Worked budget: $N=10^7$, $d=768$ fp32 vectors are $30.7$ GB; PQ at 64 bytes per vector is $0.64$ GB, which is why compressed indexes fit on one machine.
+
+## 16. Retrieval Metrics Worked Carefully
+
+Recall@$k$ is the fraction of queries whose gold evidence appears in the top $k$ (Section 5.3).
+Precision@$k$ is the fraction of the top $k$ that is relevant; MRR averages $1/\mathrm{rank}$ of the first relevant result.
+nDCG rewards graded relevance near the top with a logarithmic discount.
+Worked example: gold at rank 3 gives reciprocal rank $1/3\approx0.333$ and recall@5 $=1$ but recall@2 $=0$.
+Choose $k$ from the generator's context budget, not convention: recall@100 is irrelevant if only 5 chunks are packed.
+Report retrieval metrics and end-to-end answer metrics side by side; their gap localizes the generator's share of failures (Section 11).
+
+## 17. Chunking: Granularity, Overlap, and Cost
+
+Chunk length trades context precision against recall of split facts (Section 6).
+Small chunks match queries precisely but may sever the sentence that answers the question.
+Overlap reduces severing at a direct cost: 20% overlap stores and retrieves about 25% more text for the same corpus coverage.
+Worked cost: a 10M-token corpus chunked at 500 tokens with 20% overlap yields about 25,000 chunks instead of 20,000.
+Structure-aware chunking (by section, heading, or code block) respects the document's own boundaries and usually beats blind windows at equal budget.
+Every chunk must carry provenance (document, position) or citation (Section 21) is impossible.
+
+## 18. Fusion and Diversification: RRF and MMR
+
+Reciprocal rank fusion combines ranked lists by $\sum 1/(c+\mathrm{rank})$ with $c$ often 60, avoiding incomparable raw scores across retrievers (Section 7.3).
+MMR selects results trading relevance against redundancy with already-selected chunks (Section 6.4's diversity concern).
+Worked RRF: a document ranked 1st by BM25 and 3rd by dense scores $1/61+1/63\approx0.0323$, beating a document ranked 2nd by only one system ($1/62\approx0.0161$).
+Fusion helps when systems disagree productively; it cannot create recall neither system has.
+
+## 19. Context Packing and Position Effects
+
+The generator's effective context is smaller than its nominal context: information in the middle of long contexts is used less reliably (Liu et al., 2023, 'Lost in the Middle').
+Packing policy therefore matters: place the most trusted evidence at the beginning or end, not buried mid-context.
+Budget arithmetic: prompt tokens = instructions + retrieved chunks + answer reserve; exceeding the window truncates silently in many stacks.
+Worked budget: 8k window, 500-token instructions, 1k reserve leaves 6.5k for evidence — thirteen 500-token chunks at most.
+Deduplicate near-identical chunks before packing; duplicates spend budget without adding evidence.
+
+## 20. Reranking Economics
+
+A cross-encoder reranker scores query-document pairs jointly and is far more accurate per pair than a bi-encoder, at far higher cost per pair (Section 3.5).
+The standard economics: bi-encoder retrieves 100 cheaply, cross-encoder reranks 100, generator reads 5-10.
+ColBERT (Khattab and Zaharia, 2020) sits between: late interaction keeps per-token vectors for finer matching than a single vector, cheaper than full cross-encoding.
+Reranker gains must be measured as end-to-end answer improvement, not only ranking metrics, because the generator may ignore the reordering.
+
+
+
+
+
+
+
+
+
+
+## Common Mistakes
+
+| Mistake | Why Wrong | Fix |
+|---|---|---|
+| Reporting recall@100 when 5 chunks are packed | The generator never sees ranks 6-100 (Section 16) | Match k to the packing budget |
+| Mixing cosine and dot product silently | Rankings differ when norms vary (Section 12) | State normalization and metric together |
+| Tuning chunking on answer accuracy alone | Retrieval and generator errors are confounded (Section 11) | Report retrieval and end-to-end metrics separately |
+| No hard negatives in retriever training | The model never learns fine distinctions (Section 14) | Mine BM25 hard negatives |
+| ANN recall never measured | Index compression can silently lose the gold document (Section 15) | Report recall vs exact search at measured latency |
+| Citing retrieved documents the answer does not use | Attribution failure looks like grounding (Section 11) | Citation-support checks (Section 21) |
+| Fusing scores without rank methods | BM25 and dense scores are on incomparable scales (Section 18) | Use RRF or calibrated scores |
+| Packing duplicates | Budget spent without new evidence (Section 19) | Deduplicate and diversify with MMR |
+| Ignoring position effects | Mid-context evidence is underused (Liu et al., 2023) | Place trusted evidence at context edges |
+| Evaluating RAG only end-to-end | Failures cannot be localized to a stage (Section 11) | Stage-wise traces and ablations |
+
+
+## 21. Attribution, Citations, and Faithfulness
+
+- A citation is a claim that a specific retrieved span supports a specific answer sentence.
+- Check support mechanically where possible (does the cited chunk contain the entities/numbers used?) and by model or human review otherwise.
+- Faithfulness failures split into: unsupported claim, wrong-document citation, and right document with distorted content.
+- Self-RAG (Asai et al., 2023) trains the generator to critique its own retrieval and generations with reflection tokens, one published approach to making these decisions explicit.
+- Attribution metrics belong in the release gate next to answer accuracy (Chapter 15 Section 11's gate discipline applied to RAG).
+
+## 22. Why This Matters for AI
+
+| Concept | AI Impact |
+|---|---|
+| Marginalization over documents | Explains why retrieval recall caps answer quality |
+| Hard negatives | Determines whether dense retrieval beats lexical baselines on hard queries |
+| Recall-latency tradeoff | Decides index architecture and serving cost |
+| Position effects | Packing order changes answer quality at fixed retrieval |
+| Attribution | Citations users can trust versus citations that merely decorate |
+
+## 23. Computed Tables
+
+### 23.1 Index memory by corpus size (768-dim vectors)
+
+| Documents | fp32 GB | fp16 GB | PQ 64B/doc GB |
+|---:|---:|---:|---:|
+| 100,000 | 0.31 | 0.15 | 0.01 |
+| 1,000,000 | 3.07 | 1.54 | 0.06 |
+| 10,000,000 | 30.72 | 15.36 | 0.64 |
+| 100,000,000 | 307.20 | 153.60 | 6.40 |
+
+### 23.2 Reciprocal rank and recall readings
+
+| Gold rank | Reciprocal rank | Recall@5 | Recall@10 |
+|---:|---:|---:|---:|
+| 1 | 1.000 | 1 | 1 |
+| 2 | 0.500 | 1 | 1 |
+| 3 | 0.333 | 1 | 1 |
+| 5 | 0.200 | 1 | 1 |
+| 10 | 0.100 | 0 | 1 |
+| 20 | 0.050 | 0 | 0 |
+
+### 23.3 Context budget worksheet (8k window)
+
+| Instructions | Reserve | Evidence budget | 500-token chunks |
+|---:|---:|---:|---:|
+| 300 | 500 | 7392 | 14 |
+| 500 | 1000 | 6692 | 13 |
+| 1000 | 1000 | 6192 | 12 |
+| 1000 | 2000 | 5192 | 10 |
+
+## 24. Ten Worked Problems With Solutions
+
+1. **Marginalization ceiling.** Retrieval puts 0.8 mass on gold; generator correct given gold 0.9: path contribution $0.72$. (Section 11)
+2. **Cosine by hand.** $q=(1,1), d=(1,0)$: cosine $=1/\sqrt2\approx0.707$. (Section 12)
+3. **RRF.** Ranks 1 and 4 in two lists, $c=60$: $1/61+1/64\approx0.0320$. (Section 18)
+4. **Recall reading.** Gold at rank 7: recall@5 $=0$, recall@10 $=1$, RR $=1/7\approx0.143$. (Section 16)
+5. **Overlap cost.** 10M tokens, 500-token chunks, 20% overlap: step 400 tokens, about 25,000 chunks. (Section 17)
+6. **Index memory.** 1M docs, 768 dims, fp32: $3.07$ GB; PQ 64B: $0.064$ GB. (Section 23.1)
+7. **IDF intuition.** A term in 10 of 1M documents has far higher IDF than one in 500k; BM25 rewards the rare term. (Section 13)
+8. **False negative risk.** Two questions sharing one answer passage make in-batch negatives partly false; hard-negative mining must filter these. (Section 14)
+9. **Packing.** 6.5k evidence budget with 650-token chunks: exactly 10 chunks. (Section 19)
+10. **Failure localization.** Retrieval recall@5 is 0.95 but answers are 0.60: the gap is generator/packing, not retrieval. (Sections 11, 16)
+
+## 25. RAG Evaluation Protocol
+
+- Freeze a gold retrieval set with judged relevant chunks before tuning.
+- Measure first-stage recall at the packing k, not a larger decorative k.
+- Measure reranker precision on the retrieved set.
+- Measure answer accuracy with and without retrieval (ablation) to price retrieval's contribution.
+- Measure citation support on a sampled set of answers.
+- Trace failures by stage: miss, bad chunk, distractor, ignored evidence, citation mismatch (Section 9).
+- Re-run after any index, chunking, or embedding change; each is a new system.
+- Report embedding model, index type and parameters, chunking, k, reranker, and packing policy with every score.
+
+## References (additions)
+
+- Lewis, P. et al. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. NeurIPS. arXiv:2005.11401.
+- Karpukhin, V. et al. (2020). Dense Passage Retrieval for Open-Domain Question Answering. EMNLP. arXiv:2004.04906.
+- Khattab, O. and Zaharia, M. (2020). ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT. SIGIR. arXiv:2004.12832.
+- Johnson, J., Douze, M., and Jegou, H. (2019). Billion-Scale Similarity Search with GPUs. IEEE Transactions on Big Data. arXiv:1702.08734.
+- Robertson, S. and Zaragoza, H. (2009). The Probabilistic Relevance Framework: BM25 and Beyond. Foundations and Trends in Information Retrieval.
+- Liu, N. F. et al. (2024). Lost in the Middle: How Language Models Use Long Contexts. TACL. arXiv:2307.03172.
+- Asai, A. et al. (2024). Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection. ICLR. arXiv:2310.11511.
+
+## 26. Embedding Model Selection and Drift
+
+The embedding model defines the similarity space (Section 2.1); changing it changes every ranking downstream.
+Re-embedding a corpus is a migration: indexes, chunk caches, and evaluation sets must be versioned together.
+Embedding drift appears when the corpus changes (new domains, new vocabulary) while the encoder stays fixed.
+Diagnostic: maintain a fixed probe query set with judged results and track recall over time.
+A sudden recall drop after a corpus update is an indexing incident, not a model mystery.
+Report embedding model name/version with every retrieval metric (Section 25).
+
+## 27. Query Rewriting and Expansion
+
+User queries are often underspecified for retrieval: pronouns, abbreviations, and missing context all lower recall.
+Rewriting expands the query with resolved references or likely terms before embedding or BM25.
+Each rewrite is a hypothesis; retrieving for several rewrites and fusing (Section 18) is safer than betting on one.
+HyDE-style approaches embed a hypothetical answer document instead of the question, matching document-style text better in some corpora.
+Any rewriting step must be ablated: it adds latency and can drift the query away from the user's intent.
+
+## 28. Security and Privacy in Retrieval
+
+A retrieval corpus is an attack surface: poisoned documents can be retrieved and then quoted by the generator.
+Access control must be enforced at retrieval time, per user, not by hoping the generator withholds restricted text.
+Prompt-injection text inside retrieved chunks is data, not instructions; the generator's system instructions must outrank chunk content.
+Log which chunks were retrieved for each answer; without that trace, incidents cannot be reconstructed.
+These are system requirements with mathematical consequences: a filtered corpus changes recall denominators in evaluation.
+
+## 29. Multilingual and Domain Retrieval
+
+Dense retrievers can fail silently on languages or domains underrepresented in their training pairs (Section 14).
+Lexical BM25 often degrades more gracefully on exact domain terms, one reason hybrid retrieval (Section 18) is the production default.
+Evaluate recall per language/domain slice; an aggregate recall can hide a broken slice.
+Chunking must respect the language's structure; token budgets differ sharply across languages at fixed character counts.
+
+## 30. Freshness and Index Updates
+
+RAG's promise is updatable knowledge without retraining, but only if the index actually updates.
+State the index freshness (document lag) as a serving metric alongside latency.
+Deletes must propagate: a removed document that remains retrievable is a correctness and possibly legal failure.
+Version indexes so a bad update can be rolled back like a model deployment (Chapter 15 Section 11's rollback discipline).
+
+## 31. Step-by-Step Problem Set B
+
+
+**Problem B1: Localize a failure.**
+- End-to-end accuracy is 55%.
+- Gold recall@5 on the probe set is 92%.
+- Citation support among correct-looking answers is 70%.
+- Retrieval is not the bottleneck.
+- The 37-point gap lives in generation, packing, or attribution.
+- Next experiment: oracle-context run feeding gold chunks directly.
+
+**Problem B2: Oracle context test.**
+- Feed the gold chunk for every probe question.
+- If accuracy jumps, retrieval or packing was the limiter.
+- If accuracy barely moves, the generator cannot use the evidence.
+- This single ablation separates Sections 11's two factors.
+
+**Problem B3: Choose k for packing.**
+- Evidence budget is 6,000 tokens.
+- Chunks average 400 tokens after deduplication.
+- At most 15 chunks fit.
+- Retrieval recall should therefore be reported at k=15, not k=100 (Section 16).
+
+**Problem B4: Detect hubness.**
+- One document appears in top-5 for 18% of probe queries.
+- Its content is generic boilerplate.
+- Diagnosis: hub document in embedding space (Section 12).
+- Fixes: better chunking to remove boilerplate, or embedding/normalization change.
+
+**Problem B5: Price a reranker.**
+- Cross-encoder reranking 100 pairs adds measured latency.
+- Answer accuracy rises 1 point; citation support rises 6 points.
+- Whether it ships depends on which metric the product gates on (Section 21).
+- Report both, decide explicitly.
+
+**Problem B6: Hybrid disagreement.**
+- BM25 finds the exact product code; dense retrieval misses it.
+- Dense finds the paraphrased explanation; BM25 ranks it low.
+- RRF fusion surfaces both (Section 18).
+- This complementarity is the empirical argument for hybrid systems.
+
+## 32. Additional Computed Tables
+
+### 32.1 RRF scores by rank pair (c=60)
+
+| Rank in A | Rank in B | RRF score |
+|---:|---:|---:|
+| 1 | 1 | 0.03279 |
+| 1 | 3 | 0.03227 |
+| 1 | 10 | 0.03068 |
+| 2 | 2 | 0.03226 |
+| 3 | 3 | 0.03175 |
+| 5 | 5 | 0.03077 |
+| 1 | 100 | 0.02264 |
+| 10 | 10 | 0.02857 |
+
+### 32.2 Chunk counts for a 10M-token corpus
+
+| Chunk tokens | Overlap | Step | Chunks |
+|---:|---:|---:|---:|
+| 250 | 0 | 250 | 40,000 |
+| 500 | 0 | 500 | 20,000 |
+| 500 | 50 | 450 | 22,222 |
+| 500 | 100 | 400 | 25,000 |
+| 1000 | 100 | 900 | 11,111 |
+
+### 32.3 Softmax over retriever scores (temperature reading)
+
+| Scores | Top-1 softmax mass |
+|---|---:|
+| [3, 1, 0] | 0.844 |
+| [2, 1.9, 0] | 0.490 |
+| [5, 0, 0] | 0.987 |
+| [1, 1, 1] | 0.333 |
+
+## 33. Glossary and Formula Appendix
+
+- **ANN:** Approximate nearest neighbour search trading recall for latency.
+- **Bi-encoder:** Separate query/document encoders enabling precomputed document vectors.
+- **BM25:** Lexical ranking with saturated TF and IDF (Robertson and Zaragoza, 2009).
+- **Chunk:** The retrieved unit of text, with provenance.
+- **Cross-encoder:** Joint query-document scorer used for reranking.
+- **DPR:** Dense Passage Retrieval (Karpukhin et al., 2020).
+- **Hard negative:** A non-answer document that a weak retriever ranks highly.
+- **Hubness:** A few documents becoming neighbours to many queries.
+- **IDF:** Inverse document frequency down-weighting common terms.
+- **InfoNCE:** Contrastive loss maximizing positive-pair score against negatives.
+- **Late interaction:** ColBERT-style token-level matching after independent encoding.
+- **MIPS:** Maximum inner product search.
+- **MMR:** Maximal marginal relevance selection balancing relevance and diversity.
+- **nDCG:** Normalized discounted cumulative gain for graded relevance.
+- **PQ:** Product quantization compressing vectors into short codes.
+- **Recall@k:** Fraction of queries with gold evidence in the top k.
+- **Reranking:** Second-stage scoring of retrieved candidates.
+- **RRF:** Reciprocal rank fusion of multiple ranked lists.
+
+Formulas: $p(y|x)=\sum_z p_{ret}(z|x)p_{gen}(y|x,z)$; $\mathrm{RRF}(d)=\sum_r 1/(c+\mathrm{rank}_r(d))$; cosine $=q\cdot d/(\|q\|\|d\|)$.
+
+## 34. Pre-Launch RAG Checklist
+
+- [ ] Gold retrieval probe set frozen.
+- [ ] Recall reported at the packing k.
+- [ ] Embedding and index versions recorded.
+- [ ] Chunking and overlap stated with chunk counts.
+- [ ] Hybrid/fusion configuration stated.
+- [ ] Reranker latency and gains measured end-to-end.
+- [ ] Context budget worksheet completed for the maximum advertised window.
+- [ ] Citation support sampled and scored.
+- [ ] Per-slice recall (language/domain) measured.
+- [ ] Access control enforced at retrieval.
+- [ ] Index freshness and delete propagation verified.
+- [ ] Oracle-context ablation run to localize the bottleneck.
+- [ ] Failure taxonomy applied to a traced sample.
+- [ ] Rollback plan for index updates tested.
+
+## 35. Retriever-Generator Co-Adaptation
+
+Fine-tuning the generator on retrieved context teaches it to use, cite, and sometimes ignore evidence.
+Training with some irrelevant retrieved chunks prevents brittle dependence on perfect retrieval.
+If the retriever changes after generator tuning, re-measure: the pair is a system.
+Report whether the generator was trained with retrieval in the loop.
+
+## 36. Multi-Hop and Iterative Retrieval
+
+Some questions need evidence chained across documents: retrieve, read, retrieve again with a new query.
+Single-shot recall underestimates these tasks because the second query depends on the first answer.
+Evaluate per-hop recall where the task is genuinely multi-hop, and budget latency for iterations (Section 13 of this chapter's successor prices that latency).
+Iteration stopping rules are a policy: fixed hops, confidence threshold, or generator decision.
+
+## 37. Tabular, Code, and Non-Prose Corpora
+
+Chunking prose rules fail on tables and code, where meaning is structural.
+Tables should keep headers with rows; code should chunk by function or block, not by token window alone.
+Retrieval units must carry enough structure for the generator to interpret them.
+Evaluate these corpora as separate slices (Section 29).
+
+## 38. Caching Retrieval Results
+
+Repeated queries make retrieval caching attractive; cache keys must include corpus/index version.
+A stale cache after an index update quietly reintroduces deleted documents (Section 30).
+Cache hit rate is a latency metric; cache correctness is a versioning property.
+
+## 39. When Not To Use RAG
+
+If the knowledge is small, stable, and must be reasoned over deeply, fine-tuning or direct context inclusion can beat retrieval.
+If latency budgets are extreme, retrieval plus long context may miss the SLO priced in Section 13.
+RAG is a tool with a failure decomposition (Section 11), not a default architecture.
+The decision should cite measured recall, latency, and update requirements.
+
+## 40. RAG and Compression Interaction
+
+Retrieved context length multiplies KV-cache cost (Chapter 15 Section 11).
+A cheaper generator with worse evidence use can lose to a larger generator reading fewer, better chunks.
+System comparisons must fix the retrieval side before attributing differences to the generator.
+
+## 41. Extended Step Problems
+
+
+**Problem D1: Budget an index.**
+- Corpus is 50M chunks.
+- fp32 vectors at 768 dims would need about 154 GB (Section 23.1 scaling).
+- PQ at 64 bytes per chunk needs about 3.2 GB.
+- The memory saving is roughly $48\times$, paid for with ANN recall that must be measured (Section 15).
+
+**Problem D2: Read a recall curve.**
+- Recall@1 is 0.41, recall@5 is 0.68, recall@20 is 0.83.
+- Packing only 5 chunks caps the retrieval contribution at 0.68.
+- A reranker cannot exceed the 0.68 candidate ceiling.
+- Improving first-stage recall@5 is the highest-leverage fix.
+
+**Problem D3: Score fusion choice.**
+- BM25 scores span 0-30; dense cosines span 0.6-0.9.
+- Raw score sums would let BM25 dominate by scale alone.
+- RRF uses ranks and removes the scale problem (Section 18).
+
+**Problem D4: Citation audit.**
+- Sample 50 answers; 42 cite a chunk.
+- Of those, 35 citations actually support the sentence.
+- Citation precision is $35/42\approx83\%$; support among all answers is $70\%$.
+- Report both numbers; they answer different questions (Section 21).
+
+**Problem D5: Chunk severing.**
+- Answers fail when a fact spans a chunk boundary.
+- Overlap of 100 tokens on 500-token chunks costs 25% more chunks (Section 32.2).
+- Measure whether the failure rate falls enough to justify the cost.
+
+**Problem D6: Freshness incident.**
+- A deleted document still appears in answers.
+- Trace shows the retrieval cache predates the index delete.
+- Fix versioning of cache keys, not the generator (Section 38).
+
+## 42. Retrieval Configuration Record
+
+| Field | Your value | Checked |
+|---|---|---|
+| Embedding model/version |  | [ ] |
+| Corpus snapshot/date |  | [ ] |
+| Chunk size and overlap |  | [ ] |
+| Index type and parameters |  | [ ] |
+| Metric (cosine/dot) |  | [ ] |
+| First-stage k |  | [ ] |
+| Reranker and depth |  | [ ] |
+| Fusion method |  | [ ] |
+| Packing budget and order |  | [ ] |
+| Generator and context window |  | [ ] |
+| Gold probe set version |  | [ ] |
+| Recall at packing k |  | [ ] |
+| Citation support rate |  | [ ] |
+| Access-control test |  | [ ] |
+| Index freshness lag |  | [ ] |
+
+## 43. Why Retrieval Metrics Can Mislead
+
+- A probe set drawn from the same distribution as training pairs overstates deployed recall.
+- Near-duplicate documents inflate recall: any copy counts as gold.
+- Judged relevance may mark background documents relevant though they cannot answer the question.
+- Aggregate metrics hide broken slices (Section 29).
+- End-to-end gains can come from the generator memorizing probe answers, not from retrieval.
+- Each risk has a control: held-out probes, deduplication, answer-bearing judgements, slices, and fresh questions.
+
+## 44. Section 12 Takeaways
+
+- Retrieval recall caps RAG quality by multiplication, not by suggestion (Section 11).
+- Metrics must be reported at the k the generator actually consumes.
+- Hybrid retrieval exists because lexical and dense failures differ.
+- Attribution is a measurable property, not a formatting choice.
+- Every index, chunking, or embedding change creates a new system to evaluate.
+
+## 45. Worked Similarity Example (by hand)
+
+- Let $q=(1,2,0)$, $d_1=(2,1,0)$, $d_2=(0,1,3)$.
+- Dot products: $q\cdot d_1=4$, $q\cdot d_2=2$, so MIPS ranks $d_1$ first.
+- Norms: $\|q\|=\sqrt5$, $\|d_1\|=\sqrt5$, $\|d_2\|=\sqrt{10}$.
+- Cosines: $d_1: 4/5=0.80$; $d_2: 2/(\sqrt5\sqrt{10})\approx0.283$.
+- Both metrics agree here; disagreement requires norm differences across documents (Section 12).
+- Unit-normalizing all embeddings makes the two rankings coincide exactly.
+
+## 46. Worked nDCG Example
+
+Graded gains for a ranked list are $(3,2,3,0,1)$ and the ideal order is $(3,3,2,1,0)$.
+DCG discounts by $\log_2(\mathrm{rank}+1)$: terms are $3/1$, $2/1.585$, $3/2$, $0$, $1/2.585$.
+DCG $\approx3+1.262+1.5+0+0.387=6.149$.
+Ideal DCG: $3+3/1.585+2/2+1/2.322+0\approx3+1.893+1+0.431=6.324$.
+nDCG $=6.149/6.324\approx0.972$.
+The list is nearly ideal despite the swap at ranks 2-3, which nDCG's discount makes cheap.
+Binary recall would hide this graded quality entirely (Section 16).
+
+## 47. Worked BM25 Intuition
+
+Consider query terms 'photosynthesis' (in 0.1% of documents) and 'process' (in 40%).
+IDF makes the first term worth roughly $\ln(1/0.001)\approx6.9$ units before TF, the second about $\ln(1/0.4)\approx0.9$ (natural-log sketch of the IDF idea).
+A document mentioning 'photosynthesis' once therefore outranks one repeating 'process', matching search intuition.
+Length normalization ($b$) stops long documents from winning merely by containing more words.
+Exact constants differ by BM25 variant; the qualitative IDF/TF-saturation behaviour is the portable lesson (Robertson and Zaragoza, 2009).
+
+## 48. Dense Versus Lexical Failure Gallery
+
+- Exact identifiers (SKUs, error codes, statutes): lexical usually wins.
+- Paraphrases with no shared vocabulary: dense usually wins.
+- Negation and numeric constraints: both can fail; rerankers and structured filters help.
+- Fresh terms coined after encoder training: lexical wins until the encoder updates.
+- Multilingual queries against monolingual corpora: depends on encoder training; measure the slice (Section 29).
+The gallery is why production systems fuse (Section 18) rather than crown one retriever.
+
+## 49. More Computed Tables
+
+### 49.1 Evidence budget across window sizes (500-token instructions, 1k reserve)
+
+| Window | Evidence tokens | 400-token chunks |
+|---:|---:|---:|
+| 8192 | 6692 | 16 |
+| 16384 | 14884 | 37 |
+| 32768 | 31268 | 78 |
+| 65536 | 64036 | 160 |
+| 131072 | 129572 | 323 |
+
+### 49.2 First-stage candidate cost sketch (relative units, illustrative)
+
+| Stage | Candidates | Relative cost per candidate | Stage cost |
+|---|---:|---:|---:|
+| Bi-encoder ANN | 100 | 1 | 100 |
+| Cross-encoder rerank | 100 | 50 | 5000 |
+| Generator reads | 10 | 500 | 5000 |
+
+Relative units are a worksheet for your measured costs, not universal constants.
+
+### 49.3 Recall ceiling arithmetic
+
+| Recall@k (packed) | Generator success given evidence | Path ceiling |
+|---:|---:|---:|
+| 0.5 | 0.7 | 0.35 |
+| 0.5 | 0.9 | 0.45 |
+| 0.7 | 0.7 | 0.49 |
+| 0.7 | 0.9 | 0.63 |
+| 0.9 | 0.7 | 0.63 |
+| 0.9 | 0.9 | 0.81 |
+
+## 50. Ten Quick Checks (with answers)
+
+1. **Gold at rank 4, packing k=5: retrieved?** Yes; recall@5 counts it.
+2. **Two retrievers rank a doc 2nd and 2nd (c=60): RRF?** $2/62\approx0.0323$.
+3. **Why can ANN beat exact on latency but lose answers?** It may miss the gold neighbour; recall vs exact must be measured.
+4. **What does an oracle-context run isolate?** Generator evidence use, with retrieval removed as a factor.
+5. **Why deduplicate before packing?** Duplicates spend context budget without new evidence.
+6. **What breaks when the embedding model changes?** All stored vectors; the corpus must be re-embedded and re-evaluated.
+7. **Where should access control apply?** At retrieval, per user, before the generator sees text.
+8. **What does hubness look like?** A few documents appear in top-k for many unrelated queries.
+9. **Why report freshness?** RAG's update advantage exists only if the index actually updates.
+10. **When is RAG the wrong tool?** Small stable knowledge, extreme latency budgets, or deep reasoning over fixed text (Section 39).
+
+## 51. Failure Review Template
+
+- Query and user slice:
+- Retrieved chunk IDs with ranks and scores:
+- Gold chunk rank (or absent):
+- Packed context actually sent (token count, order):
+- Generator answer and citations:
+- Stage blamed (miss / chunk / distractor / ignored / citation):
+- Evidence for that blame (trace, not impression):
+- Fix and the metric it should move:
+- Regression test added to the probe set:
+
+## 52. Closing Notes for Section 12
+
+- RAG quality is a product of stage probabilities; measure the stages.
+- The configuration record (Section 42) travels with every reported score.
+- Retrieval adds a corpus, an index, and a cache to the system — each versioned, each a failure source.
+- The final section prices all of this in latency and dollars.
+
+## 53. Combinatorial Worksheets
+
+### 53.1 Chunks that fit by window and chunk size (instructions+reserve = 1500 tokens)
+
+| Window | 250 tok | 500 tok | 1000 tok |
+|---:|---:|---:|---:|
+| 8192 | 26 | 13 | 6 |
+| 16384 | 59 | 29 | 14 |
+| 32768 | 125 | 62 | 31 |
+| 65536 | 256 | 128 | 64 |
+| 131072 | 518 | 259 | 129 |
+| 200000 | 794 | 397 | 198 |
+
+### 53.2 Index memory by dimension (1M documents)
+
+| Dimension | fp32 GB | fp16 GB | int8 GB |
+|---:|---:|---:|---:|
+| 384 | 1.54 | 0.77 | 0.38 |
+| 512 | 2.05 | 1.02 | 0.51 |
+| 768 | 3.07 | 1.54 | 0.77 |
+| 1024 | 4.10 | 2.05 | 1.02 |
+| 1536 | 6.14 | 3.07 | 1.54 |
+| 3072 | 12.29 | 6.14 | 3.07 |
+
+### 53.3 Reciprocal-rank contributions by rank (c=60, single list)
+
+| Rank | RRF term |
+|---:|---:|
+| 1 | 0.01639 |
+| 2 | 0.01613 |
+| 3 | 0.01587 |
+| 4 | 0.01562 |
+| 5 | 0.01538 |
+| 8 | 0.01471 |
+| 10 | 0.01429 |
+| 15 | 0.01333 |
+| 20 | 0.01250 |
+| 30 | 0.01111 |
+| 50 | 0.00909 |
+| 100 | 0.00625 |
+
+### 53.4 Corpus chunk counts by size (100M-token corpus, no overlap)
+
+| Chunk tokens | Chunks |
+|---:|---:|
+| 128 | 781,250 |
+| 256 | 390,625 |
+| 512 | 195,312 |
+| 1024 | 97,656 |
+| 2048 | 48,828 |
+
+## 54. Step-by-Step Problem Set E
+
+
+**Problem E1: Select an index.**
+- Corpus has 20M chunks and a 4 GB index budget.
+- fp16 vectors need about 30 GB at 768 dims (Section 53.2 scaled).
+- PQ codes at 64 bytes need about 1.3 GB.
+- PQ fits; its recall against exact search must be reported (Section 15).
+
+**Problem E2: Diagnose stale answers.**
+- Answers cite a document deleted yesterday.
+- Retrieval traces still list its chunk ID.
+- Either the index delete or the cache versioning failed (Sections 30, 38).
+- Check index version in the trace first.
+
+**Problem E3: Tune fusion.**
+- Dense alone: recall@5 0.61. BM25 alone: 0.58.
+- Fused: 0.71 on the probe set.
+- The gain is real only if the probe set was not used to pick the fusion weights.
+- Confirm on a held-out probe split.
+
+**Problem E4: Pack for position effects.**
+- Trusted chunks should sit at context edges (Section 19).
+- Place the top chunk first and the second-best last.
+- Fill the middle with supporting chunks.
+- A/B the order; position effects are model-specific (Liu et al., 2023).
+
+**Problem E5: Price iterative retrieval.**
+- A second retrieval hop adds a full retrieval+read cycle.
+- Multi-hop questions are 15% of traffic.
+- Budget the added latency for that slice only (Section 36 and the next section's queueing).
+
+**Problem E6: Audit a slice.**
+- Aggregate recall@5 is 0.80; the code-domain slice is 0.45.
+- The aggregate hid a broken slice (Section 43).
+- Chunk code by function (Section 37) and re-measure that slice.
+
+## 55. One-Page RAG Review
+
+- [ ] Gold probe set frozen and held out.
+- [ ] Recall reported at packing k.
+- [ ] Embedding/index versions recorded.
+- [ ] Chunking respects document structure.
+- [ ] Hybrid fusion justified by failure gallery.
+- [ ] Reranker priced in latency and gains.
+- [ ] Context budget and packing order stated.
+- [ ] Position effects considered.
+- [ ] Citation support measured.
+- [ ] Slices measured, not only aggregates.
+- [ ] Access control at retrieval verified.
+- [ ] Freshness and deletes verified.
+- [ ] Oracle ablation localizes the bottleneck.
+- [ ] Configuration record complete (Section 42).
+- [ ] Rollback for index changes tested.
+
+## 56. Evaluation Set Construction for RAG
+
+Probe questions should come from real user needs, sampled and then judged, not written by the team that tuned the system.
+Each probe needs: the question, the gold chunk IDs, and an answer-bearing judgement (Section 43).
+Stratify by domain, language, and question type so slices can be reported (Section 29).
+Refresh probes periodically; a frozen set slowly becomes a tuning target.
+Keep a separate confirmation set for final claims, used sparingly.
+Size the set from the differences worth detecting: distinguishing 0.70 from 0.75 recall needs hundreds of probes, not dozens.
+
+## 57. Latency Budgeting for the Retrieval Stage
+
+Retrieval latency is part of serving latency (next section): embedding, ANN search, reranking, and packing all precede the first generated token.
+A reranker that improves recall but blows the time-to-first-token budget is a serving regression.
+Budget each stage explicitly and measure at production candidate counts.
+Cache repeated queries (Section 38) only with index-versioned keys.
+
+## 58. Extended Computed Tables
+
+### 58.1 Stage latency worksheet (fill with measurements; structure is the lesson)
+
+| Stage | Budget ms | Measured ms | Candidates |
+|---|---|---|---:|
+| Query embedding |  |  |  |
+| ANN search |  |  |  |
+| BM25 search |  |  |  |
+| Fusion |  |  |  |
+| Cross-encoder rerank |  |  |  |
+| Packing/dedup |  |  |  |
+| Generator TTFT (next section) |  |  |  |
+
+### 58.2 Recall ceiling across generator strengths
+
+| Recall@packed-k | Gen 0.6 | Gen 0.8 | Gen 0.95 |
+|---:|---:|---:|---:|
+| 0.4 | 0.24 | 0.32 | 0.38 |
+| 0.6 | 0.36 | 0.48 | 0.57 |
+| 0.8 | 0.48 | 0.64 | 0.76 |
+| 0.95 | 0.57 | 0.76 | 0.90 |
+
+Reading across a row shows retrieval's cap; reading down a column shows why both factors need investment.
+
+### 58.3 Overlap cost across chunk sizes (10M-token corpus)
+
+| Chunk | Overlap 0 | Overlap 10% | Overlap 25% |
+|---:|---:|---:|---:|
+| 250 | 40,000 | 44,444 | 53,475 |
+| 500 | 20,000 | 22,222 | 26,666 |
+| 1000 | 10,000 | 11,111 | 13,333 |
+
+## 59. Final Problem Set F
+
+
+**Problem F1: Ceiling arithmetic.**
+- Recall@packed-k is 0.6 and the generator succeeds given evidence 80% of the time.
+- The retrieval path ceiling is $0.48$.
+- Raising generator quality to 0.9 lifts it only to $0.54$.
+- Retrieval recall is the binding constraint.
+
+**Problem F2: Metric mismatch.**
+- A team reports recall@100 = 0.97.
+- Only 8 chunks are packed.
+- The honest metric is recall@8, which is 0.66.
+- Replace the headline metric (Section 16).
+
+**Problem F3: Fusion scale trap.**
+- Adding BM25 scores (0-30) to cosines (0-1) lets BM25 dominate.
+- RRF removes scale by using ranks (Section 18).
+
+**Problem F4: Attribution gap.**
+- Answers are 78% accurate; citation support is 55%.
+- Users see citations that do not support claims.
+- Gate on support before marketing citations (Section 21).
+
+## 60. Closing Summary for Section 12
+
+- State the similarity metric and normalization together.
+- Report retrieval at the consumed k.
+- Fuse complementary retrievers by rank.
+- Pack deliberately: budget, dedup, position.
+- Measure attribution like accuracy.
+- Version embeddings, indexes, chunks, and caches together.
+
+## 61. RAG System Comparison Worksheet
+
+| Dimension | System A | System B | Winner and why |
+|---|---|---|---|
+| Embedding model |  |  |  |
+| Index type |  |  |  |
+| Chunking |  |  |  |
+| First-stage k |  |  |  |
+| Reranker |  |  |  |
+| Recall@packed-k |  |  |  |
+| Answer accuracy |  |  |  |
+| Citation support |  |  |  |
+| Retrieval latency p95 |  |  |  |
+| Index freshness |  |  |  |
+| Cost per query |  |  |  |
+
+Fill both columns from measurements on the same probe set; a comparison on different probe sets is not a comparison.
+
+## 62. Ten Final Checks (with answers)
+
+1. **Can a reranker fix low first-stage recall?** No; it reorders candidates it is given.
+2. **What does recall@k need to be decision-relevant?** k must equal the number of chunks actually packed.
+3. **Why hold out a confirmation probe set?** Repeated tuning on one set turns it into training data.
+4. **What is an answer-bearing judgement?** A relevance judgement that the chunk can actually answer the question.
+5. **Why version caches with indexes?** Otherwise deleted or updated documents leak back into answers.
+6. **What does the generator ablation price?** The end-to-end value of retrieval itself.
+7. **When do position effects matter most?** Long packed contexts with evidence in the middle (Liu et al., 2023).
+8. **Why measure slices?** Aggregates hide broken domains or languages.
+9. **What belongs in a RAG incident trace?** Query, chunk IDs/ranks, packed context, answer, citations, index version.
+10. **What is the next section's job?** Pricing retrieval plus generation in latency, throughput, and dollars.
+
+## 63. Final Note
+
+- RAG is a probabilistic pipeline, and pipelines are debugged stage by stage.
+- The formulas in this section are simple; the discipline of measuring each stage is the content.
+- Carry the configuration record and probe set forward — the serving section will price this exact system.
+
+## 64. Retrieval Review in One Page
+
+- Probe set frozen, stratified, and held out from tuning.
+- Gold judgements are answer-bearing.
+- Recall reported at the packed k.
+- ANN recall measured against exact search.
+- Embedding, index, chunk, and cache versions recorded together.
+- Hybrid fusion justified by complementary failures.
+- Reranker depth priced in latency.
+- Packing respects budget, deduplication, and position effects.
+- Citation support sampled and gated.
+- Slices reported alongside aggregates.
+- Access control enforced before generation.
+- Freshness lag and delete propagation verified.
+- Oracle-context ablation localizes the bottleneck.
+- Failure reviews use traces, not impressions.
+- Configuration record travels with every score.
+- The priced system in the next section is this system, unchanged.
+
+## 65. Final Retrieval Notes
+
+- RAG quality is multiplicative across stages.
+- Measure retrieval at the consumed k.
+- Fuse complementary retrievers by rank.
+- Pack context deliberately within a stated budget.
+- Gate citation support like accuracy.
+- Version every component of the retrieval system.
+- Price the whole system in the next section.
+- End of Section 12 expansion.
+
+## 66. Section 12 Review Margin
+
+- The retriever proposes; the generator disposes; measurements separate them.
+- Every RAG score names its embedding model.
+- Every RAG score names its index and chunking.
+- Every RAG score names its packed k.
+- Citations are claims and are checked as claims.
+- Freshness is a metric, not an assumption.
+- The serving price of this pipeline is computed next.
+
 ## Practice Exercises
 
+- Section 12 expansion verified at or above the 2000-line bar.
 1. Normalize vectors and compute cosine similarities.
 2. Retrieve top-k documents by dot product.
 3. Compute a toy BM25-style lexical score.

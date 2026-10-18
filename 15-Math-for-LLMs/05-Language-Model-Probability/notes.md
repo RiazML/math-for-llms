@@ -108,6 +108,28 @@ After this section, you should be able to:
    - 10.3 [Distribution shift](#103-distribution-shift)
    - 10.4 [Generation versus evaluation](#104-generation-versus-evaluation)
    - 10.5 [Bridge to training at scale](#105-bridge-to-training-at-scale)
+11. [Conditional Entropy and Information](#11-conditional-entropy-and-information-between-context-and-token)
+12. [Sampling Theory](#12-sampling-theory-tilting-truncation-renormalization)
+13. [Sequence-Level Mismatch](#13-sequence-level-mismatch-exposure-bias-and-search-error)
+14. [Large-Vocabulary Softmax](#14-large-vocabulary-softmax-approximations)
+15. [Targets Beyond One-Hot](#15-targets-beyond-one-hot-label-smoothing-and-distillation-targets)
+16. [Evaluation Beyond Perplexity](#16-evaluation-beyond-a-single-perplexity-number)
+17. [Probability Under Tokenization](#17-probability-under-tokenization)
+18. [Worked End-to-End Example](#18-worked-end-to-end-example)
+19. [Derivations in Full](#19-derivations-in-full)
+20. [Count Models Worked in Full](#20-count-models-worked-in-full)
+21. [Decoding Transformations Compared](#21-decoding-transformations-compared-on-one-distribution)
+22. [Numerical Cases](#22-numerical-cases-that-break-naive-implementations)
+23. [Bridge Within Chapter 15](#23-from-this-section-to-the-rest-of-chapter-15)
+24. [Ten Worked Problems](#24-ten-worked-problems-with-full-solutions)
+25. [Diagnostic Protocol](#25-a-diagnostic-protocol-for-probability-bugs)
+26. [Glossary](#26-glossary-of-probability-terms-used-in-this-chapter)
+27. [Monte Carlo Estimation](#27-estimating-likelihood-quantities-by-monte-carlo)
+28. [Comparing Two Language Models](#28-comparing-two-language-models-honestly)
+29. [Historical Line](#29-historical-line-in-one-view)
+30. [Softmax Jacobian Worked Numerically](#30-a-softmax-jacobian-worked-numerically)
+31. [Choosing a Score for a Task](#31-choosing-a-score-for-a-task-decision-table)
+32. [Formula Summary](#32-formula-summary)
 
 ---
 
@@ -1404,6 +1426,524 @@ The model is not storing a sentence list. It is using a conditional distribution
 
 ---
 
+---
+
+## 11. Conditional Entropy and Information Between Context and Token
+
+### 11.1 Conditional entropy of the next token
+
+**Definition.** For context $X=t_{<i}$ and next token $Y=t_i$,
+$H(Y\mid X)=\mathbb{E}[-\log p(Y\mid X)]$.
+
+- Example 1: after "The capital of France is", a good model puts most mass on " Paris", so the conditional entropy is near 0.1 nats.
+- Example 2: after "She opened the", plausible continuations (door, book, window, letter) spread mass, so entropy is several nats.
+- Example 3: for a uniform distribution over a 50,257-token vocabulary (GPT-2, Radford et al., 2019), $H=\ln 50257\approx10.82$ nats is the maximum possible value.
+- Non-example 1: the marginal entropy $H(Y)$ of tokens in a corpus is not conditional entropy; it ignores context and is almost always larger.
+- Non-example 2: the entropy of a hidden state $h_i$ is not defined by the formula above; $h_i$ is a deterministic vector, not the random variable $Y$.
+
+**Theorem (conditioning reduces entropy).** $H(Y\mid X)\le H(Y)$, with equality iff $X$ and $Y$ are independent.
+*Proof sketch.* $H(Y)-H(Y\mid X)=I(X;Y)$, and mutual information is a KL divergence $D_{\mathrm{KL}}(p(x,y)\|p(x)p(y))\ge0$ by Jensen's inequality applied to $-\log$. $\square$
+
+**AI connection.** This is why context helps: every bit of mutual information between prefix and continuation is a bit the model need not "guess". Long-context models (e.g. RoPE extrapolation work following Su et al., 2021) are valuable exactly when distant context carries nonzero $I(X_{\text{far}};Y)$.
+
+### 11.2 Mutual information as the value of context
+
+**Definition.** $I(X;Y)=\sum_{x,y}p(x,y)\log\frac{p(x,y)}{p(x)p(y)}$.
+
+Worked numbers: suppose $Y\in\{\text{yes},\text{no}\}$ is balanced ($H(Y)=0.693$ nats) and context $X$ predicts $Y$ with 90% accuracy symmetrically. Then $H(Y\mid X)\approx-0.9\ln0.9-0.1\ln0.1\approx0.325$ nats, so $I(X;Y)\approx0.368$ nats $\approx0.53$ bits: the context is worth about half a bit per token.
+
+- Example: a retrieval passage that names the answer entity raises $I(X;Y)$ for the answer tokens in RAG (Lewis et al., 2020).
+- Non-example: repeating the prompt back adds tokens but little mutual information about the *next* token beyond position 1.
+
+### 11.3 Entropy rate of a text source
+
+**Definition.** The entropy rate is $\mathcal{H}=\lim_{n\to\infty}\frac1n H(t_1,\dots,t_n)$ when the limit exists.
+Shannon (1951) estimated the entropy rate of printed English at roughly 0.6–1.3 bits per character using human prediction experiments.
+A model with bits-per-token $b$ on a tokenizer averaging $c$ characters per token is achieving $b/c$ bits per character, the tokenizer-free quantity of Section 15.5.
+
+**Common mistake.** Reporting a lower per-token perplexity for a model with a *larger* vocabulary as if it were a better entropy rate. Larger vocabularies mechanically lower per-token NLL; bits per byte does not have this defect.
+
+### 11.4 Pointwise mutual information and phrase association
+
+$\mathrm{PMI}(x,y)=\log\frac{p(x,y)}{p(x)p(y)}$ measures how much more often $x,y$ co-occur than independence predicts.
+Church and Hanks (1990) used PMI for word association; modern tokenizers inherit the idea: BPE merges (Sennrich et al., 2016) repeatedly join the most frequent adjacent pair, a count-based proxy for association.
+PMI can be negative (repulsion), zero (independence), or positive (attraction); a softmax probability alone never shows the independence baseline, which is why PMI remains a useful diagnostic.
+
+---
+
+## 12. Sampling Theory: Tilting, Truncation, Renormalization
+
+### 12.1 Ancestral sampling is exact
+
+Sampling $t_i\sim p_\theta(\cdot\mid t_{<i})$ sequentially samples exactly from the joint $p_\theta(t_{1:n})$ by the chain rule of Section 2. There is no approximation in ancestral sampling itself; all distortion relative to the model comes from *modifying* each conditional before sampling.
+
+### 12.2 Temperature as exponential tilting
+
+Temperature sampling replaces $p_j\propto e^{z_j}$ by $p_j(\tau)\propto e^{z_j/\tau}=p_j^{1/\tau}/\sum_k p_k^{1/\tau}$, an exponential tilting (powering) of the base distribution.
+
+- As $\tau\to0^+$, $p(\tau)$ concentrates on $\arg\max_j z_j$ (greedy decoding).
+- As $\tau\to\infty$, $p(\tau)$ tends to uniform over the vocabulary.
+- At $\tau=1$ the model distribution is unchanged.
+Entropy $H(p(\tau))$ is monotonically non-decreasing in $\tau$ for $\tau>0$; Section 5 of the theory notebook verifies this numerically.
+
+**Non-example.** Dividing *probabilities* (not logits) by $\tau$ and renormalizing is not temperature sampling; it is a much weaker linear rescaling.
+
+### 12.3 Top-k and nucleus truncation, exactly
+
+Top-$k$ (Fan et al., 2018) keeps the $k$ largest probabilities and renormalizes: $\tilde p_j=p_j/\sum_{i\in K}p_i$ for $j\in K$, else 0.
+Nucleus/top-$p$ (Holtzman et al., 2020) keeps the smallest set $K$ with $\sum_{i\in K}p_i\ge p$.
+Truncation always *lowers* entropy and always moves the sampling distribution away from $p_\theta$ in total variation by exactly the discarded mass $1-\sum_{i\in K}p_i$ before renormalization.
+
+Worked example: for $p=(0.5,0.3,0.15,0.05)$, top-$p$ with $p=0.8$ keeps $\{0.5,0.3\}$ and renormalizes to $(0.625,0.375)$; the discarded mass is 0.20, so TV distance to the original is 0.20.
+
+### 12.4 Why greedy text degenerates
+
+Greedy decoding maximizes each conditional locally, which is neither joint MAP search nor typical sampling. Holtzman et al. (2020) showed human text has fluctuating per-token probability while greedy text loops into high-probability repetitions: once a phrase repeats, its continuation probability rises, a self-reinforcing fixed point of the greedy map.
+
+---
+
+## 13. Sequence-Level Mismatch: Exposure Bias and Search Error
+
+### 13.1 Exposure bias
+
+Teacher forcing trains on gold prefixes; generation conditions on the model's own prefixes. Bengio et al. (2015, scheduled sampling) named and addressed this train/test prefix-distribution mismatch by sometimes feeding model predictions during training.
+Formally, training minimizes loss under $p_{\text{data}}(t_{<i})$ while decoding visits prefixes from $p_\theta(t_{<i})$; the gap compounds with length because each step can drift to prefixes never seen in training.
+
+### 13.2 Search error versus model error
+
+If the highest-probability sequence under $p_\theta$ is bad text, that is *model error*. If beam search fails to find that sequence, that is *search error*. Stahlberg and Byrne (2019) showed for neural machine translation that wider beams can find higher-probability but *worse* translations (often empty), proving the model's MAP sequence itself can be pathological — a model problem, not a search problem.
+
+### 13.3 Minimum Bayes risk decoding
+
+Instead of MAP, minimum Bayes risk decoding picks the candidate maximizing expected utility (e.g. similarity to other samples) under $p_\theta$. It uses the distribution as a distribution, not just its mode, and is the principled alternative when the mode is degenerate.
+
+---
+
+## 14. Large-Vocabulary Softmax Approximations
+
+The LM head costs $O(|V|d)$ per token; with $|V|\approx 256{,}000$ (e.g. large modern vocabularies) this is a real fraction of compute.
+
+### 14.1 Hierarchical softmax
+
+Morin and Bengio (2005) factorize $p(y\mid h)$ over a binary tree over words, turning $O(|V|)$ normalization into $O(\log|V|)$ decisions. Each internal node is a binary classifier; the probability of a word is the product of path decisions, so the distribution remains exactly normalized.
+
+### 14.2 Sampled softmax
+
+Jean et al. (2015) train with the target plus a sampled subset of negatives, correcting with the sampling proposal probabilities. Training is cheaper, but the *evaluation* perplexity must still be computed with the full softmax or an unbiased correction, otherwise numbers are not comparable.
+
+### 14.3 Adaptive softmax
+
+Grave et al. (2017) give frequent words a full-size head and rare words smaller heads in frequency bands, exploiting Zipf's law: most tokens come from a small head vocabulary, so average cost falls while the model stays exactly normalized within each band's construction.
+
+**Common mistake.** Benchmarking a sampled-softmax training loss against a full-softmax validation perplexity. They estimate different normalizers.
+
+---
+
+## 15. Targets Beyond One-Hot: Label Smoothing and Distillation Targets
+
+### 15.1 Label smoothing as a changed target distribution
+
+Label smoothing (Szegedy et al., 2016) replaces the one-hot target $y$ by $y'=(1-\varepsilon)y+\varepsilon/|V|$. The loss $-\sum_j y'_j\log p_j$ is still cross-entropy, but against a target with entropy floor $\varepsilon\log|V|$, so the optimum no longer drives logits to infinity.
+
+### 15.2 What smoothing does to calibration
+
+Müller et al. (2019) showed label smoothing improves expected calibration error while making the model's own probabilities a worse record of its knowledge for distillation: the teacher's dark knowledge is partially erased. **AI connection:** if you plan to distill (Hinton et al., 2015), train the teacher without (or with less) label smoothing.
+
+### 15.3 Knowledge distillation targets
+
+Distillation minimizes $D_{\mathrm{KL}}(p_{\text{teacher}}(\tau)\,\|\,p_{\text{student}}(\tau))$ at temperature $\tau>1$ (Hinton et al., 2015), transferring relative probabilities of *wrong* tokens — information a one-hot target cannot carry. This is Section 4's cross-entropy with a soft, model-generated target.
+
+---
+
+## 16. Evaluation Beyond a Single Perplexity Number
+
+### 16.1 Bits per byte
+
+Report $\text{bpb}=\frac{\sum_i -\log_2 p(t_i\mid t_{<i})}{\text{number of UTF-8 bytes}}$. It is tokenizer-independent and therefore the only likelihood number comparable across tokenizers (see Section 5.5).
+
+### 16.2 Calibration for token predictions
+
+A next-token model is calibrated at confidence $q$ if, among predictions made with max-probability $q$, the predicted token is correct a fraction $q$ of the time. Guo et al. (2017) showed modern neural networks are systematically overconfident and that a single temperature fitted on validation data (Section 6.5) fixes much of it.
+
+### 16.3 Selective prediction
+
+Report accuracy/coverage curves: abstain when max-probability is below a threshold. A model with slightly worse perplexity but better-ranked confidence can dominate on selective prediction, which is what deployed systems with a "I don't know" path actually use.
+
+---
+
+## 17. Probability Under Tokenization
+
+### 17.1 Segmentation is a latent variable
+
+A string $s$ can often be segmented several ways; a token-level model scores one deterministic segmentation $\tau(s)$, so $p_\theta(s):=p_\theta(\tau(s))$ depends on the tokenizer's greedy choices, not just the model. Two models with different tokenizers assign probabilities to *different event spaces*; only byte-normalized scores (16.1) are commensurable.
+
+### 17.2 Boundary effects
+
+Prompting with a partial word can force an unlikely first token because the continuation must begin mid-token-merge. This is a tokenization-boundary artifact of $p_\theta(\cdot\mid\tau(\text{prompt}))$, not evidence the model "doesn't know" the word; rephrasing the prompt to end at a token boundary changes the conditional distribution itself.
+
+---
+
+## 18. Worked End-to-End Example
+
+Vocabulary $\{a,b,\text{EOS}\}$. Model conditionals: $p(a\mid\text{BOS})=0.6$, $p(b\mid\text{BOS})=0.3$, $p(\text{EOS}\mid\text{BOS})=0.1$; $p(b\mid a)=0.5$, $p(\text{EOS}\mid a)=0.5$; $p(\text{EOS}\mid b)=0.9$, $p(a\mid b)=0.1$.
+
+1. $p(ab\,\text{EOS})=0.6\times0.5\times0.9=0.27$; $\log p=\ln0.27\approx-1.309$ nats.
+2. Average NLL over the 3 tokens is $0.436$ nats, so token perplexity is $e^{0.436}\approx1.55$ and bits/token $=0.436/\ln2\approx0.63$.
+3. Greedy from BOS picks $a$, then ties $b$/EOS at 0.5 — greedy needs a tie-breaking rule, illustrating that "the greedy sequence" is implementation-defined at ties.
+4. Temperature $\tau=2$ at BOS: unnormalized $(\sqrt{0.6},\sqrt{0.3},\sqrt{0.1})=(0.775,0.548,0.316)$, normalized $\approx(0.473,0.334,0.193)$ — flatter, as 12.2 predicts.
+5. Top-$p=0.8$ at BOS keeps $\{a,b\}$ (mass 0.9) and renormalizes to $(0.667,0.333)$.
+
+Every number here is checkable in the theory notebook's checklist cell style: sums to one, logs match products, perplexity is $\exp(\text{mean NLL})$.
+
+---
+
+
+---
+
+## 19. Derivations in Full
+
+### 19.1 Softmax Jacobian
+
+For $p=\mathrm{softmax}(z)$, $\frac{\partial p_i}{\partial z_j}=p_i(\delta_{ij}-p_j)$.
+*Derivation.* Write $p_i=e^{z_i}/S$, $S=\sum_k e^{z_k}$. For $i=j$: $\partial p_i/\partial z_i=p_i-p_i^2=p_i(1-p_i)$. For $i\ne j$: $\partial p_i/\partial z_j=-e^{z_i}e^{z_j}/S^2=-p_ip_j$. Combining gives $p_i(\delta_{ij}-p_j)$. $\square$
+Consequences: the Jacobian is symmetric, positive semidefinite, has rank $|V|-1$, and annihilates the all-ones vector — the infinitesimal version of shift invariance (Section 3.3).
+
+### 19.2 Cross-entropy gradient, step by step
+
+$L=-\log p_y=-z_y+\log\sum_k e^{z_k}$. Hence $\partial L/\partial z_j=-\delta_{jy}+p_j$, i.e. $\nabla_z L=p-y$.
+This is the most-used gradient in LLM training: the error signal on every logit is exactly the probability error. A token already at $p_y=0.99$ contributes a gradient 100x smaller than one at $p_y=0.09$ with comparable other mass, which is why loss curves flatten even while rare-token errors persist.
+
+### 19.3 Non-negativity of KL, with the equality condition
+
+$D_{\mathrm{KL}}(p\|q)=\sum_j p_j\log(p_j/q_j)=-\sum_j p_j\log(q_j/p_j)\ge-\log\sum_j p_j(q_j/p_j)=-\log1=0$ by Jensen, since $-\log$ is convex. Equality holds iff $q_j/p_j$ is constant on the support of $p$, i.e. $p=q$. This one inequality underlies: conditioning reduces entropy (11.1), cross-entropy $\ge$ entropy (Section 5.2), and the fact that MLE minimizes an empirical KL (Section 4).
+
+### 19.4 Why perplexity is monotone in mean NLL
+
+Perplexity $=e^{\overline{\mathrm{NLL}}}$ is a strictly increasing reparametrization: it adds no information beyond mean NLL, it only changes units to "effective branching factor". Two models ranked by perplexity are ranked identically by mean NLL on the *same* tokenization — and by neither across tokenizations (Section 17.1).
+
+### 19.5 Chain rule for entropy
+
+$H(t_{1:n})=\sum_{i=1}^n H(t_i\mid t_{<i})$ by applying $H(X,Y)=H(X)+H(Y\mid X)$ inductively. Dividing by $n$ and taking limits gives the entropy rate of Section 11.3 as the limit of per-token conditional entropies — precisely the quantity a perfect LM's perplexity estimates.
+
+---
+
+## 20. Count Models Worked in Full
+
+Corpus: `the cat sat`, `the cat slept`, `the dog sat` (with BOS/EOS).
+
+| Bigram | Count | $p(\cdot\mid\text{the})$ | $p(\cdot\mid\text{cat})$ |
+|---|---:|---:|---:|
+| the->cat | 2 | 2/3 | - |
+| the->dog | 1 | 1/3 | - |
+| cat->sat | 1 | - | 1/2 |
+| cat->slept | 1 | - | 1/2 |
+| dog->sat | 1 | - | - |
+
+$p(\text{the cat sat EOS}\mid\text{BOS})=1\times\frac23\times\frac12\times1=\frac13$ (taking $p(\text{EOS}\mid\text{sat})=1$ in this corpus).
+The unseen sentence `the dog slept` gets probability $1\times\frac13\times0=0$ under the MLE bigram — the zero-probability failure that smoothing exists to fix.
+
+### 20.1 Add-$\alpha$ smoothing on the same counts
+
+With $|V|=6$ content/EOS outcomes and $\alpha=0.1$: $p_\alpha(\text{slept}\mid\text{dog})=\frac{0+0.1}{1+0.6}=0.0625$, while $p_\alpha(\text{sat}\mid\text{dog})=\frac{1.1}{1.6}=0.6875$. Every unseen continuation buys a small, explicit price paid by the seen ones.
+
+### 20.2 Interpolation and backoff
+
+Interpolated estimate: $\hat p(y\mid x)=\lambda_x p_{\text{bigram}}(y\mid x)+(1-\lambda_x)p_{\text{unigram}}(y)$. Kneser-Ney smoothing (Kneser and Ney, 1995) improves this by discounting counts and using continuation counts (in how many contexts does $y$ appear) for the lower order — still the reference smoothing in classical LM toolkits, and the conceptual ancestor of "reserve some mass for the unseen" in neural sampling filters.
+
+### 20.3 Perplexity of the toy corpus
+
+Under the MLE bigram, the held-out sentence `the cat slept EOS` has probability $1\times\frac23\times\frac12\times1=\frac13$ over 4 predicted tokens, so mean NLL $=\ln3/4\approx0.275$ nats and perplexity $=e^{0.275}\approx1.32$. Under add-0.1 smoothing the same sentence scores $\frac{2.1}{3.6}\times\frac{1.1}{2.6}\approx0.247$ joint, a *lower* likelihood here but a finite one for `the dog slept`, which MLE scores at exactly 0 (infinite perplexity). Smoothing trades likelihood on seen patterns for finiteness on unseen ones.
+
+---
+
+## 21. Decoding Transformations Compared on One Distribution
+
+Base distribution over tokens A–E: $p=(0.40,0.25,0.20,0.10,0.05)$, entropy $H\approx1.42$ nats.
+
+| Method | Resulting distribution | Entropy (nats) | Note |
+|---|---|---:|---|
+| Greedy | $(1,0,0,0,0)$ | 0.00 | Mode only; deterministic |
+| Sample $\tau=1$ | $(0.40,0.25,0.20,0.10,0.05)$ | 1.42 | Exact model distribution |
+| $\tau=0.5$ | $\propto p^2\approx(0.593,0.231,0.148,0.037,0.009)$ | 1.06 | Sharpened |
+| $\tau=2$ | $\propto\sqrt p\approx(0.316,0.250,0.224,0.158,0.112)$ | 1.55 | Flattened toward uniform ($\ln5=1.61$) |
+| Top-$k=2$ | $(0.615,0.385,0,0,0)$ | 0.67 | Discarded mass 0.35 |
+| Top-$p=0.85$ | $(0.471,0.294,0.235,0,0)$ | 1.04 | Keeps A,B,C (mass 0.85) |
+
+Reading the table: every filter trades entropy for concentration, and the *amount* of discarded mass — not the name of the method — sets the total-variation distance from the model. A top-$k$ that discards 0.35 distorts more than a top-$p$ that discards 0.15, whatever their labels.
+
+### 21.1 Repetition penalties are logit surgery
+
+A repetition penalty divides positive logits (or subtracts a penalty) for already-emitted tokens before softmax. It is therefore a *history-dependent logit bias* (Section 9.3), not a property of $p_\theta$; the same model with penalty 1.0 and 1.2 defines two different sequence distributions, and likelihood-based evaluation must use penalty 1.0.
+
+### 21.2 Constrained decoding masks are conditional distributions
+
+Setting logits of forbidden tokens to $-\infty$ and renormalizing samples from $p_\theta(\cdot\mid \text{allowed set})$ at each step. The resulting sequence distribution is *not* $p_\theta$ conditioned on the whole sequence being valid (that would require sequence-level renormalization); per-step masking can still walk into dead ends where every allowed continuation violates a global constraint — the standard argument for grammar-guided backtracking or constrained beam search in structured generation.
+
+---
+
+## 22. Numerical Cases That Break Naive Implementations
+
+| Case | Naive result | Stable result | Lesson |
+|---|---|---|---|
+| $z=(1000,1001)$, softmax | $e^{1000}=\infty$, NaN | subtract max: $(0.269,0.731)$ | Always shift (Section 3.4) |
+| $p_y=0$ in $-\log p_y$ | $\log0=-\infty$ loss | compute log-softmax directly, never $\log(\mathrm{softmax})$ | Loss must be fused |
+| Mean over a padded batch of mostly pads | loss $\approx0$, looks "trained" | masked mean (Section 4.5) | Count real tokens in logs |
+| bf16 logits rounded before loss | small-probability tokens collapse to ties | compute loss in fp32 | Keep the loss path in fp32 (cf. Section 8 of Training at Scale) |
+| Summing probabilities then taking log for sequence score | underflow to 0 for long sequences | sum log-probabilities | Score in log space (Section 2.4) |
+
+Each row is a real failure mode class seen in training-code reviews; the theory notebook's checklist cell encodes the first, second, and fifth as executable assertions.
+
+---
+
+## 23. From This Section to the Rest of Chapter 15
+
+Tokenization (Section 01) chooses the event space of this section's distributions. Embeddings (02) parameterize $h_i$; attention (03) computes it; positional encodings (04) make it order-sensitive. This section turns $h_i$ into probability. Training at Scale (06) then optimizes exactly this cross-entropy at industrial scale, Fine-Tuning (07) changes the target distribution, and Scaling Laws (08) predict how its value falls with compute. If a later number in this chapter surprises you, translate it back to a statement about $p_\theta(t_i\mid t_{<i})$ here first.
+
+
+---
+
+## 24. Ten Worked Problems With Full Solutions
+
+### Problem 1: chain rule by hand
+Given $p(\text{the}\mid\text{BOS})=0.9$, $p(\text{cat}\mid\text{the})=0.4$, $p(\text{sat}\mid\text{cat})=0.5$, $p(\text{EOS}\mid\text{sat})=0.8$, find $p(\text{the cat sat})$.
+Solution: include EOS: $0.9\times0.4\times0.5\times0.8=0.144$. In logs: $\ln0.9+\ln0.4+\ln0.5+\ln0.8=-0.105-0.916-0.693-0.223=-1.938$, and $e^{-1.938}=0.144$. The two computations must agree; checking this identity catches most hand-scoring errors.
+
+### Problem 2: temperature limits
+Logits $z=(2,1,0)$. At $\tau=1$: $p\propto(7.389,2.718,1)$, so $p=(0.665,0.245,0.090)$.
+At $\tau=0.5$: $p\propto e^{(4,2,0)}=(54.6,7.39,1)$, so $p=(0.867,0.117,0.016)$.
+At $\tau=4$: $p\propto e^{(0.5,0.25,0)}=(1.649,1.284,1)$, so $p=(0.419,0.326,0.254)$.
+Entropy rises from 0.44 to 1.03 nats across these, monotone as Section 12.2 states.
+
+### Problem 3: gradient magnitude
+If $p_y=0.02$ for the target and another token has $p_j=0.90$, then $\nabla_z L$ has components $-0.98$ on $y$ and $+0.90$ on $j$. One gradient step on logits therefore mostly *removes* mass from the confident wrong token; this is why a few confident errors dominate early training loss.
+
+### Problem 4: perplexity conversion
+Mean NLL $=1.6$ nats/token. Perplexity $=e^{1.6}=4.95$. Bits/token $=1.6/\ln2=2.31$. If the tokenizer averages 4.2 bytes/token, bits/byte $=2.31/4.2=0.55$. Only the last number may be compared to a model using a different tokenizer.
+
+### Problem 5: length normalization flips a ranking
+Candidate A: 2 tokens, log-probs $(-0.2,-0.3)$, total $-0.5$, mean $-0.25$.
+Candidate B: 5 tokens, each $-0.22$, total $-1.1$, mean $-0.22$.
+Raw score picks A; mean score picks B. Neither is "correct" in isolation: the choice encodes whether the task rewards brevity (Section 6.1) or per-token quality.
+
+### Problem 6: ECE by hand
+Bins: (conf 0.9, acc 0.8, weight 0.5), (conf 0.6, acc 0.6, weight 0.3), (conf 0.4, acc 0.2, weight 0.2).
+ECE $=0.5|0.8-0.9|+0.3|0.6-0.6|+0.2|0.2-0.4|=0.05+0+0.04=0.09$. The model is overconfident in both imperfect bins; a fitted temperature (Section 6.5) would soften the 0.9 bin.
+
+### Problem 7: top-p by hand
+$p=(0.45,0.25,0.15,0.10,0.05)$, $p_{\text{nucleus}}=0.9$: cumulative sorted mass is $0.45,0.70,0.85,0.95$, so keep the first four and renormalize by $0.95$: $(0.474,0.263,0.158,0.105)$. Discarded mass is exactly $0.05$.
+
+### Problem 8: label smoothing changes the optimum
+With $\varepsilon=0.1$, $|V|=4$, target class 1: $y'=(0.925,0.025,0.025,0.025)$. The loss-minimizing prediction is $p=y'$, not a one-hot: label smoothing (Section 15.1) caps justified confidence at $0.925$ for this setting, by construction.
+
+### Problem 9: conditional scoring
+Prompt log-probs sum to $-2.0$ over 8 tokens; answer log-probs sum to $-1.2$ over 3 tokens. Answer score (Section 9.1) is $-0.4$ per token. Including the prompt would give $-3.2/11=-0.29$, a *better-looking* number that mostly rewards the model for modelling the prompt the user wrote — a scoring bug, not a better answer.
+
+### Problem 10: smoothing rescues a zero
+In Section 20's corpus, $p(\text{slept}\mid\text{dog})=0$ under MLE, so any sentence containing "dog slept" has infinite perplexity. Add-0.1 gives $0.0625$ (Section 20.1): finite, small, and honestly priced. A neural LM with softmax output never assigns exact zero, but can assign $10^{-12}$, which is numerically the same cliff for log-loss.
+
+---
+
+## 25. A Diagnostic Protocol for Probability Bugs
+
+Run these in order; each step isolates one layer of Sections 1–10.
+
+1. **Vocabulary audit.** Print $|V|$, the BOS/EOS ids, and decode a batch back to text. Mismatched special-token ids corrupt every later number silently.
+2. **Shift audit.** Confirm labels are inputs shifted by one position. An off-by-one here trains $p(t_i\mid t_{<i+1})$-style leakage or its mirror, and loss looks *suspiciously good* or *hopeless* rather than merely worse.
+3. **Mask audit.** Sum the mask; confirm it equals the number of non-pad tokens, and that the reported loss divides by that sum (Section 4.5).
+4. **Normalization audit.** Assert every row of $p_\theta(\cdot\mid t_{<i})$ sums to 1 within $10^{-5}$ (float tolerance), on a batch drawn from real data, not only on toy inputs.
+5. **Log-space audit.** Recompute one sequence score as a product of probabilities and as a sum of log-probabilities; require agreement (Problem 1).
+6. **Tokenizer audit.** Report tokens, bytes, and bits/byte together (Problem 4). A change in any likelihood claim that disappears in bits/byte was a tokenizer artifact.
+7. **Decoding audit.** Log the discarded mass of every top-$k$/top-$p$ filter (Section 21). If you cannot state the discarded mass, you cannot state how far sampling is from the model.
+8. **Calibration audit.** Bin confidences on validation data and compute ECE (Problem 6) before and after a fitted temperature. Fit the temperature on validation, never on test (Guo et al., 2017).
+9. **Conditioning audit.** Score one answer with and without prompt tokens included (Problem 9) and confirm the pipeline uses the intended one.
+10. **Reproducibility audit.** Fix the seed, sample 1,000 continuations, and record the empirical frequency of the most common first token; it should match the model's stated first-token probability within binomial sampling error. This single check exercises tokenization, conditioning, softmax, and the sampler together.
+
+A probability stack that passes all ten is not guaranteed correct, but each historical failure class in Section 22 fails at least one of them.
+
+---
+
+## 26. Glossary of Probability Terms Used in This Chapter
+
+| Term | Meaning in this chapter |
+|---|---|
+| Ancestral sampling | Sampling each token from its conditional, sequentially (12.1) |
+| Bits per byte | Total NLL in bits divided by UTF-8 bytes; tokenizer-free (16.1) |
+| Calibration | Predicted confidence equals empirical accuracy (6.3, 16.2) |
+| Chain rule | Factorization of a joint into conditionals (2.1) |
+| Cross-entropy | $-\sum y\log p$ against a target distribution (4.3) |
+| ECE | Weighted mean gap between bin confidence and accuracy (6.4) |
+| Entropy rate | Per-token entropy limit for long text (11.3) |
+| Exposure bias | Gold-prefix training vs self-prefix generation (13.1) |
+| Hierarchical softmax | Tree factorization of the vocabulary (14.1, Morin and Bengio 2005) |
+| Label smoothing | Mixing the one-hot target with uniform mass (15.1) |
+| Log-sum-exp | Stable $\log\sum e^{z_k}$ via max subtraction (3.4) |
+| MAP sequence | Highest-probability complete sequence; rarely what you want (13.2) |
+| Nucleus sampling | Top-$p$ truncation and renormalization (7.4, Holtzman et al. 2020) |
+| Perplexity | $\exp(\text{mean NLL})$; same-tokenizer comparisons only (5.3) |
+| PMI | Log ratio of joint to independent probabilities (11.4) |
+| Sampled softmax | Training with a corrected negative subset (14.2, Jean et al. 2015) |
+| Search error | Decoder fails to find the model's own best sequence (13.2) |
+| Selective prediction | Abstaining below a confidence threshold (16.3) |
+| Teacher forcing | Training on gold prefixes (2.2) |
+| Temperature | Logit scaling $z/\tau$ before softmax (3.5, 12.2) |
+| Tilting | Powering a distribution $p^{1/\tau}$ and renormalizing (12.2) |
+| Top-$k$ | Keeping the $k$ largest probabilities (7.3, Fan et al. 2018) |
+
+---
+
+## 27. Estimating Likelihood Quantities by Monte Carlo
+
+### 27.1 What sampling can and cannot estimate
+
+Ancestral samples (12.1) estimate expectations under $p_\theta$: mean sequence length, frequency of a phrase, expected reward of a completion. They do *not* directly estimate the probability of a *specific* long sequence — that comes from the log-probability sum (2.4), which is exact for the model. Confusing these two is a category error: frequency estimation has Monte Carlo error $O(1/\sqrt{n})$; log-probability evaluation has none (up to float error).
+
+### 27.2 Standard errors for sampled frequencies
+
+If a phrase occurs in $\hat q$ of $n$ independent samples, the standard error is $\sqrt{\hat q(1-\hat q)/n}$. For $\hat q=0.02$ and $n=1000$, SE $\approx0.0044$, so a claimed difference between models of 0.003 in phrase frequency is inside noise at this sample size. Report $n$ with every sampled statistic — the reproducibility audit (25.10) uses exactly this check.
+
+### 27.3 Importance sampling in one paragraph
+
+To estimate $\mathbb{E}_{p}[f]$ using samples from $q$, weight each sample by $p(x)/q(x)$. In language modelling this appears when evaluating a model on continuations sampled from another (e.g. scoring human-preferred completions): the weights correct the sampling distribution, and they degenerate (one weight dominates) when $q$ is far from $p$ in sequence space — the sequence-level version of the support warning in Section 1.4.
+
+---
+
+## 28. Comparing Two Language Models Honestly
+
+### 28.1 Paired comparison on the same documents
+
+Evaluate both models on identical documents and form per-document NLL differences $d_k=\overline{\mathrm{NLL}}_A^{(k)}-\overline{\mathrm{NLL}}_B^{(k)}$. Pairing removes document difficulty from the comparison; the mean of $d_k$ with a bootstrap confidence interval over documents (resample documents, not tokens — tokens within a document are dependent) is the defensible headline number.
+
+### 28.2 A worked sign test
+
+Model A beats B (lower NLL) on 68 of 100 documents. Under the null of equal quality, wins are Binomial(100, 0.5), so 68 wins is about 3.6 standard deviations ($\sqrt{100\times0.25}=5$) above 50 — strong evidence A is better *on this corpus*, and no evidence at all about other corpora (Section 10.3 distribution shift).
+
+### 28.3 Multiple comparisons
+
+Comparing 20 checkpoints on the same validation set and reporting the best inflates the winner's apparent advantage (selection bias). Hold out a final test set touched once, or correct for the selection. This is the evaluation cousin of fitting temperature on test data (Problem-table, Common Mistakes): every adaptive choice spends the dataset it adapts to.
+
+### 28.4 Checklist for a likelihood claim
+
+- Same tokenizer, or bits per byte reported (16.1, 17.1).
+- Same documents, paired differences, bootstrap over documents (28.1).
+- EOS and padding handled identically for both models (1.2, 4.5).
+- Number of documents and tokens stated.
+- Decoding settings irrelevant to a likelihood claim — and therefore stated as unused, so generation settings are not smuggled into an evaluation result.
+---
+
+## 29. Historical Line in One View
+
+| Year | Contribution | Probability idea this chapter uses |
+|---:|---|---|
+| 1948 | Shannon, "A Mathematical Theory of Communication" | Entropy $H$ and cross-entropy as coding length (Section 5) |
+| 1951 | Shannon, "Prediction and Entropy of Printed English" | Entropy rate estimated by prediction (11.3) |
+| 1989/1990 | Church and Hanks, word association via PMI | Association against an independence baseline (11.4) |
+| 1995 | Kneser and Ney, improved backing-off | Discounting and continuation counts (20.2) |
+| 2003 | Bengio et al., neural probabilistic LM | Distributed $h_i$ parameterizes the conditional (8.3) |
+| 2005 | Morin and Bengio, hierarchical softmax | Tree factorization of a large vocabulary (14.1) |
+| 2010 | Mikolov et al., recurrent LM | Recurrent conditional $p(t_i\mid t_{<i})$ at corpus scale (8.4) |
+| 2015 | Bengio et al., scheduled sampling | Exposure bias named and mitigated (13.1) |
+| 2015 | Hinton et al., distillation | Soft targets carry dark knowledge (15.3) |
+| 2015 | Jean et al., sampled softmax for NMT | Corrected subset normalization in training (14.2) |
+| 2016 | Szegedy et al., label smoothing | Non-one-hot targets (15.1) |
+| 2017 | Grave et al., adaptive softmax | Frequency-banded exact normalization (14.3) |
+| 2017 | Vaswani et al., Transformer | Attention computes $h_i$ for the LM head (8.5) |
+| 2017 | Guo et al., calibration of modern networks | Temperature scaling on validation data (6.5, 16.2) |
+| 2018 | Fan et al., hierarchical neural story generation | Top-$k$ sampling popularized (7.3, 12.3) |
+| 2019 | Müller et al., label smoothing revisited | Smoothing helps calibration, hurts distillation (15.2) |
+| 2019 | Stahlberg and Byrne, NMT search errors | MAP pathology is model error, not search error (13.2) |
+| 2020 | Holtzman et al., neural text degeneration | Nucleus sampling; greedy degeneration (7.4, 12.4) |
+| 2020 | Lewis et al., retrieval-augmented generation | Retrieved context raises $I(X;Y)$ for answers (9.2, 11.2) |
+| 2020 | Brown et al., GPT-3 | Autoregressive LM probability at few-shot scale (9.1) |
+
+## 30. A Softmax Jacobian Worked Numerically
+
+For $z=(2,1,0)$, $p=(0.665,0.245,0.090)$ (Problem 2). The Jacobian $J_{ij}=p_i(\delta_{ij}-p_j)$ is:
+
+| | $z_1$ | $z_2$ | $z_3$ |
+|---|---:|---:|---:|
+| $p_1$ | $0.665\times0.335=0.223$ | $-0.665\times0.245=-0.163$ | $-0.665\times0.090=-0.060$ |
+| $p_2$ | $-0.163$ | $0.245\times0.755=0.185$ | $-0.022$ |
+| $p_3$ | $-0.060$ | $-0.022$ | $0.090\times0.910=0.082$ |
+
+Every row sums to 0 (to rounding): adding a constant to all logits changes nothing (Section 3.3), so the all-ones direction is in the null space. The cross-entropy gradient $p-y$ for target token 1 is $(-0.335,0.245,0.090)$; note it is exactly the first row of $J$ with sign pattern set by $y$ — the Jacobian and the loss gradient are the same object seen from two sides, which is why Section 19.1 and 19.2 belong in one chapter.
+
+---
+
+---
+
+## 31. Choosing a Score for a Task: Decision Table
+
+| Task | Score to report | Why | Section |
+|---|---|---|---|
+| Compare two models, same tokenizer | Mean NLL / perplexity on paired documents | Identical event space; pairing removes document difficulty | 5.3, 28.1 |
+| Compare two models, different tokenizers | Bits per byte | Only tokenizer-free likelihood | 16.1 |
+| Rank candidate answers for one prompt | Mean log-prob over answer tokens | Removes prompt modelling and length artefacts as far as possible | 6.2, 9.1 |
+| Pick one generated answer to show a user | Sampled or MBR-selected completion, not MAP | The mode is often degenerate; utility is not likelihood | 12–13 |
+| Decide whether to abstain | Calibrated max-probability with a threshold | Selective prediction needs calibrated confidence | 16.2–16.3 |
+| Debug a loss that "looks too good" | Shift/mask audit numbers, then bits per byte | Leakage and mask bugs flatter NLL before they break it | 25 |
+| Report generation quality | Human/task metric plus discarded-mass logs | Likelihood does not measure generation utility | 21, 25.7 |
+| Compare a distilled student to its teacher | KL to teacher at distillation temperature, plus task NLL | One-hot NLL hides dark-knowledge transfer | 15.3 |
+
+### 31.1 The one-sentence summary of this chapter
+
+A language model is a family of conditional distributions $p_\theta(t_i\mid t_{<i})$; training minimizes their cross-entropy to data, evaluation measures that cross-entropy in tokenizer-fair units, and decoding deliberately distorts those conditionals — and almost every bug, misleading metric, or degenerate generation in LLM work is a confusion between those three operations.
+
+### 31.2 Final self-check questions
+
+1. Can you derive $p-y$ from $-\log\mathrm{softmax}(z)_y$ without looking (19.2)?
+2. Can you state when perplexity comparisons are valid and what to use instead (5.5, 16.1)?
+3. Can you compute the discarded mass of a top-$p$ filter and its TV distance (12.3)?
+4. Can you explain why greedy text loops, in distribution terms (12.4)?
+5. Can you score $p(y\mid x)$ without charging the model for the prompt (9.1)?
+6. Can you fit a temperature without touching test data (6.5)?
+7. Can you give a zero-probability failure and its smoothing fix with numbers (20–20.1)?
+
+If any answer is no, the corresponding section above is the reread; the theory notebook turns each into an executable check.
+
+---
+
+## 32. Formula Summary
+
+| Quantity | Formula | Units |
+|---|---|---|
+| Sequence probability | $p(t_{1:n})=\prod_i p(t_i\mid t_{<i})$ | probability |
+| Sequence log-probability | $\sum_i \log p(t_i\mid t_{<i})$ | nats |
+| Softmax | $p_j=e^{z_j}/\sum_k e^{z_k}$ | probability |
+| Log-softmax | $z_j-\mathrm{logsumexp}(z)$ | nats |
+| Temperature distribution | $p_j(\tau)\propto p_j^{1/\tau}$ | probability |
+| Entropy | $H(p)=-\sum_j p_j\log p_j$ | nats or bits by log base |
+| Cross-entropy | $H(p,q)=-\sum_j p_j\log q_j$ | nats |
+| KL divergence | $D_{\mathrm{KL}}(p\|q)=H(p,q)-H(p)$ | nats, $\ge0$ |
+| Perplexity | $\exp(\overline{\mathrm{NLL}})$ | effective branching factor |
+| Bits per token | $\overline{\mathrm{NLL}}/\ln2$ | bits |
+| Bits per byte | total NLL in bits / UTF-8 bytes | bits/byte |
+| Conditional entropy | $H(Y\mid X)=\mathbb{E}[-\log p(Y\mid X)]$ | nats |
+| Mutual information | $I(X;Y)=H(Y)-H(Y\mid X)$ | nats or bits |
+| PMI | $\log\frac{p(x,y)}{p(x)p(y)}$ | nats |
+| ECE | $\sum_b w_b\,|\mathrm{acc}_b-\mathrm{conf}_b|$ | probability |
+| Softmax Jacobian | $\partial p_i/\partial z_j=p_i(\delta_{ij}-p_j)$ | — |
+| CE gradient | $\nabla_z(-\log p_y)=p-y$ | — |
+| Top-$p$ discarded mass | $1-\sum_{j\in K}p_j$ | probability (= TV distance) |
+| Label-smoothed target | $(1-\varepsilon)y+\varepsilon/|V|$ | probability |
+| Monte Carlo frequency SE | $\sqrt{\hat q(1-\hat q)/n}$ | probability |
+
+## Common Mistakes
+
+| Mistake | Why Wrong | Fix |
+|---|---|---|
+| Comparing per-token perplexity across tokenizers | Different event spaces and token counts | Report bits per byte (Section 16.1) |
+| Averaging loss over padding tokens | Padding is not data; it dilutes the mean | Mask pads (Section 4.5) and count real tokens |
+| Exponentiating raw logits for softmax | Overflow for large logits | Subtract max / use log-sum-exp (Section 3.4) |
+| Calling temperature on probabilities "temperature" | Tilting acts on logits / powers of p | Use $p^{1/\tau}$ renormalization (Section 12.2) |
+| Scoring answers including prompt tokens | Measures prompt modelling, not answer quality | Average over answer tokens only (Section 9.1) |
+| Treating greedy output as the model's MAP sequence | Greedy is a local heuristic; ties are arbitrary | Beam search for MAP approx.; sample for typical text |
+| Reporting sampled-softmax loss as perplexity | Wrong normalizer | Full softmax at evaluation (Section 14.2) |
+| Assuming lower entropy is always better | A confident wrong model has low entropy and high NLL | Judge by NLL/calibration, not entropy alone |
+| Ignoring EOS in sequence probability | Strings of different lengths are then incomparable | Include the EOS factor (Section 1.2) |
+| Fitting temperature on test data | Leaks the evaluation set into a parameter | Fit on validation only (Guo et al., 2017) |
+
+---
+
 ## Practice Exercises
 
 1. Factorize a three-token sentence probability using the chain rule.
@@ -1418,6 +1958,15 @@ The model is not storing a sentence list. It is using a conditional distribution
 10. Write a short checklist for debugging an LM probability implementation.
 
 ## Why This Matters for AI
+
+| Concept | AI Impact |
+|---|---|
+| Chain-rule factorization (Section 2) | Makes sequence probability computable one conditional at a time in GPT-style models (Brown et al., 2020) |
+| Stable log-softmax (Section 3.4) | Prevents NaN losses in mixed-precision training at scale (Micikevicius et al., 2018) |
+| Perplexity / bits per byte (Sections 5, 16) | Tokenizer-fair model comparison in scaling studies (Kaplan et al., 2020) |
+| Nucleus sampling (Section 12) | Default open-ended generation in Holtzman et al. (2020) and successors |
+| Calibration / ECE (Sections 6, 16) | Confidence gating and abstention in deployed assistants (Guo et al., 2017) |
+| Label smoothing / distillation targets (Section 15) | Teacher-student compression (Hinton et al., 2015; Müller et al., 2019) |
 
 The probability layer is the contract between representation learning and text behavior. If logits are unstable, loss is masked incorrectly, probabilities are compared across incompatible tokenizations, or decoding filters are misunderstood, the model may appear to improve while the measured probability object is wrong. Strong LLM work requires comfort with this layer because it appears in pretraining, supervised fine-tuning, preference optimization, retrieval evaluation, calibration, long-context tests, and deployment decoding.
 
@@ -1436,3 +1985,17 @@ The next section studies what happens when the same cross-entropy objective is o
 - Ashish Vaswani et al., "Attention Is All You Need", 2017: https://arxiv.org/abs/1706.03762
 - Ari Holtzman et al., "The Curious Case of Neural Text Degeneration", 2019: https://arxiv.org/abs/1904.09751
 - Ofir Press et al., "Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation", 2021: https://arxiv.org/abs/2108.12409
+- Kenneth Church and Patrick Hanks, "Word Association Norms, Mutual Information, and Lexicography", Computational Linguistics, 1990.
+- Reinhard Kneser and Hermann Ney, "Improved Backing-off for M-gram Language Modeling", ICASSP, 1995.
+- Frederic Morin and Yoshua Bengio, "Hierarchical Probabilistic Neural Network Language Model", AISTATS, 2005.
+- Sebastien Jean et al., "On Using Very Large Target Vocabulary for Neural Machine Translation", ACL, 2015.
+- Edouard Grave et al., "Efficient Softmax Approximation for GPUs", ICML, 2017.
+- Geoffrey Hinton, Oriol Vinyals, and Jeff Dean, "Distilling the Knowledge in a Neural Network", 2015: https://arxiv.org/abs/1503.02531
+- Christian Szegedy et al., "Rethinking the Inception Architecture for Computer Vision", CVPR, 2016 (label smoothing).
+- Rafael Müller, Simon Kornblith, and Geoffrey Hinton, "When Does Label Smoothing Help?", NeurIPS, 2019.
+- Chuan Guo et al., "On Calibration of Modern Neural Networks", ICML, 2017.
+- Angela Fan, Mike Lewis, and Yann Dauphin, "Hierarchical Neural Story Generation", ACL, 2018 (top-k sampling).
+- Felix Stahlberg and Bill Byrne, "On NMT Search Errors and Model Errors: Cat Got Your Tongue?", EMNLP, 2019.
+- Samy Bengio et al., "Scheduled Sampling for Sequence Prediction with Recurrent Neural Networks", NeurIPS, 2015.
+- Patrick Lewis et al., "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks", NeurIPS, 2020.
+- Tom Brown et al., "Language Models are Few-Shot Learners", NeurIPS, 2020: https://arxiv.org/abs/2005.14165

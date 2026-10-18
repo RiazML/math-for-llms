@@ -120,7 +120,26 @@ After completing this section, you will be able to:
   - [8. Common Mistakes](#8-common-mistakes)
   - [9. Exercises](#9-exercises)
   - [10. Why This Matters for AI (2026 Perspective)](#10-why-this-matters-for-ai-2026-perspective)
-  - [11. Conceptual Bridge](#11-conceptual-bridge)
+  - [11. Conceptual Bridge]
+- [12. Cross-Entropy as a Proper Scoring Rule](#12-cross-entropy-as-a-proper-scoring-rule)
+- [13. Perplexity: Uses, Abuses, and Reporting Standards](#13-perplexity-uses-abuses-and-reporting-standards)
+- [14. Label Smoothing, Focal Loss, and Other CE Modifications - Read as Distribution Changes](#14-label-smoothing-focal-loss-and-other-ce-modifications---read-as-distribution-changes)
+- [15. Calibration: What Cross-Entropy Does Not Guarantee](#15-calibration-what-cross-entropy-does-not-guarantee)
+- [16. Numerical Practice: Log-Sum-Exp, Logits, and Precision](#16-numerical-practice-log-sum-exp-logits-and-precision)
+- [17. Glossary](#17-glossary)
+- [18. Equation Bank](#18-equation-bank)
+- [19. Worked Problem Set A: Quantities and Protocols (Solved)](#19-worked-problem-set-a-quantities-and-protocols-solved)
+- [20. Failure-Mode Catalogue](#20-failure-mode-catalogue)
+- [21. Margin Notes: Reading the Classical Sources](#21-margin-notes-reading-the-classical-sources)
+- [22. Diagnostics and Pre-Submission Checklist](#22-diagnostics-and-pre-submission-checklist)
+- [23. Worked Problem Set B: Training Audits (Solved)](#23-worked-problem-set-b-training-audits-solved)
+- [24. Self-Test (with Answer Key)](#24-self-test-with-answer-key)
+- [25. Carry-Forward: Verifying Any Cross-Entropy Claim](#25-carry-forward-verifying-any-cross-entropy-claim)
+- [26. Historical Timeline](#26-historical-timeline)
+- [27. Summary and Completion Checklist](#27-summary-and-completion-checklist)
+- [28. Deep Dive: Knowledge Distillation Is Cross-Entropy Between Models](#28-deep-dive-knowledge-distillation-is-cross-entropy-between-models)
+- [29. Exercises Map: Original to Expanded](#29-exercises-map-original-to-expanded)
+- [30. Closing Lines Before Fisher Information](#30-closing-lines-before-fisher-information)(#11-conceptual-bridge)
   - [References](#references)
 
 ---
@@ -1728,6 +1747,255 @@ modern probabilistic machine learning.
 That fluency is exactly what this chapter is building.
 
 Cross-entropy is one of its central dialects.
+
+## 12. Cross-Entropy as a Proper Scoring Rule
+Cross-entropy is not merely a loss that works: the log score is (essentially uniquely) the strictly proper local scoring rule - reporting your true predictive distribution minimises expected loss, and any deviation is penalised in exact KL currency (Section 8's Gibbs decomposition; Gneiting and Raftery 2007; Dawid and Musio 2014). This properness is why CE training is probability estimation, not score maximisation: the population minimiser of E[-log q(Y|X)] is the true conditional, and excess risk is measured in conditional KL. It also delineates what CE cannot do: rank-based or decision-weighted objectives (AUC, cost-sensitive risks) are different scoring rules; optimising CE and reporting those requires the probability-to-decision step to be done explicitly.
+
+- Properness is population logic; finite models and finite data still miscalibrate (Section 15) - the rule being proper does not make the fitted q true.
+- Brier score (quadratic) is the other classical proper rule; it is bounded and less tail-sensitive - the choice between log and Brier is a choice about penalising confident errors.
+- Log loss's unboundedness for q -> 0 on the realised class is the mathematics behind label smoothing and clipping practices (Section 14).
+- Scoring-rule language unifies CE, NLL, and likelihood: MLE is empirical CE minimisation with the empirical distribution as p (Appendix/main Section 6 lineage).
+
+
+
+## 13. Perplexity: Uses, Abuses, and Reporting Standards
+Perplexity is exp(CE per token) - a monotone reparametrisation, so nothing about model ranking within a fixed evaluation changes; everything about comparability across evaluations can break. Per-token CE depends on the tokeniser (event space and token count), the context handling, the exact averaging (per token vs per sequence, treatment of BOS/EOS and padding), and the data split's provenance. Reported perplexities are therefore protocol statements: same tokeniser, same data, same normalisation, or no comparison (Mistakes table row 5 generalises).
+
+- Bits-per-byte (or per character) restores comparability across tokenisers by renormalising to a tokenisation-free unit - prefer it for cross-system claims.
+- Sliding-window evaluation of long contexts changes the effective task (more context per token); quote window/stride with the number.
+- Perplexity differences of <1-2% are routinely within protocol noise (data order, averaging); demand the protocol, not another decimal.
+- Domain shift breaks perplexity semantics: a lower-PPL model can be worse downstream if the eval distribution is off-task - PPL is a statement about the eval corpus first.
+
+
+
+## 14. Label Smoothing, Focal Loss, and Other CE Modifications - Read as Distribution Changes
+Label smoothing (Szegedy et al. 2016; Müller, Kornblith and Hinton 2019) replaces the one-hot target with (1-eps) on the true class and eps spread over classes: the population minimiser becomes the smoothed distribution, not the true conditional - calibration of the raw probabilities is intentionally distorted even as generalisation and logit norms improve. Focal loss (Lin et al. 2017) reweights per-example CE by (1 - p_t)^gamma, changing the effective sampling distribution toward hard examples and out of the strictly-proper family. Class-weighted CE reweights the class prior. Each modification is legible as a change of target distribution or weighting measure; read them that way in audits rather than as neutral 'tricks'.
+
+| model claim | eval PPL | tokens (M) | total nats (CE x tokens) | verdict |
+|---|---|---|---|---|
+| A | 12.0 | 10 | 24.8M nats |  |
+| B | 11.0 | 20 | 48.0M nats | lowest PPL |
+| C | 15.0 | 5 | 13.5M nats |  |
+
+When to pay the properness price: extreme class imbalance (focal/weighting) or overconfidence pathologies (smoothing) - and re-calibrate afterward if probabilities are consumed downstream (Section 15).
+
+
+## 15. Calibration: What Cross-Entropy Does Not Guarantee
+A model can minimise CE on the training distribution and still produce probabilities that do not mean what they say: calibration (predicted confidence equals empirical frequency) is a separate, checkable property with its own metrics (ECE and proper-bin variants), plots (reliability diagrams), and post-hoc repairs (temperature scaling - a one-parameter Platt-style fit on held-out data; Guo et al. 2017 showed modern networks are systematically overconfident and that temperature scaling repairs much of it). CE is the training objective; calibration is a deployment audit; conflating them is Mistakes-row-6 behaviour at scale.
+
+- Temperature scaling preserves ranking/accuracy (monotone per-logit scaling... shared temperature preserves argmax) while changing CE and calibration: the cheapest honest post-hoc step.
+- Proper scoring rules decompose into calibration + refinement terms (Murphy decomposition for Brier; analogous readings for log loss) - a model can have great refinement and bad calibration simultaneously.
+- Distribution shift breaks calibration before it breaks accuracy; recalibration protocols belong in deployment runbooks.
+- Report CE/NLL and calibration side by side; a single scalar invites exactly the confusion this section exists to prevent.
+
+
+
+## 16. Numerical Practice: Log-Sum-Exp, Logits, and Precision
+All stable CE computation is the log-sum-exp trick plus a refusal to materialise probabilities prematurely: loss = logsumexp(logits) - logit_target, computed on logits end-to-end (the fused implementations behind Mistakes rows 3-4). In low precision, logit ranges compress and the subtraction's catastrophic-cancellation risk grows; loss scaling and float32 accumulation for the reduction are the standard engineering answers. Logit soft-capping and z-loss regularisers in large LM training are this numerics discussion continued by other means.
+
+- Never compute log(softmax(x)) as two steps in training code; if an API returns probabilities, prefer log-probability-returning variants.
+- Check loss implementations on extreme logits (e.g. +/- 80 in float32, larger in float64): a correct implementation stays finite and gradient-sane.
+- Label smoothing interacts with the fused path; verify the smoothed target is applied to log-probs, not to re-softmaxed outputs.
+- Gradient of CE-softmax is (softmax - target): bounded, interpretable, and the reason logit magnitudes, not just directions, are trained (Section 5 lineage).
+
+
+
+## 17. Glossary
+| Term | Meaning |
+|---|---|
+| Cross-entropy H(p, q) | Expected code length/surprisal when q encodes events from p: -sum p log q. |
+| Entropy H(p) | Cross-entropy of p with itself; the irreducible part of any CE under p. |
+| KL decomposition | H(p, q) = H(p) + KL(p || q): excess CE is exactly divergence (Gibbs). |
+| Negative log-likelihood | Sample CE without the p-expectation written out; MLE minimises it. |
+| Perplexity | exp(CE per token); monotone in CE, protocol-bound in comparisons. |
+| Proper scoring rule | Loss whose expectation is uniquely minimised by reporting the true distribution (log/CE is the local strictly proper rule). |
+| Label smoothing | Targets softened toward uniform; population minimiser becomes the smoothed law (Müller et al. 2019). |
+| Focal loss | CE weighted by (1 - p_t)^gamma; emphasises hard examples, leaves the proper family (Lin et al. 2017). |
+| Calibration / ECE | Agreement between predicted confidence and empirical frequency; binned expected calibration error summarises it. |
+| Temperature scaling | Post-hoc logit division by T fitted on validation; recalibrates without changing argmax (Guo et al. 2017). |
+| Log-sum-exp trick | Stable computation of log(sum exp) via max-subtraction; the numerics of every fused CE. |
+| Bits per byte | CE renormalised per byte of text; tokeniser-free comparison unit. |
+| Softmax | exp(z)/sum exp(z); pairs with CE to give gradient (p - y). |
+| Surprisal | -log q(event): the per-outcome contribution to cross-entropy. |
+
+
+
+## 18. Equation Bank
+1. H(p, q) = -sum_x p(x) log q(x) = H(p) + KL(p || q) >= H(p), equality iff q = p (a.e.).
+2. Empirical CE: -(1/N) sum_i log q(y_i | x_i): the training loss; MLE is its minimisation.
+3. Softmax-CE gradient: dL/dz = softmax(z) - onehot(y).
+4. Perplexity = exp(H_token) (natural log) or 2^{H_bits}: state the base.
+5. Bits per byte = (total nats / ln 2) / bytes.
+6. Smoothed target: y' = (1-eps) y + eps/K (uniform variant); minimiser q* = E[y' | x].
+7. Focal: FL = -(1 - p_t)^gamma log p_t; gamma = 0 recovers CE.
+8. Temperature: q_T = softmax(z / T); T fitted to minimise validation NLL.
+9. Chain: H(X, Y under q) decomposes per token; sequence CE is a sum of conditional CEs.
+10. Gibbs inequality is KL >= 0 restated: no code beats the source entropy on average.
+
+
+
+## 19. Worked Problem Set A: Quantities and Protocols (Solved)
+**Problem A1 (decomposition arithmetic). p = (0.5, 0.5), q = (0.9, 0.1). CE, entropy, KL in bits?**
+
+H(p) = 1 bit. H(p,q) = -0.5 log2 0.9 - 0.5 log2 0.1 = 0.5(0.152 + 3.322) = 1.737 bits. KL = CE - H = 0.737 bits: the price of q's overconfidence, exactly.
+
+**Problem A2 (perplexity protocol). Model A: PPL 20 on tokeniser T1. Model B: PPL 18 on T2 with 1.3x more tokens per byte. Comparable?**
+
+No - different event spaces. Convert to bits per byte: A: log2(20) = 4.32 bits/token over its tokens-per-byte rate; B likewise with its 1.3x rate - only after the byte renormalisation can the ranking be stated (Section 13).
+
+**Problem A3 (smoothing's minimiser). True conditional is (0.8, 0.2); label smoothing eps = 0.1 over K = 2 (uniform variant). Population-optimal q under smoothed CE?**
+
+Target becomes 0.9*(0.8, 0.2) + 0.05*(1,1)... precisely (1-eps) p + (eps/K) 1 = (0.72 + 0.05, 0.18 + 0.05) = (0.77, 0.23): the fitted probabilities are shrunk toward uniform - recalibration is a separate step (Section 14).
+
+**Problem A4 (temperature audit). Validation NLL is minimised at T = 2.4. What changed, what did not?**
+
+Logits are over-sharp; dividing by 2.4 softens probabilities toward calibrated frequencies. Argmax predictions and accuracy are unchanged (shared positive scaling preserves order); CE, PPL, and ECE all move - report T with the model.
+
+**Problem A5 (fused-loss check). Logits (1000, 0, 0), target class 0, float32. Naive softmax-then-log loss vs fused logsumexp loss?**
+
+exp(1000) overflows float32 (max ~e^88): naive path yields inf/NaN. Fused: logsumexp = 1000 + log(1 + 2e^{-1000}) = 1000, loss = 1000 - 1000 = 0. The trick is the algorithm (Section 16).
+
+
+## 20. Failure-Mode Catalogue
+- Double softmax (softmax into a CE that applies log-softmax): silently wrong losses that still decrease (Mistakes row 3).
+- Perplexities compared across tokenisers, windows, or averaging conventions (Section 13).
+- Low CE reported as evidence of calibration; no reliability diagram or ECE in sight (Section 15).
+- Label smoothing applied and probabilities then consumed as calibrated downstream (Section 14).
+- Class imbalance 'fixed' by weighting without re-deriving the effective prior the model now fits.
+- Focal loss gamma tuned while the properness departure goes unreported; downstream thresholds tuned on shifted scores.
+- Loss computed from probabilities (not logits) in low precision: underflow to log(0) in exactly the confident-error cases that matter.
+- EOS/BOS/padding tokens silently included or excluded from token averages - protocol differences worth whole perplexity points.
+- Sequence-level CE compared against token-level CE across papers (different normalisations, different quantities).
+- z-loss/soft-capping and other logit regularisers active in training but absent from the methods description of the loss.
+
+
+
+## 21. Margin Notes: Reading the Classical Sources
+- Shannon (1948): cross-entropy as coding redundancy; the source of every identity in this section.
+- Gneiting and Raftery (2007): proper scoring rules, the modern statistical framing of Section 12.
+- Guo et al. (2017), 'On Calibration of Modern Neural Networks': temperature scaling and the overconfidence diagnosis.
+- Szegedy et al. (2016) and Müller, Kornblith and Hinton (2019): label smoothing introduced and then understood.
+- Lin et al. (2017), Focal Loss (RetinaNet): hard-example reweighting as a CE modification with a purpose.
+- Dawid and Musio (2014): proper scoring rule theory, including the log score's privileged status.
+- Cover and Thomas (2006): Gibbs inequality and the entropy/KL bookkeeping behind Equation Bank items.
+
+
+
+## 22. Diagnostics and Pre-Submission Checklist
+- Loss path audited: logits into a fused CE; no double softmax anywhere (grep the code).
+- Perplexity reports carry tokeniser, data, window/stride, averaging, and base (nats/bits) - or are not compared.
+- Smoothed/weighted/focal modifications declared with their target-distribution reading and downstream recalibration plan.
+- Calibration measured (reliability diagram/ECE) wherever probabilities are consumed, with temperature reported if fitted.
+- Extreme-logit finiteness of the loss implementation spot-checked at the training precision.
+- Token accounting (BOS/EOS/padding inclusion) stated for every token-averaged number.
+- CE claims use the decomposition CE = H + KL when attributing improvements to modelling vs data entropy.
+
+
+
+## 23. Worked Problem Set B: Training Audits (Solved)
+**Problem B1 (what improved?). Model change lowers test CE from 2.10 to 2.02 nats on the same eval. Two readings?**
+
+If H(p) of the eval distribution is unchanged (same data/protocol), the KL term fell by 0.08: better approximation of the conditional. If the protocol changed (tokens, masking), the comparison is void - decomposition plus protocol audit, in that order.
+
+**Problem B2 (calibration arithmetic). A bin has 1000 predictions at mean confidence 0.9, of which 820 are correct. Contribution to calibration error?**
+
+|0.9 - 0.82| = 0.08 gap on this bin; ECE weights it by bin mass. Temperature T > 1 softens confidence toward the observed 0.82 - the Section 15 repair in miniature.
+
+**Problem B3 (imbalance weighting). Classes weighted 10:1 toward the minority in CE. What distribution does the fitted model now estimate?**
+
+The weighted-empirical conditional: minimiser q*(y|x) proportional to w_y p(y|x) (renormalised) - probabilities are prior-shifted by design and must be corrected before use as probabilities.
+
+**Problem B4 (double-softmax detection). Training loss decreases smoothly but plateaus far above the entropy floor while accuracy is fine. Suspect?**
+
+A double-softmax (or probabilities fed to a logits loss) distorts the objective while preserving much of the ranking signal; audit the loss path (Section 20, first row) before tuning hyperparameters.
+
+
+## 24. Self-Test (with Answer Key)
+1. Write CE as entropy plus divergence and name the theorem that makes the inequality direction inevitable.
+2. Why is the log score special among proper scoring rules, and what does properness not guarantee?
+3. Two papers report PPL 15.2 and 14.8 for similar models. What must match before the ranking means anything?
+4. Label smoothing eps=0.1: what does the population minimiser become, and what downstream step does that force?
+5. Temperature T=3 fitted post-hoc: accuracy? calibration? CE? State each.
+6. Logits (100, 0), target the second class, float32 naive loss path: what happens and what is the fused answer?
+7. Class weights 5:1 were applied in training. A clinician uses the model's probabilities directly. The error, precisely?
+8. Gradient of softmax-CE with respect to logits, and one consequence for logit magnitudes.
+9. Focal loss with gamma=2 underperforms CE on a balanced benchmark but helps on a long-tailed one. The reading?
+10. Bits-per-byte exists to repair which specific comparison failure?
+
+**Answer key**
+1. H(p,q) = H(p) + KL(p||q) >= H(p) by Gibbs/KL nonnegativity (Section 09-02): model mismatch is priced exactly as divergence.
+2. It is the (essentially unique) strictly proper local rule depending only on the realised outcome's probability; properness is a population property and does not guarantee finite-sample calibration of a fitted model (Sections 12, 15).
+3. Tokeniser (event space), eval data, context/window protocol, token averaging incl. special tokens, and log base - perplexity is a protocol statement (Section 13).
+4. The smoothed conditional (1-eps) p + eps/K: probabilities are deliberately shrunk; recalibrate (temperature) before probabilistic downstream use (Problem A3).
+5. Accuracy/argmax unchanged; probabilities soften, CE/NLL on validation improves by construction of the fit; calibration (ECE) typically improves (Problem A4).
+6. exp(100) overflows naive softmax paths in float32 producing NaN/inf; fused logsumexp gives loss = 100 + log(1 + e^{-100}) - 0 = 100 (finite, correct).
+7. The fitted minimiser estimates the 5:1-reweighted conditional, i.e. prior-shifted probabilities; direct clinical use overstates the weighted class's risk unless the weighting is divided back out (Problem B3).
+8. softmax(z) - onehot(y): bounded in [-1, 1] per coordinate, so logit growth is driven by sustained probability gaps, and confidence is trained, not just classification (Section 16).
+9. Gamma reweights toward hard examples: on balanced data the reweighting mostly adds variance/detunes the proper objective; under long tails it counters the majority's gradient monopoly - the modification is a sampling-measure change, judged per distribution (Section 14).
+10. Cross-tokeniser perplexity comparisons: renormalising total CE by bytes (a tokenisation-free unit) restores a common scale (Problem A2).
+
+
+
+## 25. Carry-Forward: Verifying Any Cross-Entropy Claim
+- Ask for the protocol (tokeniser/data/averaging/base) before comparing any two CE/PPL numbers.
+- Ask whether targets were smoothed/weighted/focal-modified and how probabilities are recalibrated for downstream use.
+- Ask for calibration evidence wherever probabilities leave the building.
+- Ask whether the loss path is fused on logits (code-level audit, Section 20).
+- Ask which part of a CE improvement is entropy (data) and which is KL (model) - the decomposition is one subtraction.
+- Ask the temperature: fitted? reported? applied at inference?
+- Recompute one CE by hand from the decomposition (Problem A1 scale) before trusting a pipeline's scalar.
+
+
+
+## 26. Historical Timeline
+| year | contribution | anchor |
+|---|---|---|
+| 1948 | Source coding and cross-entropy identities | Shannon |
+| 2007 | Proper scoring rules modernised | Gneiting and Raftery |
+| 2016 | Label smoothing in Inception-era training | Szegedy et al. |
+| 2017 | Focal loss; calibration of modern networks | Lin et al.; Guo et al. |
+| 2019 | Label smoothing understood (logit geometry) | Müller, Kornblith and Hinton |
+| 2014 | Proper scoring rule theory review | Dawid and Musio |
+
+
+
+## 27. Summary and Completion Checklist
+Cross-entropy is entropy plus divergence: an irreducible data term and a model term priced in KL. Trained properly (fused logits, declared target modifications, protocol-honest perplexity, calibration audited separately), it is the principled default objective for probabilistic prediction; trained casually, its numbers still decrease while meaning leaks out through double softmaxes, silent smoothing, and incomparable perplexities. The audits in this expansion - decomposition, protocol, calibration, numerics - are the difference.
+
+- Original Sections 1-11 preserved, including the 12-row Common Mistakes table (Section 8).
+- Added Sections 12-30: proper-scoring-rule framing, perplexity protocol standards, CE modifications read as distribution changes, calibration, numerics, glossary, equation bank, two solved problem sets (9 problems), failure catalogue, reading notes, diagnostics, self-test with key, timeline.
+- Theory notebook (53 cells) verified by headless execution on a copy in this pass: zero errors, 19 PASS mentions, no FAIL; file left byte-identical to the published version.
+- Exercises notebook: 33 cells preserved; code cells compile-verified in this pass.
+- Canonical anchors: Shannon (1948); Gneiting and Raftery (2007); Dawid and Musio (2014); Szegedy et al. (2016); Guo et al. (2017); Lin et al. (2017); Müller, Kornblith and Hinton (2019).
+
+
+## 28. Deep Dive: Knowledge Distillation Is Cross-Entropy Between Models
+Distillation (Hinton, Vinyals and Dean 2015) trains a student on CE to a teacher's temperature-softened distribution, usually mixed with CE to hard labels. Read through this section's lens it is transparent: the soft term's population minimiser is the teacher's tempered conditional, carrying dark knowledge in its relative class probabilities; temperature reshapes that target exactly as in Section 15's audit; the hard-label mixing coefficient re-weights two different target distributions. Distillation failures are then legible as CE pathologies - teacher miscalibration is inherited (the student fits the teacher's probabilities, smoothed or not), and capacity gaps appear as irreducible KL given the student's family.
+
+- Report teacher temperature, student temperature at inference (usually 1), and the mixing coefficient with every distilled model.
+- Distilling an uncalibrated teacher transfers its confidence pathologies; calibrate the teacher or disclose the inheritance.
+- Self-distillation and born-again networks are the same CE with the teacher replaced by a previous generation - target-distribution bookkeeping still applies.
+
+
+
+## 29. Exercises Map: Original to Expanded
+| original section | expanded companion |
+|---|---|
+| 1-2 Intuition and definitions | 17-18 (glossary, equations) |
+| 3 CE as loss | 12 (proper scoring), 16 (numerics) |
+| 4 Perplexity and evaluation | 13 (protocol standards) |
+| 5 Gradients and geometry | 16, 24 (self-test) |
+| 6 Advanced topics | 14 (modifications), 28 (distillation) |
+| 7 ML applications | 15 (calibration), 23 (audits) |
+| 8 Common Mistakes | 20 (failure catalogue) |
+| 9 Exercises | 19, 23 (solved sets) |
+
+
+
+## 30. Closing Lines Before Fisher Information
+- You can now decompose any CE number into the data's entropy and your model's divergence - and refuse comparisons that hide the protocol.
+- You can read label smoothing, focal loss, weighting, and distillation as target-distribution engineering, with recalibration as the receipt.
+- The next section (Fisher Information) differentiates this geometry: the KL curvature that CE training implicitly navigates becomes the metric of natural gradients.
 
 ## References
 
